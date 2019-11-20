@@ -102,6 +102,7 @@ images =
         }
     , author =
         { dillon = (buildImage [ "author", "dillon.jpg" ])
+        , philipp = (buildImage [ "author", "philipp.jpg" ])
         , directory = directoryWithoutIndex ["author"]
         }
     , elmLogo = (buildImage [ "elm-logo.svg" ])
@@ -116,6 +117,7 @@ allImages =
     [(buildImage [ "article-covers", "hello.jpg" ])
     , (buildImage [ "article-covers", "mountains.jpg" ])
     , (buildImage [ "author", "dillon.jpg" ])
+    , (buildImage [ "author", "philipp.jpg" ])
     , (buildImage [ "elm-logo.svg" ])
     , (buildImage [ "github.svg" ])
     , (buildImage [ "icon-png.png" ])
