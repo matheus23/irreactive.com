@@ -76,6 +76,7 @@ application config =
 allPages : List (PagePath PathKey)
 allPages =
     [ (buildPage [ "blog", "draft" ])
+    , (buildPage [ "blog", "functional-graphics" ])
     , (buildPage [ "blog", "hello" ])
     , (buildPage [ "blog" ])
     , (buildPage [  ])
@@ -84,6 +85,7 @@ allPages =
 pages =
     { blog =
         { draft = (buildPage [ "blog", "draft" ])
+        , functionalGraphics = (buildPage [ "blog", "functional-graphics" ])
         , hello = (buildPage [ "blog", "hello" ])
         , index = (buildPage [ "blog" ])
         , directory = directoryWithIndex ["blog"]
@@ -147,6 +149,12 @@ content =
     [ 
   ( ["blog", "draft"]
     , { frontMatter = """{"type":"blog","author":"Dillon Kearns","title":"A Draft Blog Post","description":"I'm not quite ready to share this post with the world","image":"/images/article-covers/mountains.jpg","draft":true,"published":"2019-09-21"}
+""" , body = Nothing
+    , extension = "md"
+    } )
+  ,
+  ( ["blog", "functional-graphics"]
+    , { frontMatter = """{"type":"blog","author":"Philipp Krüger","title":"Declarative and Composable Graphics","description":"A draft. (TODO CHANGE THIS)","image":"/images/article-covers/mountains.jpg","draft":true,"published":"2019-11-20"}
 """ , body = Nothing
     , extension = "md"
     } )
