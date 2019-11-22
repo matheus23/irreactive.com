@@ -10,6 +10,8 @@ import Head
 import Head.Seo as Seo
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Events as Events
+import Http
 import Index
 import MarkdownDocument
 import Metadata exposing (Metadata)
@@ -73,23 +75,41 @@ main =
 
 
 type alias Model =
-    {}
+    { subscriptionEmail : String }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model, Cmd.none )
+    ( Model "", Cmd.none )
 
 
-type alias Msg =
-    ()
+type Msg
+    = SubmitEmailSubscription
+    | SubscribeEmailAddressChange String
+    | SubscriptionEmailSubmitted (Result Http.Error ())
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        () ->
-            ( model, Cmd.none )
+        SubmitEmailSubscription ->
+            ( model
+            , Http.request
+                { method = "POST"
+                , headers = [ Http.header "Content-Type" "application/x-www-form-urlencoded" ]
+                , url = "/?form-name=email-subscription&email=" ++ model.subscriptionEmail
+                , body = Http.emptyBody
+                , expect = Http.expectWhatever SubscriptionEmailSubmitted
+                , timeout = Nothing
+                , tracker = Nothing
+                }
+            )
+
+        SubscribeEmailAddressChange subscriptionEmail ->
+            ( { model | subscriptionEmail = subscriptionEmail }, Cmd.none )
+
+        SubscriptionEmailSubmitted _ ->
+            ( { model | subscriptionEmail = "" }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -116,7 +136,7 @@ view model siteMetadata page =
 
 
 pageView : Model -> List ( PagePath Pages.PathKey, Metadata ) -> Page Metadata Rendered Pages.PathKey -> { title : String, body : Element Msg }
-pageView _ siteMetadata page =
+pageView model siteMetadata page =
     let
         renderGithubEditLink path =
             [ Element.row [ Font.size 16, Font.color (Element.rgb 0.4 0.4 0.4) ]
@@ -140,7 +160,6 @@ pageView _ siteMetadata page =
                     ]
                     [ page.view
                     ]
-                , footer
                 ]
                     |> Element.textColumn
                         [ Element.width Element.fill
@@ -174,7 +193,7 @@ pageView _ siteMetadata page =
                             :: page.view
                             :: renderGithubEditLink page.path
                         )
-                    , footer
+                    , footer model
                     ]
             }
 
@@ -184,7 +203,7 @@ pageView _ siteMetadata page =
                 Element.column [ Element.width Element.fill ]
                     [ header page.path
                     , Element.column [ Element.padding 20, Element.centerX ] [ Index.view siteMetadata ]
-                    , footer
+                    , footer model
                     ]
             }
 
@@ -223,8 +242,8 @@ header currentPath =
         ]
 
 
-footer : Element msg
-footer =
+footer : Model -> Element Msg
+footer model =
     Element.el
         [ Element.padding 20
         , Element.Region.footer
@@ -236,13 +255,21 @@ footer =
                 [ Attr.name "email-subscription"
                 , Attr.method "POST"
                 , Attr.attribute "data-netlify" "true"
+                , Events.onSubmit SubmitEmailSubscription
                 ]
                 [ Html.p []
                     [ Html.label [ Attr.for "email" ]
                         [ Html.text "Get an E-Mail for every new Post:" ]
                     ]
                 , Html.p []
-                    [ Html.input [ Attr.type_ "email", Attr.name "email", Attr.placeholder "your email address" ] []
+                    [ Html.input
+                        [ Attr.type_ "email"
+                        , Attr.name "email"
+                        , Attr.placeholder "your email address"
+                        , Events.onInput SubscribeEmailAddressChange
+                        , Attr.value model.subscriptionEmail
+                        ]
+                        []
                     , Html.button [ Attr.type_ "submit" ] [ Html.text "Get Notified" ]
                     ]
                 ]
