@@ -1,6 +1,6 @@
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
-import "./style.css";
+import "./dist/style.css";
 // @ts-ignore
 window.hljs = hljs;
 const { Elm } = require("./src/Main.elm");

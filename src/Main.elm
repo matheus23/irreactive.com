@@ -1,11 +1,8 @@
 module Main exposing (main)
 
 import Color
-import Data.Author as Author
 import Date
-import DocumentSvg
 import Element exposing (Element)
-import Element.Background
 import Element.Border
 import Element.Font as Font
 import Element.Region
@@ -14,13 +11,10 @@ import Head.Seo as Seo
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Index
-import Json.Decode
-import Markdown.Html
-import Markdown.Parser
+import MarkdownDocument
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
 import Pages.Directory as Directory exposing (Directory)
-import Pages.Document
 import Pages.ImagePath as ImagePath exposing (ImagePath)
 import Pages.Manifest as Manifest
 import Pages.Manifest.Category
@@ -71,40 +65,10 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , documents = [ markdownDocument ]
+        , documents = [ MarkdownDocument.document ]
         , head = head
         , manifest = manifest
         , canonicalSiteUrl = canonicalSiteUrl
-        }
-
-
-render renderer markdown =
-    markdown
-        |> Markdown.Parser.parse
-        |> Result.mapError deadEndsToString
-        |> Result.andThen (\ast -> Markdown.Parser.render renderer ast)
-
-
-deadEndsToString deadEnds =
-    deadEnds
-        |> List.map Markdown.Parser.deadEndToString
-        |> String.join "\n"
-
-
-markdownDocument : ( String, Pages.Document.DocumentHandler Metadata Rendered )
-markdownDocument =
-    Pages.Document.parser
-        { extension = "md"
-        , metadata = Metadata.decoder
-        , body =
-            render Markdown.Parser.defaultHtmlRenderer
-                >> Result.map
-                    (\htmlBlocks ->
-                        Html.div [] htmlBlocks
-                            |> Element.html
-                            |> List.singleton
-                            |> Element.paragraph [ Element.width Element.fill ]
-                    )
         }
 
 
@@ -152,7 +116,18 @@ view model siteMetadata page =
 
 
 pageView : Model -> List ( PagePath Pages.PathKey, Metadata ) -> Page Metadata Rendered Pages.PathKey -> { title : String, body : Element Msg }
-pageView model siteMetadata page =
+pageView _ siteMetadata page =
+    let
+        renderGithubEditLink path =
+            [ Element.row [ Font.size 16, Font.color (Element.rgb 0.4 0.4 0.4) ]
+                [ Element.text "Found a typo? "
+                , Element.link [ Font.underline, Font.color Palette.color.primary ]
+                    { label = Element.text "Edit this page GitHub."
+                    , url = githubRepo ++ "/edit/master/content" ++ PagePath.toString path ++ ".md"
+                    }
+                ]
+            ]
+    in
     case page.metadata of
         Metadata.Page metadata ->
             { title = metadata.title
@@ -165,6 +140,7 @@ pageView model siteMetadata page =
                     ]
                     [ page.view
                     ]
+                , footer
                 ]
                     |> Element.textColumn
                         [ Element.width Element.fill
@@ -183,44 +159,22 @@ pageView model siteMetadata page =
                         , Element.width (Element.fill |> Element.maximum 800)
                         , Element.centerX
                         ]
-                        (Element.column [ Element.spacing 10 ]
-                            [ Element.row [ Element.spacing 10 ]
-                                [ Author.view [] metadata.author
-                                , Element.column [ Element.spacing 10, Element.width Element.fill ]
-                                    [ Element.paragraph [ Font.bold, Font.size 24 ]
-                                        [ Element.text metadata.author.name
-                                        ]
-                                    , Element.paragraph [ Font.size 16 ]
-                                        [ Element.text metadata.author.bio ]
-                                    ]
-                                ]
+                        (Element.row
+                            [ Element.spacing 10
+                            , Element.centerX
+                            , Font.size 16
+                            , Font.color (Element.rgb 0.4 0.4 0.4)
                             ]
-                            :: (publishedDateView metadata |> Element.el [ Font.size 16, Font.color (Element.rgba255 0 0 0 0.6) ])
+                            [ Element.text metadata.author
+                            , Element.text "•"
+                            , Element.text (metadata.published |> Date.format "MMMM ddd, yyyy")
+                            ]
                             :: Palette.blogHeading metadata.title
                             :: articleImageView metadata.image
-                            :: [ page.view ]
+                            :: page.view
+                            :: renderGithubEditLink page.path
                         )
-                    ]
-            }
-
-        Metadata.Author author ->
-            { title = author.name
-            , body =
-                Element.column
-                    [ Element.width Element.fill
-                    ]
-                    [ header page.path
-                    , Element.column
-                        [ Element.padding 30
-                        , Element.spacing 20
-                        , Element.Region.mainContent
-                        , Element.width (Element.fill |> Element.maximum 800)
-                        , Element.centerX
-                        ]
-                        [ Palette.blogHeading author.name
-                        , Author.view [] author
-                        , Element.paragraph [ Element.centerX, Font.center ] [ page.view ]
-                        ]
+                    , footer
                     ]
             }
 
@@ -230,6 +184,7 @@ pageView model siteMetadata page =
                 Element.column [ Element.width Element.fill ]
                     [ header page.path
                     , Element.column [ Element.padding 20, Element.centerX ] [ Index.view siteMetadata ]
+                    , footer
                     ]
             }
 
@@ -245,19 +200,7 @@ articleImageView articleImage =
 header : PagePath Pages.PathKey -> Element msg
 header currentPath =
     Element.column [ Element.width Element.fill ]
-        [ Element.el
-            [ Element.height (Element.px 4)
-            , Element.width Element.fill
-            , Element.Background.gradient
-                { angle = 0.2
-                , steps =
-                    [ Element.rgb255 0 242 96
-                    , Element.rgb255 5 117 230
-                    ]
-                }
-            ]
-            Element.none
-        , Element.row
+        [ Element.row
             [ Element.paddingXY 25 4
             , Element.spaceEvenly
             , Element.width Element.fill
@@ -269,8 +212,7 @@ header currentPath =
                 { url = "/"
                 , label =
                     Element.row [ Font.size 30, Element.spacing 16 ]
-                        [ DocumentSvg.view
-                        , Element.text siteName
+                        [ Element.text siteName
                         ]
                 }
             , Element.row [ Element.spacing 15 ]
@@ -279,6 +221,33 @@ header currentPath =
                 ]
             ]
         ]
+
+
+footer : Element msg
+footer =
+    Element.el
+        [ Element.padding 20
+        , Element.Region.footer
+        , Element.width (Element.fill |> Element.maximum 800)
+        , Element.centerX
+        ]
+        (Element.html
+            (Html.form
+                [ Attr.name "email-subscription"
+                , Attr.method "POST"
+                , Attr.attribute "data-netlify" "true"
+                ]
+                [ Html.p []
+                    [ Html.label [ Attr.for "email" ]
+                        [ Html.text "Get an E-Mail for every new Post:" ]
+                    ]
+                , Html.p []
+                    [ Html.input [ Attr.type_ "email", Attr.name "email", Attr.placeholder "your email address" ] []
+                    , Html.button [ Attr.type_ "submit" ] [ Html.text "Get Notified" ]
+                    ]
+                ]
+            )
+        )
 
 
 highlightableLink :
@@ -293,12 +262,12 @@ highlightableLink currentPath linkDirectory displayName =
     in
     Element.link
         (if isHighlighted then
+            []
+
+         else
             [ Font.underline
             , Font.color Palette.color.primary
             ]
-
-         else
-            []
         )
         { url = linkDirectory |> Directory.indexPath |> PagePath.toString
         , label = Element.text displayName
@@ -351,41 +320,6 @@ head metadata =
                     , expirationTime = Nothing
                     }
 
-        Metadata.Author meta ->
-            let
-                ( firstName, lastName ) =
-                    case meta.name |> String.split " " of
-                        [ first, last ] ->
-                            ( first, last )
-
-                        [ first, middle, last ] ->
-                            ( first ++ " " ++ middle, last )
-
-                        [] ->
-                            ( "", "" )
-
-                        _ ->
-                            ( meta.name, "" )
-            in
-            Seo.summary
-                { canonicalUrlOverride = Nothing
-                , siteName = siteName
-                , image =
-                    { url = meta.avatar
-                    , alt = meta.name ++ "'s articles."
-                    , dimensions = Nothing
-                    , mimeType = Nothing
-                    }
-                , description = meta.bio
-                , locale = Nothing
-                , title = meta.name ++ "'s articles."
-                }
-                |> Seo.profile
-                    { firstName = firstName
-                    , lastName = lastName
-                    , username = Nothing
-                    }
-
         Metadata.BlogIndex ->
             Seo.summaryLarge
                 { canonicalUrlOverride = Nothing
@@ -408,17 +342,15 @@ canonicalSiteUrl =
     "https://TODO.netlify.com/"
 
 
-publishedDateView metadata =
-    Element.text
-        (metadata.published
-            |> Date.format "MMMM ddd, yyyy"
-        )
+githubRepo : String
+githubRepo =
+    "https://github.com/matheus23/website"
 
 
 githubRepoLink : Element msg
 githubRepoLink =
     Element.newTabLink []
-        { url = "https://github.com/matheus23/website"
+        { url = githubRepo
         , label =
             Element.image
                 [ Element.width (Element.px 22)

@@ -1,6 +1,5 @@
 module Index exposing (view)
 
-import Data.Author
 import Date
 import Element exposing (Element)
 import Element.Border
@@ -8,7 +7,6 @@ import Element.Font
 import Metadata exposing (Metadata)
 import Pages
 import Pages.PagePath as PagePath exposing (PagePath)
-import Pages.Platform exposing (Page)
 
 
 view :
@@ -20,10 +18,7 @@ view posts =
             |> List.filterMap
                 (\( path, metadata ) ->
                     case metadata of
-                        Metadata.Page meta ->
-                            Nothing
-
-                        Metadata.Author _ ->
+                        Metadata.Page _ ->
                             Nothing
 
                         Metadata.Article meta ->
@@ -82,6 +77,7 @@ articleIndex metadata =
         (postPreview metadata)
 
 
+readMoreLink : Element msg
 readMoreLink =
     Element.text "Continue reading >>"
         |> Element.el
@@ -104,8 +100,7 @@ postPreview post =
         ]
         [ title post.title
         , Element.row [ Element.spacing 10, Element.centerX ]
-            [ Data.Author.view [ Element.width (Element.px 40) ] post.author
-            , Element.text post.author.name
+            [ Element.text post.author
             , Element.text "•"
             , Element.text (post.published |> Date.format "MMMM ddd, yyyy")
             ]
