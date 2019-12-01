@@ -1,9 +1,10 @@
 module MarkdownDocument exposing (..)
 
-import Element exposing (Element)
+import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Markdown.Parser
+import Markdown.Html
+import Markdown.Parser exposing (defaultHtmlRenderer)
 import Metadata exposing (Metadata)
 import Pages.Document
 
@@ -21,7 +22,7 @@ deadEndsToString deadEnds =
         |> String.join "\n"
 
 
-document : ( String, Pages.Document.DocumentHandler Metadata (Element msg) )
+document : ( String, Pages.Document.DocumentHandler Metadata (Model -> Html Msg) )
 document =
     Pages.Document.parser
         { extension = "md"
@@ -29,49 +30,95 @@ document =
         , body =
             render customHtmlRenderer
                 >> Result.map
-                    (\htmlBlocks ->
-                        Html.div [] htmlBlocks
-                            |> Element.html
-                            |> List.singleton
-                            |> Element.paragraph [ Element.spacing 12, Element.width Element.fill ]
+                    (\children model ->
+                        Html.main_ [ Attr.class "content" ]
+                            (applyModel children model)
                     )
         }
 
 
-customHtmlRenderer : Markdown.Parser.Renderer (Html msg)
-customHtmlRenderer =
-    let
-        centeredImage : { src : String } -> String -> Result String (Html msg)
-        centeredImage { src } altText =
-            Ok
-                (Html.div
-                    [ Attr.style "display" "flex"
-                    , Attr.style "flex-direction" "column"
-                    , Attr.style "align-items" "center"
-                    , Attr.style "justify-content" "middle"
-                    , Attr.style "width" "100%"
-                    , Attr.style "margin" "0 20px"
-                    ]
-                    [ Html.img
-                        [ Attr.src src
-                        , Attr.alt altText
-                        , Attr.style "border" "1px solid #ebebeb"
-                        , Attr.style "box-shadow" "1px 3px 4px rgba(0, 0, 0, 0.2)"
-                        ]
-                        []
-                    , Html.span
-                        [ Attr.style "text-align" "center"
-                        , Attr.style "font-size" "16px"
-                        , Attr.style "color" "rgb(102, 102, 102)"
-                        , Attr.style "margin-top" "10px"
-                        ]
-                        [ Html.text altText ]
-                    ]
-                )
+applyModel : List (m -> a) -> m -> List a
+applyModel ls m =
+    List.map ((|>) m) ls
 
-        default =
-            Markdown.Parser.defaultHtmlRenderer
-    in
-    { default
-        | image = centeredImage
+
+customHtmlRenderer : Markdown.Parser.Renderer (Model -> Html Msg)
+customHtmlRenderer =
+    defaultHtmlRenderer
+        |> bumpHeadings 1
+        |> rendererReader
+            (Markdown.Html.oneOf
+                [ imgCaptioned, carusel, markdownEl ]
+            )
+            (\link content ->
+                Ok <|
+                    \r ->
+                        Html.a [ Attr.href link.destination ] (applyModel content r)
+            )
+
+
+type alias LinkRenderer view =
+    { title : Maybe String
+    , destination : String
     }
+    -> List view
+    -> Result String view
+
+
+rendererReader :
+    Markdown.Html.Renderer (List (r -> view) -> r -> view)
+    -> LinkRenderer (r -> view)
+    -> Markdown.Parser.Renderer view
+    -> Markdown.Parser.Renderer (r -> view)
+rendererReader htmlRenderer linkRenderer renderer =
+    { heading =
+        \{ level, rawText, children } r ->
+            renderer.heading { level = level, rawText = rawText, children = applyModel children r }
+    , raw = \children r -> renderer.raw (applyModel children r)
+    , html = htmlRenderer
+    , plain = \text _ -> renderer.plain text
+    , code = \text _ -> renderer.code text
+    , bold = \text _ -> renderer.bold text
+    , italic = \text _ -> renderer.italic text
+    , link = linkRenderer
+    , image =
+        \info description ->
+            renderer.image info description
+                |> Result.map always
+    , list = \children r -> renderer.list (applyModel children r)
+    , codeBlock = \info _ -> renderer.codeBlock info
+    , thematicBreak = \_ -> renderer.thematicBreak
+    }
+
+
+bumpHeadings : Int -> Markdown.Parser.Renderer view -> Markdown.Parser.Renderer view
+bumpHeadings by renderer =
+    { renderer | heading = \info -> renderer.heading { info | level = info.level + by } }
+
+
+imgCaptioned : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+imgCaptioned =
+    Markdown.Html.tag "ImgCaptioned"
+        (\src alt children model ->
+            Html.figure []
+                [ Html.img [ Attr.src src, Attr.alt alt ] []
+                , Html.figcaption [] (applyModel children model)
+                ]
+        )
+        |> Markdown.Html.withAttribute "src"
+        |> Markdown.Html.withAttribute "alt"
+
+
+carusel : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+carusel =
+    Markdown.Html.tag "Carusel"
+        (\children model ->
+            Html.ul [ Attr.class "carusel" ]
+                (applyModel children model)
+        )
+
+
+markdownEl : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+markdownEl =
+    Markdown.Html.tag "Markdown"
+        (\children model -> Html.div [ Attr.class "markdown" ] (applyModel children model))

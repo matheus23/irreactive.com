@@ -5,29 +5,63 @@
   "title": "My Motivation for Creating Human Computer Interfaces",
   "description": "A draft. (TODO CHANGE THIS)",
   "image": "/images/article-covers/fittslist.png",
-  "draft": true,
+  "draft": false,
   "published": "2019-11-21",
 }
 ---
+
+TODO: Optimize article cover image
 
 Why do computers exist? What makes them so useful?
 I have asked myself this question many times. Some answer this question in terms of the automation capabilities of computers, but I don't think that's it. I can imagine telling a person "I need a website, please build one for me. I have following goals and $10000" and wait 4 months until that person comes back at me and says: "Hey, it's done. Do you like it?".
 
 Sounds pretty automatic to me.
 
-But I can't imagine a computer could do this yet, _at all_. That doesn't mean a computer is not useful, but it's not automatic either. Please don't get me wrong: I don't think trying to achieve this automation is desirable, because that is just not something computers are good at. To create a website with a computer today, you have to continually interact with it, until you're satisfied. And the interaction bit is the user interface stuff. This is the way I like working with the computer and I want it to become better at this and I want more human-computer interaction in the future.
+But I'm pretty sure computers are *very* far from doing something like that, as of yet. That doesn't mean a computer is not useful, but it's not automatic either. Please don't get me wrong: I don't think trying to achieve this automation is desirable, because that is just not something computers are good at. To create a website with a computer today, you have to continually interact with it, until you're satisfied. And the interaction bit is the user interface stuff. This is the way I like working with the computer and I want it to become better at this and I want more human-computer interaction in the future.
 
-I like to think of a computer more as an extension of your arm. Kind of like a tool, like a screwdriver or a hammer.
+I like to think of a computer more like an extension of your arm. Kind of like a tool, like a screwdriver or a hammer.
 
-This way of working with a computer is here to stay for a long time. If you're not convinced about that, let me show you this part of a paper:
+This way of working with a computer is here to stay for a long time. If you're not convinced about that, take a look at this:
 
-![A scan of a paper that contains Paul M. Fitts' comparison of humans and machines](/images/content/FirstMABAMABA.png)
+<Carusel>
+<ImgCaptioned src="/images/content/FirstMABAMABA.png" alt="A scan of a paper that contains Paul M. Fitts' comparison of humans and machines">
+A scan of a paper that contains Paul M. Fitts' comparison of humans and machines
+</ImgCaptioned>
+<Markdown>
+*Men versus Machines.* In this section we have considered the roles men and machines should have in the future air navigation and traffic control system. We have surveyed the kinds of things men can do better than present-day machines, and vice versa.
+Humans appear to surpass present-day machines in the following:
 
-This is the researcher Paul M. Fitts who identified tasks that machines are better at than humans and the other way around. This is known today as the "MABA-MABA-list" (Men are better at - Machines are better at) or the "Fitts list".
+1. Ability to detect small amount of visual or acoustic energy.
 
-He analized this so he could choose the best interaction interface border between a human and an autopilot flight controller. It is crucial that the human will perform the tasks he can do better than the machine and the other way around. This paper was published in 1951.
+2. Ability to percieve patterns of light or sound.
 
-I won't argue that everything on this list still applies today, but what I take away is that, in my subjective experience, computer programming is taught to be about what happened after pressing enter in a terminal way more than about what happens at the interaction boundary between us and this medium (the computer). Maybe technology would have evolved better, if this focus were different?
+3. Ability to improvise and use flexible procedures.
+
+4. Ability to store very large amounts of information for long periods and to recall relevant facts at the appropriate time.
+
+5. Ability to reason inductively.
+
+6. Ability to exercise judgment.
+
+Present-day machines appear to surpass humans in respect to the following:
+
+1. Ability to respond quickly to control signals, and to apply great force smoothly and precisely.
+
+2. Ability to perform repetitive, routine tasks.
+
+3. Ability to store information briefly and then to erase it completely.
+
+4. Ability to reason deductively, including computational ability.
+
+5. Ability to handle highly complex operations, i.e. to do many things at once.
+</Markdown>
+</Carusel>
+
+This is was written by the researcher Paul M. Fitts, who identified tasks that machines are better at than humans and the other way around and is known today as the "MABA-MABA-list" (Men are better at - Machines are better at) or the "Fitts list".
+
+He analized this to determine the best interaction interface border between a human and an autopilot flight controller. It is crucial that the human will perform the tasks he can do better than the machine and the other way around. This paper was published in 1951.
+
+I won't argue that everything on this list still applies today, but what I take away is that, in my subjective experience, computer programming is taught to be about what happened after pressing enter in a terminal way more than about what happens at the interaction boundary between us and this medium (the computer). Would technology have evolved for the better if this focus were different?
 
 Even outside of autopilot design I think this careful consideration of which tasks humans and which tasks machines are better at and the careful design of the interface in between is important. It also applies to productivity tools, e-mail clients, operating systems, programming language compilers, theorem provers and probably everything else.
 
@@ -36,8 +70,9 @@ More playing with your type error, more understanding why something didn't match
 More inspecting and changing the automatic prover that got stuck.
 So more flexibility, as it is possible to not only observe the programs behavior, but also change it.
 More utilizing the 'Ability to improvise and use flexible procedures'.
+And I think the best way to enable such rich interfaces are graphical user interfaces (GUIs).
 
-But I hate writing graphical user interfaces (GUIs). And I think many others do too. And I think that's why we don't have great interfaces for great programs.
+**But I hate writing GUIs.** And I think many others do too. And I think that's why we don't have great interfaces for great programs.
 
 In my experience most GUIs are 90% boring, old, re-usable components: Buttons, images, text labels and input fields. The remaining 10% are the critical parts of most GUIs: They're the direct interface to the business logic that makes your program unique.
 
@@ -53,6 +88,12 @@ Compared to JavaFX, Qt, or Gtk, in Elm or React you suddenly lost the ability to
 And wheras you could write your own 'LayoutManagers' in JavaFX, you would have to wait until css subgrid support was widely available in all browsers, for example.
 
 Again, I'm left frustrated with the current state of user interface libraries. Writing user interfaces in object-oriented programming languages is a mess of mutable state and side-effects in listeners that make it hard to reason about side-effect order and invariants. It is diffing before-and-after states (virtual-dom) hacks in functional programming that makes it hard to work with the hidden mutable state that so often contains crutial information: Positions, layout, cursors, etc. It is this cram-all-features-into-one hack of browser DOM that makes chrome, firefox and electron use immense amounts of power and cpu.
+
+# All Icing, no Cake
+
+All I have been doing so far is rambling about how important I believe GUIs are and how bad my experiences of writing them has been, but you probably noticed I have not proposed any solutions, yet.
+
+
 
 Maybe I can try improving the UI situation.
 

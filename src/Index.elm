@@ -1,19 +1,16 @@
 module Index exposing (view)
 
 import Date
-import Element exposing (Element)
-import Element.Border
-import Element.Font
+import Html exposing (Html)
+import Html.Attributes as Attr
 import Metadata exposing (Metadata)
 import Pages
 import Pages.PagePath as PagePath exposing (PagePath)
 
 
-view :
-    List ( PagePath Pages.PathKey, Metadata )
-    -> Element msg
+view : List ( PagePath Pages.PathKey, Metadata ) -> Html msg
 view posts =
-    Element.column [ Element.spacing 20 ]
+    Html.ul []
         (posts
             |> List.filterMap
                 (\( path, metadata ) ->
@@ -35,82 +32,35 @@ view posts =
         )
 
 
-postSummary :
-    ( PagePath Pages.PathKey, Metadata.ArticleMetadata )
-    -> Element msg
+postSummary : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
 postSummary ( postPath, post ) =
-    articleIndex post
-        |> linkToPost postPath
+    linkToPost postPath (postPreview post)
 
 
-linkToPost : PagePath Pages.PathKey -> Element msg -> Element msg
-linkToPost postPath content =
-    Element.link [ Element.width Element.fill ]
-        { url = PagePath.toString postPath, label = content }
+linkToPost : PagePath Pages.PathKey -> List (Html msg) -> Html msg
+linkToPost postPath =
+    Html.a [ Attr.href (PagePath.toString postPath) ]
 
 
-title : String -> Element msg
+title : String -> Html msg
 title text =
-    [ Element.text text ]
-        |> Element.paragraph
-            [ Element.Font.size 36
-            , Element.Font.center
-            , Element.Font.family [ Element.Font.typeface "Raleway" ]
-            , Element.Font.semiBold
-            , Element.padding 16
-            ]
+    Html.h2 []
+        [ Html.text text ]
 
 
-articleIndex : Metadata.ArticleMetadata -> Element msg
-articleIndex metadata =
-    Element.el
-        [ Element.centerX
-        , Element.width (Element.maximum 800 Element.fill)
-        , Element.padding 40
-        , Element.spacing 10
-        , Element.Border.width 1
-        , Element.Border.color (Element.rgba255 0 0 0 0.1)
-        , Element.mouseOver
-            [ Element.Border.color (Element.rgba255 0 0 0 1)
-            ]
-        ]
-        (postPreview metadata)
-
-
-readMoreLink : Element msg
+readMoreLink : Html msg
 readMoreLink =
-    Element.text "Continue reading >>"
-        |> Element.el
-            [ Element.centerX
-            , Element.Font.size 18
-            , Element.alpha 0.6
-            , Element.mouseOver [ Element.alpha 1 ]
-            , Element.Font.underline
-            , Element.Font.center
-            ]
+    Html.a [] [ Html.text "Continue reading >>" ]
 
 
-postPreview : Metadata.ArticleMetadata -> Element msg
+postPreview : Metadata.ArticleMetadata -> List (Html msg)
 postPreview post =
-    Element.textColumn
-        [ Element.centerX
-        , Element.width Element.fill
-        , Element.spacing 30
-        , Element.Font.size 18
+    [ title post.title
+    , Html.section []
+        [ Html.text post.author
+        , Html.text "•"
+        , Html.time [] [ Html.text (Date.format "MMMM ddd, yyyy" post.published) ]
         ]
-        [ title post.title
-        , Element.row [ Element.spacing 10, Element.centerX ]
-            [ Element.text post.author
-            , Element.text "•"
-            , Element.text (post.published |> Date.format "MMMM ddd, yyyy")
-            ]
-        , post.description
-            |> Element.text
-            |> List.singleton
-            |> Element.paragraph
-                [ Element.Font.size 22
-                , Element.Font.center
-                , Element.Font.family [ Element.Font.typeface "Raleway" ]
-                ]
-        , readMoreLink
-        ]
+    , Html.text post.description
+    , readMoreLink
+    ]
