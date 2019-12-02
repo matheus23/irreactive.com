@@ -16,10 +16,14 @@ Lists, Sums, Products
 
 computing powers with balanced trees
 
-Combining monoids: Average, (Mean?)
+Combining monoids: Average, (Mean?), Voting
 
 Caching:
   Comparing inputs to faster compare monoids
   Applying diffs on inputs with monoid tree caches
 
 Parallelizing: associativity
+
+# Atomic Monoids
+
+# Transforming (/Combining) Monoids

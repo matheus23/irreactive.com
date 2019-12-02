@@ -134,9 +134,11 @@ article {
         }
 
         figure {
-            img {
+            img,
+            video {
                 display: block;
                 max-width: 100%;
+                max-height: 720px;
                 margin: 0 auto;
             }
             margin: $space-m 0;
@@ -165,6 +167,22 @@ article {
                 position: absolute;
                 background-color: $main-accent;
                 content: "";
+            }
+        }
+
+        .carusel {
+            display: flex;
+            flex-direction: row;
+            max-width: 100%;
+            overflow-x: scroll;
+            scroll-snap-type: x mandatory;
+
+            border: 1px solid $gray;
+
+            > * {
+                min-width: 100%;
+                margin: auto 0;
+                scroll-snap-align: start;
             }
         }
     }
