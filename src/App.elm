@@ -1,12 +1,6 @@
 module App exposing (..)
 
 import Http
-import Pages exposing (images, pages)
-import Pages.Directory as Directory exposing (Directory)
-import Pages.ImagePath as ImagePath exposing (ImagePath)
-import Pages.Manifest as Manifest
-import Pages.Manifest.Category
-import Pages.PagePath as PagePath exposing (PagePath)
 import Url.Builder as Url
 
 

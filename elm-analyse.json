@@ -1,0 +1,11 @@
+{
+    "excludedPaths": [
+        "gen/"
+    ],
+    "checks": {
+        "NoTopLevelSignature": false,
+        "ExposeAll": false,
+        "SingleFieldRecord": false,
+        "ImportAll": false
+    }
+}

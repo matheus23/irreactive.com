@@ -13,7 +13,7 @@ import MarkdownDocument
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
 import Pages.Directory as Directory exposing (Directory)
-import Pages.ImagePath as ImagePath exposing (ImagePath)
+import Pages.ImagePath as ImagePath
 import Pages.Manifest as Manifest
 import Pages.Manifest.Category
 import Pages.PagePath as PagePath exposing (PagePath)
@@ -251,14 +251,17 @@ githubRepo =
     "https://github.com/matheus23/website"
 
 
-githubRepoLink : Html msg
-githubRepoLink =
-    Html.a
-        [ Attr.href githubRepo ]
-        [ Html.img
-            [ Attr.src (ImagePath.toString Pages.images.github)
-            , Attr.style "width" "22px"
-            , Attr.alt "GitHub repository TODO"
-            ]
-            []
-        ]
+
+{- I don't think I need this
+   githubRepoLink : Html msg
+   githubRepoLink =
+       Html.a
+           [ Attr.href githubRepo ]
+           [ Html.img
+               [ Attr.src (ImagePath.toString Pages.images.github)
+               , Attr.style "width" "22px"
+               , Attr.alt "GitHub repository"
+               ]
+               []
+           ]
+-}

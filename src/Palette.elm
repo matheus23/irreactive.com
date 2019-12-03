@@ -1,8 +1,5 @@
 module Palette exposing (..)
 
-import Html exposing (Html)
-import Html.Attributes as Attr
-
 
 color : { primary : String, secondary : String }
 color =
