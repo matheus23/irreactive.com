@@ -154,7 +154,8 @@ article {
             margin: 0;
         }
 
-        h2 {
+        h2,
+        h3 {
             margin-left: $space-m;
             position: relative;
 
@@ -165,9 +166,20 @@ article {
                 top: 0;
                 bottom: 0;
                 position: absolute;
-                background-color: $main-accent;
                 content: "";
             }
+        }
+
+        h2::before {
+            background-color: $main-accent;
+        }
+
+        h3::before {
+            background-color: $gray;
+        }
+
+        h4 {
+            margin-left: $space-l;
         }
 
         .carusel {
