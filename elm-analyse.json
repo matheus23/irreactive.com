@@ -1,11 +1,13 @@
 {
     "excludedPaths": [
-        "gen/"
+        "gen/",
+        "elm-markdown/"
     ],
     "checks": {
         "NoTopLevelSignature": false,
         "ExposeAll": false,
         "SingleFieldRecord": false,
-        "ImportAll": false
+        "ImportAll": false,
+        "MultiLineRecordFormatting": false
     }
 }
