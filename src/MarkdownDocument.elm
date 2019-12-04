@@ -33,14 +33,14 @@ document =
                 >> Result.map
                     (\children model ->
                         Html.main_ [ Attr.class "content" ]
-                            (applyModel children model)
+                            (applyModel model children)
                     )
         }
 
 
-applyModel : List (m -> a) -> m -> List a
-applyModel ls m =
-    List.map ((|>) m) ls
+applyModel : m -> List (m -> a) -> List a
+applyModel m =
+    List.map ((|>) m)
 
 
 customHtmlRenderer : Markdown.Parser.Renderer (Model -> Html Msg)
@@ -59,7 +59,7 @@ customHtmlRenderer =
             (\link content ->
                 Ok <|
                     \r ->
-                        Html.a [ Attr.href link.destination ] (applyModel content r)
+                        Html.a [ Attr.href link.destination ] (applyModel r content)
             )
 
 
@@ -79,8 +79,8 @@ rendererReader :
 rendererReader htmlRenderer linkRenderer renderer =
     { heading =
         \{ level, rawText, children } r ->
-            renderer.heading { level = level, rawText = rawText, children = applyModel children r }
-    , raw = \children r -> renderer.raw (applyModel children r)
+            renderer.heading { level = level, rawText = rawText, children = applyModel r children }
+    , raw = \children r -> renderer.raw (applyModel r children)
     , html = htmlRenderer
     , plain = \text _ -> renderer.plain text
     , code = \text _ -> renderer.code text
@@ -91,7 +91,8 @@ rendererReader htmlRenderer linkRenderer renderer =
         \info description ->
             renderer.image info description
                 |> Result.map always
-    , list = \children r -> renderer.list (applyModel children r)
+    , unorderedList = \children r -> renderer.unorderedList (List.map (applyModel r) children)
+    , orderedList = \num children r -> renderer.orderedList num (List.map (applyModel r) children)
     , codeBlock = \info _ -> renderer.codeBlock info
     , thematicBreak = \_ -> renderer.thematicBreak
     }
@@ -108,7 +109,7 @@ anythingCaptioned tagName attributes =
         (\src alt idAttrs children model ->
             Html.figure idAttrs
                 [ Html.node tagName (Attr.src src :: Attr.alt alt :: attributes) []
-                , Html.figcaption [] (applyModel children model)
+                , Html.figcaption [] (applyModel model children)
                 ]
         )
         |> Markdown.Html.withAttribute "src"
@@ -121,7 +122,7 @@ carusel =
     Markdown.Html.tag "Carusel"
         (\children model ->
             Html.div [ Attr.class "carusel" ]
-                (applyModel children model)
+                (applyModel model children)
         )
 
 
@@ -131,7 +132,7 @@ markdownEl =
         (\idAttrs children model ->
             Html.div
                 (Attr.class "markdown" :: idAttrs)
-                (applyModel children model)
+                (applyModel model children)
         )
         |> withOptionalIdTag
 
@@ -156,7 +157,7 @@ numberedList =
     Markdown.Html.tag "NumberedList"
         (\children model ->
             Html.ol []
-                (applyModel children model
+                (applyModel model children
                     |> List.indexedMap
                         (\index el ->
                             Html.li []

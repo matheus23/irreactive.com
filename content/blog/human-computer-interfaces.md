@@ -29,27 +29,18 @@ This way of working with a computer is here to stay for a long time. If you're n
 Humans appear to surpass present-day machines in the following:
 
 1. Ability to detect small amount of visual or acoustic energy.
-
 2. Ability to percieve patterns of light or sound.
-
 3. Ability to improvise and use flexible procedures.
-
 4. Ability to store very large amounts of information for long periods and to recall relevant facts at the appropriate time.
-
 5. Ability to reason inductively.
-
 6. Ability to exercise judgment.
 
 Present-day machines appear to surpass humans in respect to the following:
 
 1. Ability to respond quickly to control signals, and to apply great force smoothly and precisely.
-
 2. Ability to perform repetitive, routine tasks.
-
 3. Ability to store information briefly and then to erase it completely.
-
 4. Ability to reason deductively, including computational ability.
-
 5. Ability to handle highly complex operations, i.e. to do many things at once.
 </Markdown>
 <ImgCaptioned id="maba-maba-image" src="/images/content/FirstMABAMABA.png" alt="A scan of a paper that contains Paul M. Fitts' comparison of humans and machines">
