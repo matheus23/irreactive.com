@@ -36,11 +36,15 @@ type Msg
     = SubmitEmailSubscription
     | SubscribeEmailAddressChange String
     | SubscriptionEmailSubmitted (Result Http.Error ())
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         SubmitEmailSubscription ->
             ( model
             , Http.request

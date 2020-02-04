@@ -17,7 +17,8 @@ import Pages.ImagePath as ImagePath
 import Pages.Manifest as Manifest
 import Pages.Manifest.Category
 import Pages.PagePath as PagePath exposing (PagePath)
-import Pages.Platform exposing (Page)
+import Pages.Platform
+import Pages.StaticHttp as StaticHttp
 import Palette
 
 
@@ -39,20 +40,26 @@ manifest =
 
 main : Pages.Platform.Program Model Msg Metadata (Model -> Html Msg)
 main =
-    Pages.application
-        { init = init
-        , view = view
+    Pages.Platform.application
+        { init = \_ -> init
+        , view =
+            \siteMetadata page ->
+                StaticHttp.succeed
+                    { view = \model -> pageView model siteMetadata page
+                    , head = head page.frontmatter
+                    }
         , update = update
         , subscriptions = subscriptions
         , documents = [ MarkdownDocument.document ]
-        , head = head
+        , onPageChange = \_ -> NoOp
         , manifest = manifest
         , canonicalSiteUrl = canonicalSiteUrl
+        , internals = Pages.internals
         }
 
 
-view : Model -> List ( PagePath Pages.PathKey, Metadata ) -> Page Metadata (Model -> Html Msg) Pages.PathKey -> { title : String, body : Html Msg }
-view model siteMetadata page =
+pageView : Model -> List ( PagePath Pages.PathKey, Metadata ) -> { path : PagePath Pages.PathKey, frontmatter : Metadata } -> (Model -> Html Msg) -> { title : String, body : Html Msg }
+pageView model siteMetadata page viewForPage =
     let
         renderGithubEditLink path =
             Html.section [ Attr.class "edit-on-github" ]
@@ -65,13 +72,13 @@ view model siteMetadata page =
                     [ Html.text "Edit this page GitHub." ]
                 ]
     in
-    case page.metadata of
+    case page.frontmatter of
         Metadata.Page metadata ->
             { title = metadata.title
             , body =
                 Html.div [ Attr.class "main-content" ]
                     [ header page.path
-                    , page.view model
+                    , viewForPage model
                     ]
             }
 
@@ -94,7 +101,7 @@ view model siteMetadata page =
                                 ]
                                 []
                             ]
-                        , page.view model
+                        , viewForPage model
                         ]
                     , renderGithubEditLink page.path
                     , footer model
