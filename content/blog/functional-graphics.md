@@ -178,7 +178,7 @@ data Form = Form
   }
 ```
 
-We use the short-hand `Form` to mean a graphic that has a size attached to it, because `SizedGraphic` is a mouthful in type signatures. The name is an hommage to [Elm's original graphics library](https://package.elm-lang.org/packages/evancz/elm-graphics/latest/Collage#Form).
+We use the short-hand `Form` to mean a graphic that has a size attached to it, because `SizedGraphic` is a mouthful in type signatures. The name is an hommage to [Elm's original graphics library](https://package.elm-lang.org/packages/evancz/elm-graphics/latest/Collage#Form) (although similar, Elm's `Form`s shouldn't be confused with ours. They are more like our `Graphic`s).
 
 First of all, `Size`s are monoids!
 
@@ -257,9 +257,62 @@ Let's fix these deficiencies with our last guest:
 
 ### Bounded Graphics
 
+```hs
+data Bounds
+  = Bounds
+    { toLeft   :: Double
+    , toRight  :: Double
+    , toTop    :: Double
+    , toBottom :: Double 
+    }
+  | Empty
+
+data Diagram = Diagram
+  { graphic :: Graphic
+  , bounds :: Bounds
+  }
+```
+
+Let me introduce `Diagram`s, which are graphics with bounds. These bounds are not like `Size`: Not only do they represent width and height, they also implicitly store position relative to an origin, by encoding size as distances to the 4 respective borders of a graphic.
+
+Again, `Bounds` has a valid monoid definition:
+
+```hs
+maxBoundsMonoid :: Monoid Bounds
+maxBoundsMonoid = Monoid
+  { empty = Empty
+  , combine = maxBounds
+  }
+
+maxBounds :: Bounds -> Bounds -> Bounds
+maxBounds Empty a = a
+maxBounds a Empty = a
+maxBounds a b = Bounds
+  { toLeft   = max (toLeft a)   (toLeft b)
+  , toRight  = max (toRight a)  (toRight b)
+  , toTop    = max (toTop a)    (toTop b)
+  , toBottom = max (toBottom a) (toBottom b)
+  }
+```
+
+And with this we have a boring monoid definition for superimposing our `Diagram`s using `superimposingMonoid` and `maxBoundsMonoid`. So let's instead work towards the definition for placing diagrams side by side. For that, we'll need to be able to translate diagrams, and that's not as straightforward as it was when we only stored a position-independent `Size`. This time, `Bounds` have to be translated, too:
+
+```hs
+movedBounds :: Double -> Double -> Bounds -> Bounds
+movedBounds translateX translateY bounds =
+  case bounds of
+    Empty -> Empty
+    (Bounds toLeft toRight toTop toBottom) -> Bounds
+      { toLeft = toLeft + translateX
+      , toRight = toRight - translateX
+      , toTop = toTop + translateY
+      , toBottom = toBottom - translateY
+      }
+```
+
 * Go crazy with more monoids:
   * Bounds (with origin: distance to top, left, right and bottom edge)
-  * Bounds as a function of a directional vector
+  * Bounds as a function of a directional vector (maybe not.. :D )
 * More monoids:
   * Multiple layers?
 
