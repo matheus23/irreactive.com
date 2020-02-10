@@ -12,7 +12,7 @@
 
 Have you seen how creating 2D graphics looks like in Cairo, Java AWT, Processing or the Web Canvas? What you'll see is a very imperative API along the lines of this:
 
-```
+```js
 moveTo(100, 100);
 setFillStyle("red");
 circle(20);
@@ -31,10 +31,11 @@ scene =
     (moved 200 100 (filled "blue" (rectangle 50 30))
     (moved 100 100 (stroked "red" (circle 20)))
 ```
+(superimpose == put one above the other)
 
 Notice that I used ML-style syntax for this statement, so syntax similar to Haskell, OCaml and Elm. ML-style uses spaces for function application. Multiple arguments are just applied with more spaces. You can parenthesise an expression to group it and apply it as a single argument. The equivalent in javascript syntax would look like this:
 
-```
+```js
 const scene =
   superimposed(
     move(200, 100, filled("blue", rectangle(50, 30))),
@@ -111,6 +112,8 @@ data Monoid a = Monoid
 
 (This is the definition of something like the type of a struct or record. `a` is a generic type parameter, the `::` is read as `has type`. The `->` is called the 'function arrow'. `Int -> Int -> Int` is the type of a function that takes two integers as arguments and returns an integer.)
 
+As you can see, monoids also include a reference to an `empty` element. This element is what you'd get if you combine 0 things. It is supposed to not have any effect if combined with other elements.
+
 Multiple numbers can be combined into one number in infinitely many ways. Two very important ones are sums and products, let's declare two values of type `Monoid Int` for these two respectively.
 
 ```hs
@@ -128,10 +131,10 @@ productMonoid = Monoid
 ```
 
 Speaking of many ways to combine many numbers into one, many of these don't form monoids. The mathematical definition requires two laws:
-* The `empty` element must not _ a change when `combined` with an element: for any `x`, `combine x empty == x` and `combine empty x == x`.
+* The `empty` element must not have an effect when `combined` with an element: for any `x`, `combine x empty == x` and `combine empty x == x`.
 * Parenthesis around multiple `combine` expressions must not matter: for any `a`, `b` and `c`, `a \`combine\` (b \` combine \` c) == (a \` combine \` b) \`combine\` c`
 
-This is true for sums and products, but not for `(-)`, for example. Also notice that monoids don't require that you're able to swap the order of arguments to `combine`. Even though sums and products fulfill that law, this commutativity law is not required for monoids.
+This is true for sums and products, but not for `(-)`, for example. Also notice that monoids don't require that you're able to swap the order of arguments to `combine`! Even though sums and products fulfill that law, this commutativity law is not required for monoids.
 
 I promised this post would be about graphics so here's a monoid declaration for graphics:
 
@@ -146,9 +149,9 @@ superimposingMonoid = Monoid
 ```
 
 This definition checks all checkmarks for the monoid laws:
-* Identity: The `empty` graphic shouldn't have an effect on another graphic if `combine`d (placed) on top of or below it.
-* Associativity: This is hard to explain in text. It doesn't matter what graphics we 'glue together' first, as long as the order of graphics is the same.
-(Fun fact: graphic superimposition doesn't fulfill the commutativity law, unlike sums and products!)
+* Identity: The `empty` graphic shouldn't have an effect on another graphic if `combine`d (superimposed) on top of or below it.
+* Associativity: This is hard to explain in text. Imagine each graphic as a sheet of cardboard. It doesn't matter what graphics we 'glue together' first, as long as the order of graphics is the same.
+(Aside: Graphic superimposition doesn't fulfill the aforementioned commutativity law, unlike sums and products!)
 
 Now what? We defined this `Monoid a` type and inhabit it with some values, but what gives?
 
@@ -163,55 +166,53 @@ combineAll (Monoid empty combine) list = foldl' combine empty list
 
 Now that we have this definition, we can combine a list of `Graphics` into one via `atopAll graphics = combineAll superimposingMonoid graphics`. We could use `combineAll` for sums and products as well, but that would be boring, so let's create another instance of monoids. Let me introduce our next guest:
 
-### Bounded Graphics
+### Sized Graphics
 
 ```hs
 -- invariant: width and height must be non-negative
-data Bounds = Bounds { width :: Double, height :: Double }
+data Size = Size { width :: Double, height :: Double }
 
-data Bounded a = Bounded
-  { graphic :: a
-  , size :: Bounds
+data Form = Form
+  { graphic :: Graphic
+  , size :: Size
   }
-
-type Form = Bounded Graphic
 ```
 
-> TODO: No need for the abstraction of `graphic` in Bounded. Simply use Form.
+We use the short-hand `Form` to mean a graphic that has a size attached to it, because `SizedGraphic` is a mouthful in type signatures. The name is an hommage to [Elm's original graphics library](https://package.elm-lang.org/packages/evancz/elm-graphics/latest/Collage#Form).
 
-We use the short-hand `Form` to mean a graphic that has a size attached to it, because `Bounded Graphic` is a mouthful in type signatures. The name is an hommage to [Elm's original graphics library](https://package.elm-lang.org/packages/evancz/elm-graphics/latest/Collage#Form).
-
-`Bounds` are monoids!
+First of all, `Size`s are monoids!
 
 ```hs
-maxBoundsMonoid :: Monoid Bounds
-maxBoundsMonoid = Monoid
-  { empty = Bounds 0 0
-  , combine = \(Bounds widthA heightA) (Bounds widthB heightB) ->
-      Bounds (max widthA widthB) (max heightA heightB)
+maxSizeMonoid :: Monoid Size
+maxSizeMonoid = Monoid
+  { empty = Size 0 0
+  , combine = \(Size widthA heightA) (Size widthB heightB) ->
+      Size (max widthA widthB) (max heightA heightB)
   }
 ```
 
-Now our `Form`s consist of two monoids: `size :: Bounds` is a monoid via `maxBoundsMonoid` and `graphic :: Graphic` is a monoid via `superimposingMonoid`. If we have a structure of two things that are monoids, the resulting structure is a monoid too:
+Now our `Form`s consist of two monoids: `size :: Size` is a monoid via `maxSizeMonoid` and `graphic :: Graphic` is a monoid via `superimposingMonoid`. If we have a structure of two things that are monoids, the resulting structure is a monoid too:
 
 ```hs
 formMonoid :: Monoid Form
 formMonoid = Monoid
-  { empty = Bounded (empty superimposingMonoid) (empty maxBoundsMonoid)
+  { empty = Bounded (empty superimposingMonoid) (empty maxSizeMonoid)
   , combine = \(Bounded graphicA sizeA) (Bounded graphicB sizeB) ->
       Bounded
         (combine superimposingMonoid graphicA graphicB)
-        (combine maxBoundsMonoid sizeA sizeB)
+        (combine maxSizeMonoid sizeA sizeB)
   }
 ```
+
+> TODO: Insert Demo to play with monoids
 
 What is this `Form` thing we have now? If we combine two forms (which consist of sizes and graphics) we get a form that has combined graphics and combined sizes. So the idea is that these forms are paired with their actual size. This size could be used for various things:
 
 * Check whether a click was within the bounding rectangle of a form
-* Render a background behind / border around a form
+* Render a background or border to a form
 * Place two forms side by side
 
-Placing to forms side by side is again a way of combining forms, and - you guessed it - is another monoid on forms:
+Placing two forms side by side is again a way of combining forms, and - you guessed it - is another monoid on forms:
 
 ```hs
 movedForm :: Double -> Double -> Form -> Form
@@ -226,10 +227,36 @@ besidesFormMonoid = Monoid
       combine formMonoid
         formA
         (movedForm (width (size formA)) 0 formB)
+  }
+
+besides forms = combineAll besidesFormMonoid forms
 ```
 
-* abstract besidesFormMonoid?
-* Alignment: racket/flex-like: align middle, start or end (all different monoids)
+> Insert playground for 'besides': resizable circles and rectangles?
+
+In this case we made quite some assumptions about how to combine forms side by side: We assume that
+* forms are placed from left to right
+* if two forms overlap (even though their sizes say they shouldn't), the left one is above the right one
+* the forms are supposed to align at their top border
+* there should be no gap between the forms when placed side by side.
+
+It is possible to work around the last issue with our current abstraction by sandwiching an empty form with the size of the desired gap between two consecutive elements.
+
+It would be interesting to provide more monoid definitions for forms that allow for different alignment, direction and order choices, but that's left as an exercise for the reader.
+
+Racket-lang's pict library lives at this abstraction layer. Their `picts` are pretty much the same as our forms. They've also built a [library of combinators](https://docs.racket-lang.org/pict/Pict_Combiners.html) for their picts. These combinators allow you to also align on the center line, start or end.
+
+I'm not much of a fan of a restricted set of options for things like this: There are infinite ways to align two forms placed side by side. Restricting the options creates problems:
+* What if you want to align an image with the baseline of some text?
+* What if you want to align an image with a visual baseline with the baseline of some text, as in [this SwiftUI demo](https://www.youtube.com/watch?v=u6ImPjD8dT4&feature=youtu.be&t=1110)?
+* What if you want to align the top border of a form with the bottom border of a form?
+
+Web's flexbox layouts have similar deficiencies: the allowed values for `align-items` are `flex-start`, `flex-end`, `center`, `baseline` and `stretch` (?).
+
+Let's fix these deficiencies with our last guest:
+
+### Bounded Graphics
+
 * Go crazy with more monoids:
   * Bounds (with origin: distance to top, left, right and bottom edge)
   * Bounds as a function of a directional vector
