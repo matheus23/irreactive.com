@@ -10,6 +10,254 @@
 }
 ---
 
+Have you seen how creating 2D graphics looks like in Cairo, Java AWT, Processing or the Web Canvas? What you'll see is a very imperative API along the lines of this:
+
+```
+moveTo(100, 100);
+setFillStyle("red");
+circle(20);
+stroke();
+moveTo(200, 100);
+setFillStyle("blue");
+rectangle(50, 30);
+fill();
+```
+
+My subjective experience seems to be that more and more people are building a functional interface on top of this imperative API. The same result would then be generated like this (in pseudo code):
+
+```hs
+scene =
+  superimposed
+    (moved 200 100 (filled "blue" (rectangle 50 30))
+    (moved 100 100 (stroked "red" (circle 20)))
+```
+
+Notice that I used ML-style syntax for this statement, so syntax similar to Haskell, OCaml and Elm. ML-style uses spaces for function application. Multiple arguments are just applied with more spaces. You can parenthesise an expression to group it and apply it as a single argument. The equivalent in javascript syntax would look like this:
+
+```
+const scene =
+  superimposed(
+    move(200, 100, filled("blue", rectangle(50, 30))),
+    move(100, 100), stroked("red", circle(20))
+  );
+```
+
+Think of such an API as having immutable objects for graphical primitives like circles, rectangles, etc. It is then possible to wrap these objects in wrappers that then represent translated or colored objects (without modifying the original graphic). The result of all functional drawing will then be a single object that represents all of your graphical scene, composed of wrappers of wrappers of primitive objects, similar to a scene graph, if you that means something to you.
+
+So I said my subjective experience is that more and more programmers are switching to this kind of functional interface. Why would they do that extra work?
+
+The new interface has concrete advantages:
+
+1. Code modification has a very clear scope: Imagine you're only allowed to change the last line of our example (the second argument to `superimposed`). It will be impossible to change the color of the rectangle! In general, you can only change graphics by wrapping them. Combining two graphics will not change the appearance of either one. This is not the case with the imperative API. Take a look at these two functions:
+
+```js
+function myCircle() {
+  translate(100, 100);
+  setFillStyle("red");
+  circle(20);
+  stroke();
+}
+function myRectangle() {
+  translate(200, 100);
+  rectangle(50, 30);
+  fill();
+}
+
+myCircle();
+myRectangle();
+```
+
+You might expect that removing the `myCircle()` call would just remove the circle from our picture, but that is wrong! Unfortunately, `translate` has these mutable semantics: It will change any drawing calls in the future! The same is true for `setFillStyle`. However, `translate` is quite useful: If you used it everywhere, then you can specify the position of elements from outside their definition, and therefore re-use a graphic-generating function for the same scene at two different positions.
+
+Generally it is nice to have these guaruntees like *'removing a call to a graphical primitive only removes it from the scene and has no other effects'*: In bigger codebases, you'll want to know exactly what effect removing or adding a line of code can have. If it is possible that removing a line of code has a side-effect on the rest of your project, it becomes hard to maintain.
+
+2. Abstraction is easier: Let's abstract out a combinator that puts two graphics next to each other 100 pixels apart:
+
+```hs
+besides left right =
+  superimpose left (move 100 0 right)
+
+scene =
+  move 100 100
+    (besides
+      (filled "blue" (rectangle 50 30))
+      (stroked "red" (circle 20)))
+```
+
+It is nice to be able to define 'combinators' like `besides`. Sometimes we want to abstract (= give names to) a *way of changing* graphics, not only particular graphics themselves.
+
+I think this advantage is mostly practically true, but not theoretically: It is possible to abstract statements in javascript for example, by passing functions. However, in languages like Java or C++ this used to be harder, as only objects could be passed as a parameter to functions, not functions themselves (functions are said to not be *first class*).
+
+
+## Mathematics
+
+We'll now shift up a gear. The following sections require some familiarity with ML-style programming languages.
+
+What follows next is an introduction to monoids, an abstraction from mathematics often used in haskell and similar languages. I would love to leave the boring introductory bit out, but it's crucial to understand almost everything I'm going to write on this blog. Let me at least motivate them, before I introduce the definition.
+
+These two points are supposed to convice you of the utility of monoids:
+* Monoids are one essence of composition: they capture the ability to combine multiple elements into another element that can be combined again.
+* Monoids are everywhere in functional programming. There are countless monoid instances across the haskell ecosystem and many abstractions are built on top of monoids.
+Now let's get to the definition!
+
+Our graphics are in a way actually like numbers. 'What?' you might say, but hear me out! They have something simple in common: You can merge/combine multiple into one. In haskell, we can define a datatype for everything that is a Monoid:
+
+```hs
+data Monoid a = Monoid
+  { empty :: a
+  , combine :: a -> a -> a
+  }
+```
+
+(This is the definition of something like the type of a struct or record. `a` is a generic type parameter, the `::` is read as `has type`. The `->` is called the 'function arrow'. `Int -> Int -> Int` is the type of a function that takes two integers as arguments and returns an integer.)
+
+Multiple numbers can be combined into one number in infinitely many ways. Two very important ones are sums and products, let's declare two values of type `Monoid Int` for these two respectively.
+
+```hs
+sumMonoid :: Monoid Int
+sumMonoid = Monoid
+  { empty = 0
+  , combine = (+)
+  }
+
+productMonoid :: Monoid Int
+productMonoid = Monoid
+  { empty = 0
+  , combine = (*)
+  }
+```
+
+Speaking of many ways to combine many numbers into one, many of these don't form monoids. The mathematical definition requires two laws:
+* The `empty` element must not _ a change when `combined` with an element: for any `x`, `combine x empty == x` and `combine empty x == x`.
+* Parenthesis around multiple `combine` expressions must not matter: for any `a`, `b` and `c`, `a \`combine\` (b \` combine \` c) == (a \` combine \` b) \`combine\` c`
+
+This is true for sums and products, but not for `(-)`, for example. Also notice that monoids don't require that you're able to swap the order of arguments to `combine`. Even though sums and products fulfill that law, this commutativity law is not required for monoids.
+
+I promised this post would be about graphics so here's a monoid declaration for graphics:
+
+```hs
+data Graphic = ...
+
+superimposingMonoid :: Monoid Graphic
+superimposingMonoid = Monoid
+  { empty = emptyGraphic
+  , combine = superimpose
+  }
+```
+
+This definition checks all checkmarks for the monoid laws:
+* Identity: The `empty` graphic shouldn't have an effect on another graphic if `combine`d (placed) on top of or below it.
+* Associativity: This is hard to explain in text. It doesn't matter what graphics we 'glue together' first, as long as the order of graphics is the same.
+(Fun fact: graphic superimposition doesn't fulfill the commutativity law, unlike sums and products!)
+
+Now what? We defined this `Monoid a` type and inhabit it with some values, but what gives?
+
+Let's define a function that combines multiple monoidal values into one, given a monoid:
+
+```hs
+combineAll :: Monoid a -> List a -> a
+combineAll (Monoid empty combine) list = foldl' combine empty list
+```
+
+(We are re-using haskell's `foldl'` function here that folds over a list and combines elements using the first argument. In javascript and many other languages this function is called `reduce`.)
+
+Now that we have this definition, we can combine a list of `Graphics` into one via `atopAll graphics = combineAll superimposingMonoid graphics`. We could use `combineAll` for sums and products as well, but that would be boring, so let's create another instance of monoids. Let me introduce our next guest:
+
+### Bounded Graphics
+
+```hs
+-- invariant: width and height must be non-negative
+data Bounds = Bounds { width :: Double, height :: Double }
+
+data Bounded a = Bounded
+  { graphic :: a
+  , size :: Bounds
+  }
+
+type Form = Bounded Graphic
+```
+
+> TODO: No need for the abstraction of `graphic` in Bounded. Simply use Form.
+
+We use the short-hand `Form` to mean a graphic that has a size attached to it, because `Bounded Graphic` is a mouthful in type signatures. The name is an hommage to [Elm's original graphics library](https://package.elm-lang.org/packages/evancz/elm-graphics/latest/Collage#Form).
+
+`Bounds` are monoids!
+
+```hs
+maxBoundsMonoid :: Monoid Bounds
+maxBoundsMonoid = Monoid
+  { empty = Bounds 0 0
+  , combine = \(Bounds widthA heightA) (Bounds widthB heightB) ->
+      Bounds (max widthA widthB) (max heightA heightB)
+  }
+```
+
+Now our `Form`s consist of two monoids: `size :: Bounds` is a monoid via `maxBoundsMonoid` and `graphic :: Graphic` is a monoid via `superimposingMonoid`. If we have a structure of two things that are monoids, the resulting structure is a monoid too:
+
+```hs
+formMonoid :: Monoid Form
+formMonoid = Monoid
+  { empty = Bounded (empty superimposingMonoid) (empty maxBoundsMonoid)
+  , combine = \(Bounded graphicA sizeA) (Bounded graphicB sizeB) ->
+      Bounded
+        (combine superimposingMonoid graphicA graphicB)
+        (combine maxBoundsMonoid sizeA sizeB)
+  }
+```
+
+What is this `Form` thing we have now? If we combine two forms (which consist of sizes and graphics) we get a form that has combined graphics and combined sizes. So the idea is that these forms are paired with their actual size. This size could be used for various things:
+
+* Check whether a click was within the bounding rectangle of a form
+* Render a background behind / border around a form
+* Place two forms side by side
+
+Placing to forms side by side is again a way of combining forms, and - you guessed it - is another monoid on forms:
+
+```hs
+movedForm :: Double -> Double -> Form -> Form
+movedForm translateX translateY (Bounded graphic size) =
+  -- re-using `moved` for graphics.
+  Bounded (moved translateX translateY graphic) size
+
+besidesFormMonoid :: Monoid Form
+besidesFormMonoid = Monoid
+  { empty = empty formMonoid
+  , combine = \formA formB ->
+      combine formMonoid
+        formA
+        (movedForm (width (size formA)) 0 formB)
+```
+
+* abstract besidesFormMonoid?
+* Alignment: racket/flex-like: align middle, start or end (all different monoids)
+* Go crazy with more monoids:
+  * Bounds (with origin: distance to top, left, right and bottom edge)
+  * Bounds as a function of a directional vector
+* More monoids:
+  * Multiple layers?
+
+* Write more about what the laws give us:
+  * Advantage of the definition of a Monoid: Get combinators that work across all monoids: concatting lists of monoid elements
+  * Advantages of the two laws of monoids:
+  * Associativity: Parenthesis doesn't matter! You'll always be able to abstract over a 'continuous' streak of monoids! (imagine a part of a list in an 'mconcat')
+  * Identity element: Imagine abstracting over something in the graphic: Putting empty in this graphic will always just remove it / have no effect!
+
+## More power to our graphical primitives!
+
+* More power to our graphics: Give them a size, and let them be placed side by side.
+* More power to our graphics: Give them an origin to allow them to be placed besides with alignment! (and allow rendering lines between their origins!)
+* More power to our graphics: Give them multiple layers! This will allow them to be be placed relative to each other but on different layers!
+
+If you want to take a look at some actual implementations of these 'newer' APIs, here is an incomplete list of them:
+* Elm's collages
+* Racket's Picts
+* Haskell's Diagrams
+
+
+
+
+
+
 When I first learned programming I always wanted to create games. There was just something fascinating about something moving on screen that you could interact with. To this day I believe that the human interface to computers is one of the most important parts of software. It has to be deliberate and elaborate and thought-through, doesn't it? You might argue that some applications don't demand much human interaction and imagine something like a command line interface that simply reports back an answer. But what if that program fails? How will you find out about the problem? Once you create black boxes you'll have to resort to other means of interacting with the computer that are much more complex.
 
 Creating a good architecture for complex applications is really hard, though. After some experience using Swing/AWT, JavaFX and being frustrated with only the existence of built-in, rigid widgets that would never quite do what you wanted to, I was looking in the direction of the browser: There, lots of different, experimental user interfaces were created. And I believe it's the composable, and declarative nature of HTML elements (and the wide adoption and web standardisation process) that made it possible to create more of what one imagines. 
