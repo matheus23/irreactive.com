@@ -7,7 +7,7 @@ import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Decode as Decode
 import Markdown.Html
-import Markdown.Parser exposing (defaultHtmlRenderer)
+import Markdown.Parser exposing (ListItem(..), defaultHtmlRenderer)
 import Metadata exposing (Metadata)
 import Pages.Document
 import Parser
@@ -83,7 +83,6 @@ customHtmlRenderer =
                 , anythingCaptioned "video" [ Attr.controls True ]
                 , carusel
                 , markdownEl
-                , numberedList
                 ]
             )
             (\link content ->
@@ -121,10 +120,14 @@ rendererReader htmlRenderer linkRenderer renderer =
         \info description ->
             renderer.image info description
                 |> Result.map always
-    , unorderedList = \children r -> renderer.unorderedList (List.map (applyModel r) children)
+    , unorderedList =
+        \listItems r ->
+            renderer.unorderedList
+                (List.map (\(ListItem task children) -> ListItem task (applyModel r children)) listItems)
     , orderedList = \num children r -> renderer.orderedList num (List.map (applyModel r) children)
     , codeBlock = \info _ -> renderer.codeBlock info
     , thematicBreak = \_ -> renderer.thematicBreak
+    , blockQuote = \children r -> renderer.blockQuote (applyModel r children)
     }
 
 
@@ -135,7 +138,7 @@ bumpHeadings by renderer =
 
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
 anythingCaptioned tagName attributes =
-    Markdown.Html.tag (String.toTitleCase tagName ++ "Captioned")
+    Markdown.Html.tag (tagName ++ "captioned")
         (\src alt idAttrs children model ->
             Html.figure idAttrs
                 [ Html.node tagName (Attr.src src :: Attr.alt alt :: attributes) []
@@ -149,7 +152,7 @@ anythingCaptioned tagName attributes =
 
 carusel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
 carusel =
-    Markdown.Html.tag "Carusel"
+    Markdown.Html.tag "carusel"
         (\identifier children model ->
             let
                 caruselModel =
@@ -197,7 +200,7 @@ carusel =
 
 markdownEl : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
 markdownEl =
-    Markdown.Html.tag "Markdown"
+    Markdown.Html.tag "markdown"
         (\idAttrs children model ->
             Html.div
                 (Attr.class "markdown" :: idAttrs)
@@ -219,20 +222,3 @@ withOptionalIdTag rend =
                         continue []
             )
         |> Markdown.Html.withOptionalAttribute "id"
-
-
-numberedList : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
-numberedList =
-    Markdown.Html.tag "NumberedList"
-        (\children model ->
-            Html.ol []
-                (applyModel model children
-                    |> List.indexedMap
-                        (\index el ->
-                            Html.li []
-                                [ Html.text (String.fromInt (index + 1) ++ ". ")
-                                , el
-                                ]
-                        )
-                )
-        )
