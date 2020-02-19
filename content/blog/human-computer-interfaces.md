@@ -2,8 +2,8 @@
 {
   "type": "blog",
   "author": "Philipp Krüger",
-  "title": "My Motivation for Creating Human Computer Interfaces",
-  "description": "A draft. (TODO CHANGE THIS)",
+  "title": "Why you should care about User Interface Development",
+  "description": "Or: My Motivation for Creating Human Computer Interfaces",
   "image": "/images/article-covers/fittslist.png",
   "draft": false,
   "published": "2019-11-21",
@@ -23,7 +23,7 @@ I like to think of a computer more *like an extension of your arm*. Kind of *lik
 
 This way of working with a computer is here to stay for a long time. If you're not convinced about that, take a look at this:
 
-<Carusel>
+<Carusel id="maba-maba-carusel">
 <ImgCaptioned id="maba-maba-image" src="/images/content/FirstMABAMABA.png" alt="A scan of a paper that contains Paul M. Fitts' comparison of humans and machines">
 A scan of a paper that contains Paul M. Fitts' comparison of humans and machines.
 
@@ -71,7 +71,7 @@ Anyone who has tried to implement an application with a rich user interface has 
 
 In my experience most GUIs are 90% re-usable components: buttons, images, text labels and input fields, but the remaining 10% are the critical parts: the direct interface to the business logic that makes your program unique.
 
-<Carusel>
+<Carusel id="ui-examples">
 <ImgCaptioned id="sibelius-image" src="/images/content/sibelius.jpg" alt="The sheet music editing program 'Sibelius'.">
 The sheet music editing program 'Sibelius'.
 </ImgCaptioned>
@@ -88,7 +88,7 @@ Visual Studio Code's 'Code Lens' feature (light blue section). Notice, that the 
 
 ## The Search for the UI Answer
 
-Motivated to find the right tool for building UI's today, I was quickly looking around for any UI related work I could get my hands on.
+Motivated to find the right tool for building UIs today, I was quickly looking around for any UI related work I could get my hands on.
 
 The first two bigger UIs projects I worked on were written with JavaFX and it covers the 90% pretty well. But it's impossible to cover the 10% without being extensible. I remember using its table view and trying to put components into the table column headers, but it wouldn't quite support that. I remember using its editable-cells feature but couldn't change which cell was currently edited on enter or tab keypresses similar to excel's spreadsheets.
 This table view would look very feature-rich when you took a look at its API, but many applications wouldn't need most of these features: What about a data table that couldn't be edited? It doesn't need these editable cell components constraining its performance or API flexibility.

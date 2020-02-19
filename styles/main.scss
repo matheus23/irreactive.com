@@ -64,6 +64,21 @@ h3 {
     @include heading(24px);
 }
 
+// Utility
+
+@mixin hide-scrollbars-but-scrollable {
+    // https://stackoverflow.com/a/38994837
+
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    scrollbar-width: none; /* Firefox */
+
+    &::-webkit-scrollbar {
+        display: none; /* Safari and Chrome */
+    }
+}
+
+// Content Design
+
 .main-content::before {
     display: block;
     height: $space-s;
@@ -189,12 +204,36 @@ article {
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
 
-            border: 1px solid $gray;
+            // TODO
+            border: $space-m solid $light0;
+            @include hide-scrollbars-but-scrollable;
 
             > * {
                 min-width: 100%;
                 margin: auto 0;
                 scroll-snap-align: start;
+            }
+        }
+
+        .carusel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+
+            > .dots {
+                display: flex;
+                flex-direction: row;
+                margin: 2px auto;
+
+                > .dot {
+                    display: inline-block;
+                    border-radius: 7px;
+                    width: 14px;
+                    height: 14px;
+                    margin: 2px;
+                    box-sizing: border-box;
+                    border: 1.5px solid $dark2;
+                }
             }
         }
     }

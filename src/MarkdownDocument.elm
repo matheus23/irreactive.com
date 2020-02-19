@@ -1,26 +1,56 @@
 module MarkdownDocument exposing (..)
 
 import App exposing (..)
+import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Html.Events as Events
+import Json.Decode as Decode
 import Markdown.Html
 import Markdown.Parser exposing (defaultHtmlRenderer)
 import Metadata exposing (Metadata)
 import Pages.Document
+import Parser
+import Parser.Advanced
+import Result.Extra as Result
 import String.Extra as String
 
 
+render : Markdown.Parser.Renderer (Model -> Html Msg) -> String -> Result String (List (Model -> Html Msg))
 render renderer markdown =
     markdown
         |> Markdown.Parser.parse
-        |> Result.mapError deadEndsToString
-        |> Result.andThen (\ast -> Markdown.Parser.render renderer ast)
+        |> Result.mapBoth
+            (renderDeadEnds markdown >> Ok)
+            (Markdown.Parser.render renderer)
+        |> Result.merge
 
 
-deadEndsToString deadEnds =
-    deadEnds
-        |> List.map Markdown.Parser.deadEndToString
-        |> String.join "\n"
+renderDeadEnds : String -> List (Parser.Advanced.DeadEnd String Parser.Problem) -> List (Model -> Html Msg)
+renderDeadEnds input =
+    let
+        inputLines =
+            String.split "\n" input
+    in
+    List.map (\deadEnd _ -> renderDeadEnd inputLines deadEnd)
+
+
+renderDeadEnd : List String -> Parser.Advanced.DeadEnd String Parser.Problem -> Html msg
+renderDeadEnd input { row, problem } =
+    let
+        linesPadding =
+            2
+
+        relevantLines =
+            input
+                |> List.drop (List.length input - row - linesPadding)
+                |> List.take (linesPadding * 2 + 1)
+    in
+    Html.div []
+        [ Html.pre []
+            [ Html.text (String.concat (List.intersperse "\n" relevantLines)) ]
+        , Html.text (Debug.toString problem)
+        ]
 
 
 document : ( String, Pages.Document.DocumentHandler Metadata (Model -> Html Msg) )
@@ -117,13 +147,52 @@ anythingCaptioned tagName attributes =
         |> withOptionalIdTag
 
 
-carusel : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+carusel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
 carusel =
     Markdown.Html.tag "Carusel"
-        (\children model ->
-            Html.div [ Attr.class "carusel" ]
-                (applyModel model children)
+        (\identifier children model ->
+            let
+                caruselModel =
+                    model.carusels
+                        |> Dict.get identifier
+                        |> Maybe.withDefault { scrollPosition = 0.0 }
+
+                scrolledItem =
+                    caruselModel.scrollPosition * toFloat (List.length children - 1)
+            in
+            Html.section [ Attr.class "carusel-container" ]
+                [ Html.div
+                    [ Attr.class "carusel"
+                    , Attr.id identifier
+                    , Events.on "scroll" (Decode.succeed (CaruselOnScroll identifier))
+                    ]
+                    (applyModel model children)
+                , Html.div [ Attr.class "dots" ]
+                    (children
+                        |> List.indexedMap
+                            (\index _ ->
+                                let
+                                    irrelevancy =
+                                        (toFloat index - scrolledItem)
+                                            |> abs
+                                            |> clamp 0 1
+                                in
+                                Html.div
+                                    [ Attr.class "dot"
+                                    , Attr.style "background-color"
+                                        (String.concat
+                                            [ "rgba(146,131,116,"
+                                            , String.fromFloat (1 - irrelevancy)
+                                            , ")"
+                                            ]
+                                        )
+                                    ]
+                                    []
+                            )
+                    )
+                ]
         )
+        |> Markdown.Html.withAttribute "id"
 
 
 markdownEl : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)

@@ -311,16 +311,16 @@ movedBounds translateX translateY bounds =
 ```
 
 * Go crazy with more monoids:
-  * Bounds (with origin: distance to top, left, right and bottom edge)
-  * Bounds as a function of a directional vector (maybe not.. :D )
+- Bounds (with origin: distance to top, left, right and bottom edge)
+- Bounds as a function of a directional vector (maybe not.. :D )
 * More monoids:
-  * Multiple layers?
+- Multiple layers?
 
 * Write more about what the laws give us:
-  * Advantage of the definition of a Monoid: Get combinators that work across all monoids: concatting lists of monoid elements
-  * Advantages of the two laws of monoids:
-  * Associativity: Parenthesis doesn't matter! You'll always be able to abstract over a 'continuous' streak of monoids! (imagine a part of a list in an 'mconcat')
-  * Identity element: Imagine abstracting over something in the graphic: Putting empty in this graphic will always just remove it / have no effect!
+- Advantage of the definition of a Monoid: Get combinators that work across all monoids: concatting lists of monoid elements
+- Advantages of the two laws of monoids:
+- Associativity: Parenthesis doesn't matter! You'll always be able to abstract over a 'continuous' streak of monoids! (imagine a part of a list in an 'mconcat')
+- Identity element: Imagine abstracting over something in the graphic: Putting empty in this graphic will always just remove it / have no effect!
 
 ## More power to our graphical primitives!
 

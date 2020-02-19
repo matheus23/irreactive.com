@@ -55,10 +55,16 @@ main =
         , manifest = manifest
         , canonicalSiteUrl = canonicalSiteUrl
         , internals = Pages.internals
+        , generateFiles = \_ -> []
         }
 
 
-pageView : Model -> List ( PagePath Pages.PathKey, Metadata ) -> { path : PagePath Pages.PathKey, frontmatter : Metadata } -> (Model -> Html Msg) -> { title : String, body : Html Msg }
+pageView :
+    Model
+    -> List ( PagePath Pages.PathKey, Metadata )
+    -> { path : PagePath Pages.PathKey, frontmatter : Metadata }
+    -> (Model -> Html Msg)
+    -> { title : String, body : Html Msg }
 pageView model siteMetadata page viewForPage =
     let
         renderGithubEditLink path =
