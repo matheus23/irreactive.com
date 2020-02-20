@@ -1,10 +1,9 @@
 module App exposing (..)
 
-import Browser.Dom exposing (Viewport)
 import Dict exposing (Dict)
 import Http
-import Result.Extra as Result
-import Task
+import MarkdownComponents.Carusel as Carusel
+import MarkdownComponents.Helper as MarkdownComponent
 import Url.Builder as Url
 
 
@@ -29,12 +28,8 @@ siteTagline =
 
 type alias Model =
     { subscriptionEmail : String
-    , carusels : Dict String CaruselModel
+    , carusels : Dict String Carusel.Model
     }
-
-
-type alias CaruselModel =
-    { scrollPosition : Float }
 
 
 init : ( Model, Cmd Msg )
@@ -51,8 +46,7 @@ type Msg
     | SubmitEmailSubscription
     | SubscribeEmailAddressChange String
     | SubscriptionEmailSubmitted (Result Http.Error ())
-    | CaruselOnScroll String
-    | CaruselGetViewport String Viewport
+    | CaruselMsg String Carusel.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -84,40 +78,18 @@ update msg model =
         SubscriptionEmailSubmitted _ ->
             ( { model | subscriptionEmail = "" }, Cmd.none )
 
-        CaruselOnScroll caruselId ->
-            ( model
-            , Browser.Dom.getViewportOf caruselId
-                |> Task.attempt
-                    (Result.mapBoth
-                        -- Err
-                        (\_ -> NoOp)
-                        -- Ok
-                        (CaruselGetViewport caruselId)
-                        >> Result.merge
-                    )
+        CaruselMsg caruselId caruselMsg ->
+            let
+                ( caruselsUpdated, cmds ) =
+                    MarkdownComponent.update
+                        Carusel.init
+                        caruselId
+                        (Carusel.update caruselMsg)
+                        model.carusels
+            in
+            ( { model | carusels = caruselsUpdated }
+            , Cmd.map (CaruselMsg caruselId) cmds
             )
-
-        CaruselGetViewport caruselId { scene, viewport } ->
-            ( updateCarusel caruselId
-                (\_ -> { scrollPosition = viewport.x / (scene.width - viewport.width) })
-                model
-            , Cmd.none
-            )
-
-
-updateCarusel : String -> (CaruselModel -> CaruselModel) -> Model -> Model
-updateCarusel id updater model =
-    { model
-        | carusels =
-            model.carusels
-                |> Dict.update id
-                    (\caruselModel ->
-                        caruselModel
-                            |> Maybe.withDefault { scrollPosition = 0 }
-                            |> updater
-                            |> Just
-                    )
-    }
 
 
 subscriptions : Model -> Sub Msg

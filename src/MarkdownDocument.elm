@@ -1,19 +1,22 @@
 module MarkdownDocument exposing (..)
 
 import App exposing (..)
-import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events as Events
-import Json.Decode as Decode
 import Markdown.Html
 import Markdown.Parser exposing (ListItem(..), defaultHtmlRenderer)
+import MarkdownComponents.Carusel as Carusel
+import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
 import Pages.Document
 import Parser
 import Parser.Advanced
 import Result.Extra as Result
 import String.Extra as String
+
+
+
+-- TODO: Remove the Html rendering of markdown error messages.
 
 
 render : Markdown.Parser.Renderer (Model -> Html Msg) -> String -> Result String (List (Model -> Html Msg))
@@ -154,46 +157,10 @@ carusel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
 carusel =
     Markdown.Html.tag "carusel"
         (\identifier children model ->
-            let
-                caruselModel =
-                    model.carusels
-                        |> Dict.get identifier
-                        |> Maybe.withDefault { scrollPosition = 0.0 }
-
-                scrolledItem =
-                    caruselModel.scrollPosition * toFloat (List.length children - 1)
-            in
-            Html.section [ Attr.class "carusel-container" ]
-                [ Html.div
-                    [ Attr.class "carusel"
-                    , Attr.id identifier
-                    , Events.on "scroll" (Decode.succeed (CaruselOnScroll identifier))
-                    ]
-                    (applyModel model children)
-                , Html.div [ Attr.class "dots" ]
-                    (children
-                        |> List.indexedMap
-                            (\index _ ->
-                                let
-                                    irrelevancy =
-                                        (toFloat index - scrolledItem)
-                                            |> abs
-                                            |> clamp 0 1
-                                in
-                                Html.div
-                                    [ Attr.class "dot"
-                                    , Attr.style "background-color"
-                                        (String.concat
-                                            [ "rgba(146,131,116,"
-                                            , String.fromFloat (1 - irrelevancy)
-                                            , ")"
-                                            ]
-                                        )
-                                    ]
-                                    []
-                            )
-                    )
-                ]
+            Carusel.view (CaruselMsg identifier)
+                identifier
+                (MarkdownComponents.init Carusel.init identifier model.carusels)
+                (applyModel model children)
         )
         |> Markdown.Html.withAttribute "id"
 
