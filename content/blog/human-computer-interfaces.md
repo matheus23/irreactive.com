@@ -23,7 +23,7 @@ I like to think of a computer more *like an extension of your arm*. Kind of *lik
 
 This way of working with a computer is here to stay for a long time. If you're not convinced about that, take a look at this:
 
-<Carusel id="maba-maba-carusel">
+<Carousel id="maba-maba-carousel">
 <ImgCaptioned id="maba-maba-image" src="/images/content/FirstMABAMABA.png" alt="A scan of a paper that contains Paul M. Fitts' comparison of humans and machines">
 A scan of a paper that contains Paul M. Fitts' comparison of humans and machines.
 
@@ -48,7 +48,7 @@ Present-day machines appear to surpass humans in respect to the following:
 4. Ability to reason deductively, including computational ability.
 5. Ability to handle highly complex operations, i.e. to do many things at once.
 </Markdown>
-</Carusel>
+</Carousel>
 
 This is was written by the researcher Paul M. Fitts, who identified tasks that machines are better at than humans and the other way around and is known today as the 'MABA-MABA-list' (Men are better at - Machines are better at) or the 'Fitts list'.
 
@@ -71,7 +71,7 @@ Anyone who has tried to implement an application with a rich user interface has 
 
 In my experience most GUIs are 90% re-usable components: buttons, images, text labels and input fields, but the remaining 10% are the critical parts: the direct interface to the business logic that makes your program unique.
 
-<Carusel id="ui-examples">
+<Carousel id="ui-examples">
 <ImgCaptioned id="sibelius-image" src="/images/content/sibelius.jpg" alt="The sheet music editing program 'Sibelius'.">
 The sheet music editing program 'Sibelius'.
 </ImgCaptioned>
@@ -84,7 +84,7 @@ A screen recording of the google calendar android app
 <ImgCaptioned id="vscode-code-lens" src="/images/content/vscode-code-lens.png" alt="Visual Studio Code's 'Code Lens' feature">
 Visual Studio Code's 'Code Lens' feature (light blue section). Notice, that the code lens is *not* a popup, but instead splits the code view in half, there are no hidden lines of code.
 </ImgCaptioned>
-</Carusel>
+</Carousel>
 
 ## The Search for the UI Answer
 

@@ -1,4 +1,4 @@
-module MarkdownComponents.Carusel exposing (..)
+module MarkdownComponents.Carousel exposing (..)
 
 import Browser.Dom exposing (Viewport)
 import Html exposing (Html)
@@ -30,9 +30,9 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        OnScroll caruselId ->
+        OnScroll carouselId ->
             ( model
-            , Browser.Dom.getViewportOf caruselId
+            , Browser.Dom.getViewportOf carouselId
                 |> Task.attempt
                     (Result.mapBoth (always NoOp) GetViewport >> Result.merge)
             )
@@ -51,9 +51,9 @@ view liftMsg identifier model children =
         scrolledItem =
             model.scrollPosition * toFloat (List.length children - 1)
     in
-    Html.section [ Attr.class "carusel-container" ]
+    Html.section [ Attr.class "carousel-container" ]
         [ Html.div
-            [ Attr.class "carusel"
+            [ Attr.class "carousel"
             , Attr.id identifier
             , Events.on "scroll" (Decode.succeed (liftMsg (OnScroll identifier)))
             ]

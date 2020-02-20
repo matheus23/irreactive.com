@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Markdown.Html
 import Markdown.Parser exposing (ListItem(..), defaultHtmlRenderer)
-import MarkdownComponents.Carusel as Carusel
+import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
 import Pages.Document
@@ -23,37 +23,44 @@ render : Markdown.Parser.Renderer (Model -> Html Msg) -> String -> Result String
 render renderer markdown =
     markdown
         |> Markdown.Parser.parse
-        |> Result.mapBoth
-            (renderDeadEnds markdown >> Ok)
-            (Markdown.Parser.render renderer)
-        |> Result.merge
+        |> Result.mapError deadEndsToString
+        |> Result.andThen (Markdown.Parser.render renderer)
 
 
-renderDeadEnds : String -> List (Parser.Advanced.DeadEnd String Parser.Problem) -> List (Model -> Html Msg)
-renderDeadEnds input =
-    let
-        inputLines =
-            String.split "\n" input
-    in
-    List.map (\deadEnd _ -> renderDeadEnd inputLines deadEnd)
+deadEndsToString deadEnds =
+    deadEnds
+        |> List.map Markdown.Parser.deadEndToString
+        |> String.join "\n"
 
 
-renderDeadEnd : List String -> Parser.Advanced.DeadEnd String Parser.Problem -> Html msg
-renderDeadEnd input { row, problem } =
-    let
-        linesPadding =
-            2
 
-        relevantLines =
-            input
-                |> List.drop (List.length input - row - linesPadding)
-                |> List.take (linesPadding * 2 + 1)
-    in
-    Html.div []
-        [ Html.pre []
-            [ Html.text (String.concat (List.intersperse "\n" relevantLines)) ]
-        , Html.text (Debug.toString problem)
-        ]
+{-
+   renderDeadEnds : String -> List (Parser.Advanced.DeadEnd String Parser.Problem) -> List (Model -> Html Msg)
+   renderDeadEnds input =
+       let
+           inputLines =
+               String.split "\n" input
+       in
+       List.map (\deadEnd _ -> renderDeadEnd inputLines deadEnd)
+
+
+   renderDeadEnd : List String -> Parser.Advanced.DeadEnd String Parser.Problem -> Html msg
+   renderDeadEnd input { row, problem } =
+       let
+           linesPadding =
+               2
+
+           relevantLines =
+               input
+                   |> List.drop (List.length input - row - linesPadding)
+                   |> List.take (linesPadding * 2 + 1)
+       in
+       Html.div []
+           [ Html.pre []
+               [ Html.text (String.concat (List.intersperse "\n" relevantLines)) ]
+           , Html.text (Debug.toString problem)
+           ]
+-}
 
 
 document : ( String, Pages.Document.DocumentHandler Metadata (Model -> Html Msg) )
@@ -84,7 +91,7 @@ customHtmlRenderer =
             (Markdown.Html.oneOf
                 [ anythingCaptioned "img" []
                 , anythingCaptioned "video" [ Attr.controls True ]
-                , carusel
+                , carousel
                 , markdownEl
                 ]
             )
@@ -153,13 +160,13 @@ anythingCaptioned tagName attributes =
         |> withOptionalIdTag
 
 
-carusel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
-carusel =
-    Markdown.Html.tag "carusel"
+carousel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
+carousel =
+    Markdown.Html.tag "carousel"
         (\identifier children model ->
-            Carusel.view (CaruselMsg identifier)
+            Carousel.view (CarouselMsg identifier)
                 identifier
-                (MarkdownComponents.init Carusel.init identifier model.carusels)
+                (MarkdownComponents.init Carousel.init identifier model.carousels)
                 (applyModel model children)
         )
         |> Markdown.Html.withAttribute "id"

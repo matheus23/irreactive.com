@@ -2,7 +2,7 @@ module App exposing (..)
 
 import Dict exposing (Dict)
 import Http
-import MarkdownComponents.Carusel as Carusel
+import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponent
 import Url.Builder as Url
 
@@ -28,14 +28,14 @@ siteTagline =
 
 type alias Model =
     { subscriptionEmail : String
-    , carusels : Dict String Carusel.Model
+    , carousels : Dict String Carousel.Model
     }
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { subscriptionEmail = ""
-      , carusels = Dict.empty
+      , carousels = Dict.empty
       }
     , Cmd.none
     )
@@ -46,7 +46,7 @@ type Msg
     | SubmitEmailSubscription
     | SubscribeEmailAddressChange String
     | SubscriptionEmailSubmitted (Result Http.Error ())
-    | CaruselMsg String Carusel.Msg
+    | CarouselMsg String Carousel.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,17 +78,17 @@ update msg model =
         SubscriptionEmailSubmitted _ ->
             ( { model | subscriptionEmail = "" }, Cmd.none )
 
-        CaruselMsg caruselId caruselMsg ->
+        CarouselMsg carouselId carouselMsg ->
             let
-                ( caruselsUpdated, cmds ) =
+                ( carouselsUpdated, cmds ) =
                     MarkdownComponent.update
-                        Carusel.init
-                        caruselId
-                        (Carusel.update caruselMsg)
-                        model.carusels
+                        Carousel.init
+                        carouselId
+                        (Carousel.update carouselMsg)
+                        model.carousels
             in
-            ( { model | carusels = caruselsUpdated }
-            , Cmd.map (CaruselMsg caruselId) cmds
+            ( { model | carousels = carouselsUpdated }
+            , Cmd.map (CarouselMsg carouselId) cmds
             )
 
 
