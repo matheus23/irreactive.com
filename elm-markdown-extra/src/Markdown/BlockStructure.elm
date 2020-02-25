@@ -1,4 +1,7 @@
-module Markdown.BlockStructure exposing (BlockStructure(..), renderToHtml, fromRenderer)
+module Markdown.BlockStructure exposing
+    ( BlockStructure(..), renderToHtml, fromRenderer
+    , allStaticHttp, staticHttpRenderer
+    )
 
 {-|
 
@@ -9,7 +12,8 @@ module Markdown.BlockStructure exposing (BlockStructure(..), renderToHtml, fromR
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Markdown.Block as Block
-import Markdown.Renderer as Renderer exposing (Renderer)
+import Markdown.Renderer exposing (Renderer)
+import Pages.StaticHttp as StaticHttp
 
 
 {-| A datatype that enumerates all possible ways markdown could wrap some children.
@@ -141,7 +145,7 @@ fromRenderer renderer markdown =
 renderToHtml : BlockStructure (Html msg) -> Html msg
 renderToHtml markdown =
     case markdown of
-        Heading { level, rawText, children } ->
+        Heading { level, children } ->
             case level of
                 Block.H1 ->
                     Html.h1 [] children
@@ -258,7 +262,7 @@ renderToHtml markdown =
                         )
                 )
 
-        CodeBlock { body, language } ->
+        CodeBlock { body } ->
             Html.pre []
                 [ Html.code []
                     [ Html.text body
@@ -270,3 +274,55 @@ renderToHtml markdown =
 
         ThematicBreak ->
             Html.hr [] []
+
+
+
+-- TODO: Make staticHttpRenderer work on BlockStructure instead of Markdown.Renderer
+
+
+{-| -}
+allStaticHttp : List (StaticHttp.Request a) -> StaticHttp.Request (List a)
+allStaticHttp =
+    List.foldl (StaticHttp.map2 (::)) (StaticHttp.succeed [])
+
+
+{-| -}
+staticHttpRenderer : Renderer view -> Renderer (StaticHttp.Request view)
+staticHttpRenderer renderer =
+    { heading =
+        \{ level, rawText, children } ->
+            allStaticHttp children
+                |> StaticHttp.map
+                    (\actualChildren ->
+                        renderer.heading { level = level, rawText = rawText, children = actualChildren }
+                    )
+    , paragraph = allStaticHttp >> StaticHttp.map renderer.paragraph
+    , hardLineBreak = renderer.hardLineBreak |> StaticHttp.succeed
+    , blockQuote = allStaticHttp >> StaticHttp.map renderer.blockQuote
+    , strong = allStaticHttp >> StaticHttp.map renderer.strong
+    , emphasis = allStaticHttp >> StaticHttp.map renderer.emphasis
+    , codeSpan = renderer.codeSpan >> StaticHttp.succeed
+    , link = \link -> allStaticHttp >> StaticHttp.map (renderer.link link)
+    , image = renderer.image >> StaticHttp.succeed
+    , text = renderer.text >> StaticHttp.succeed
+    , unorderedList =
+        \items ->
+            let
+                combineListItemResults (Block.ListItem task results) =
+                    results
+                        |> allStaticHttp
+                        |> StaticHttp.map (Block.ListItem task)
+            in
+            items
+                |> List.map combineListItemResults
+                |> allStaticHttp
+                |> StaticHttp.map renderer.unorderedList
+    , orderedList =
+        \startingIndex items ->
+            items
+                |> List.map allStaticHttp
+                |> allStaticHttp
+                |> StaticHttp.map (renderer.orderedList startingIndex)
+    , codeBlock = renderer.codeBlock >> StaticHttp.succeed
+    , thematicBreak = renderer.thematicBreak |> StaticHttp.succeed
+    }

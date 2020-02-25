@@ -38,19 +38,16 @@ manifest =
     }
 
 
-main : Pages.Platform.Program Model Msg Metadata (StaticHttp.Request (Model -> Html Msg))
+main : Pages.Platform.Program Model Msg Metadata (Model -> Html Msg)
 main =
     Pages.Platform.application
         { init = \_ -> init
         , view =
             \siteMetadata page ->
-                -- viewDocument : StaticHttp.Request (Model -> Html Msg)
-                { view =
-                    \model viewDocument ->
-                        pageView siteMetadata page viewDocument
-                            |> StaticHttp.map (\viewer -> viewer model)
-                , head = head page.frontmatter
-                }
+                StaticHttp.succeed
+                    { view = \model viewDocument -> pageView siteMetadata page viewDocument model
+                    , head = head page.frontmatter
+                    }
         , update = update
         , subscriptions = subscriptions
         , documents = [ MarkdownDocument.document ]
@@ -65,37 +62,34 @@ main =
 pageView :
     List ( PagePath Pages.PathKey, Metadata )
     -> { path : PagePath Pages.PathKey, frontmatter : Metadata }
-    -> StaticHttp.Request (Model -> Html Msg)
-    -> StaticHttp.Request (Model -> { title : String, body : Html Msg })
-pageView siteMetadata page viewForPage =
-    viewForPage
-        |> StaticHttp.map
-            (\viewContent model ->
-                case page.frontmatter of
-                    Metadata.Page metadata ->
-                        viewPage metadata
-                            { header = viewHeader page.path
-                            , content = viewContent model
-                            }
+    -> (Model -> Html Msg)
+    -> Model
+    -> { title : String, body : Html Msg }
+pageView siteMetadata page viewContent model =
+    case page.frontmatter of
+        Metadata.Page metadata ->
+            viewPage metadata
+                { header = viewHeader page.path
+                , content = viewContent model
+                }
 
-                    Metadata.Article metadata ->
-                        viewArticle metadata
-                            { header = viewHeader page.path
-                            , content = viewContent model
-                            , footer = viewFooter model
-                            , githubEditLink = viewGithubEditLink page.path
-                            }
+        Metadata.Article metadata ->
+            viewArticle metadata
+                { header = viewHeader page.path
+                , content = viewContent model
+                , footer = viewFooter model
+                , githubEditLink = viewGithubEditLink page.path
+                }
 
-                    Metadata.BlogIndex ->
-                        { title = siteName
-                        , body =
-                            Html.div [ Attr.class "main-content" ]
-                                [ viewHeader page.path
-                                , Index.view siteMetadata
-                                , viewFooter model
-                                ]
-                        }
-            )
+        Metadata.BlogIndex ->
+            { title = siteName
+            , body =
+                Html.div [ Attr.class "main-content" ]
+                    [ viewHeader page.path
+                    , Index.view siteMetadata
+                    , viewFooter model
+                    ]
+            }
 
 
 viewPage :

@@ -12,7 +12,6 @@ import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
 import Pages.Document
-import Pages.StaticHttp as StaticHttp
 import Result.Extra as Result
 import String.Extra as String
 
@@ -52,9 +51,11 @@ deadEndsToString deadEnds =
            , Html.text (Debug.toString problem)
            ]
 -}
+-- TODO: Do link checking at some point via StaticHttp.Request, but do this as a
+-- pass before rendering, and keep rendering having a (Model -> Html Msg) type
 
 
-document : ( String, Pages.Document.DocumentHandler Metadata (StaticHttp.Request (Model -> Html Msg)) )
+document : ( String, Pages.Document.DocumentHandler Metadata (Model -> Html Msg) )
 document =
     Pages.Document.parser
         { extension = "md"
@@ -71,16 +72,12 @@ document =
                             , carousel
                             , markdownEl
                             ]
-                            |> htmlOverStaticHttp
                         )
                     )
                 >> Result.map
-                    (allStaticHttp
-                        >> StaticHttp.map
-                            (\children model ->
-                                applyModel model children
-                                    |> Html.main_ [ Attr.class "content" ]
-                            )
+                    (\children model ->
+                        applyModel model children
+                            |> Html.main_ [ Attr.class "content" ]
                     )
         }
 
@@ -90,58 +87,11 @@ applyModel m =
     List.map ((|>) m)
 
 
-allStaticHttp : List (StaticHttp.Request a) -> StaticHttp.Request (List a)
-allStaticHttp =
-    List.foldl (StaticHttp.map2 (::)) (StaticHttp.succeed [])
-
-
-customHtmlRenderer : Markdown.Renderer (StaticHttp.Request (Model -> Html Msg))
+customHtmlRenderer : Markdown.Renderer (Model -> Html Msg)
 customHtmlRenderer =
     defaultHtmlRenderer
         |> bumpHeadings 1
         |> rendererReader
-        |> staticHttpRenderer
-
-
-staticHttpRenderer : Markdown.Renderer view -> Markdown.Renderer (StaticHttp.Request view)
-staticHttpRenderer renderer =
-    { heading =
-        \{ level, rawText, children } ->
-            allStaticHttp children
-                |> StaticHttp.map
-                    (\actualChildren ->
-                        renderer.heading { level = level, rawText = rawText, children = actualChildren }
-                    )
-    , paragraph = allStaticHttp >> StaticHttp.map renderer.paragraph
-    , hardLineBreak = renderer.hardLineBreak |> StaticHttp.succeed
-    , blockQuote = allStaticHttp >> StaticHttp.map renderer.blockQuote
-    , strong = allStaticHttp >> StaticHttp.map renderer.strong
-    , emphasis = allStaticHttp >> StaticHttp.map renderer.emphasis
-    , codeSpan = renderer.codeSpan >> StaticHttp.succeed
-    , link = \link -> allStaticHttp >> StaticHttp.map (renderer.link link)
-    , image = renderer.image >> StaticHttp.succeed
-    , text = renderer.text >> StaticHttp.succeed
-    , unorderedList =
-        \items ->
-            let
-                combineListItemResults (ListItem task results) =
-                    results
-                        |> allStaticHttp
-                        |> StaticHttp.map (ListItem task)
-            in
-            items
-                |> List.map combineListItemResults
-                |> allStaticHttp
-                |> StaticHttp.map renderer.unorderedList
-    , orderedList =
-        \startingIndex items ->
-            items
-                |> List.map allStaticHttp
-                |> allStaticHttp
-                |> StaticHttp.map (renderer.orderedList startingIndex)
-    , codeBlock = renderer.codeBlock >> StaticHttp.succeed
-    , thematicBreak = renderer.thematicBreak |> StaticHttp.succeed
-    }
 
 
 rendererReader :
@@ -199,13 +149,6 @@ bumpHeadingLevel level =
 
         Markdown.Block.H6 ->
             Markdown.Block.H6
-
-
-htmlOverStaticHttp :
-    Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
-    -> Markdown.Html.Renderer (List (StaticHttp.Request (model -> Html msg)) -> StaticHttp.Request (model -> Html msg))
-htmlOverStaticHttp renderer =
-    Debug.todo "Dude :D"
 
 
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
