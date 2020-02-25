@@ -38,16 +38,19 @@ manifest =
     }
 
 
-main : Pages.Platform.Program Model Msg Metadata (Model -> Html Msg)
+main : Pages.Platform.Program Model Msg Metadata (StaticHttp.Request (Model -> Html Msg))
 main =
     Pages.Platform.application
         { init = \_ -> init
         , view =
             \siteMetadata page ->
-                StaticHttp.succeed
-                    { view = \model -> pageView model siteMetadata page
-                    , head = head page.frontmatter
-                    }
+                -- viewDocument : StaticHttp.Request (Model -> Html Msg)
+                { view =
+                    \model viewDocument ->
+                        pageView siteMetadata page viewDocument
+                            |> StaticHttp.map (\viewer -> viewer model)
+                , head = head page.frontmatter
+                }
         , update = update
         , subscriptions = subscriptions
         , documents = [ MarkdownDocument.document ]
@@ -60,73 +63,93 @@ main =
 
 
 pageView :
-    Model
-    -> List ( PagePath Pages.PathKey, Metadata )
+    List ( PagePath Pages.PathKey, Metadata )
     -> { path : PagePath Pages.PathKey, frontmatter : Metadata }
-    -> (Model -> Html Msg)
-    -> { title : String, body : Html Msg }
-pageView model siteMetadata page viewForPage =
-    let
-        renderGithubEditLink path =
-            Html.section [ Attr.class "edit-on-github" ]
-                [ Html.text "Found a typo? "
-                , Html.a
-                    [ Attr.style "text-decoration" "underline"
-                    , Attr.style "color" Palette.color.primary
-                    , Attr.href (githubRepo ++ "/edit/master/content" ++ PagePath.toString path ++ ".md")
-                    ]
-                    [ Html.text "Edit this page GitHub." ]
-                ]
-    in
-    case page.frontmatter of
-        Metadata.Page metadata ->
-            { title = metadata.title
-            , body =
-                Html.div [ Attr.class "main-content" ]
-                    [ header page.path
-                    , viewForPage model
-                    ]
-            }
+    -> StaticHttp.Request (Model -> Html Msg)
+    -> StaticHttp.Request (Model -> { title : String, body : Html Msg })
+pageView siteMetadata page viewForPage =
+    viewForPage
+        |> StaticHttp.map
+            (\viewContent model ->
+                case page.frontmatter of
+                    Metadata.Page metadata ->
+                        viewPage metadata
+                            { header = viewHeader page.path
+                            , content = viewContent model
+                            }
 
-        Metadata.Article metadata ->
-            { title = metadata.title
-            , body =
-                Html.div [ Attr.class "main-content" ]
-                    [ header page.path
-                    , Html.article []
-                        [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
-                        , Html.section [ Attr.class "header" ]
-                            [ Html.section [ Attr.class "meta" ]
-                                [ Html.text metadata.author
-                                , Html.text " • "
-                                , Html.time [] [ Html.text (metadata.published |> Date.format "MMMM ddd, yyyy") ]
+                    Metadata.Article metadata ->
+                        viewArticle metadata
+                            { header = viewHeader page.path
+                            , content = viewContent model
+                            , footer = viewFooter model
+                            , githubEditLink = viewGithubEditLink page.path
+                            }
+
+                    Metadata.BlogIndex ->
+                        { title = siteName
+                        , body =
+                            Html.div [ Attr.class "main-content" ]
+                                [ viewHeader page.path
+                                , Index.view siteMetadata
+                                , viewFooter model
                                 ]
-                            , Html.img
-                                [ Attr.src (ImagePath.toString metadata.image)
-                                , Attr.alt "Post cover photo"
-                                ]
-                                []
-                            ]
-                        , viewForPage model
+                        }
+            )
+
+
+viewPage :
+    Metadata.PageMetadata
+    -> { header : Html msg, content : Html msg }
+    -> { title : String, body : Html msg }
+viewPage metadata { header, content } =
+    { title = metadata.title
+    , body =
+        Html.div [ Attr.class "main-content" ]
+            [ header
+            , content
+            ]
+    }
+
+
+viewArticle :
+    Metadata.ArticleMetadata
+    ->
+        { header : Html msg
+        , content : Html msg
+        , footer : Html msg
+        , githubEditLink : Html msg
+        }
+    -> { title : String, body : Html msg }
+viewArticle metadata { header, content, footer, githubEditLink } =
+    { title = metadata.title
+    , body =
+        Html.div [ Attr.class "main-content" ]
+            [ header
+            , Html.article []
+                [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
+                , Html.section [ Attr.class "header" ]
+                    [ Html.section [ Attr.class "meta" ]
+                        [ Html.text metadata.author
+                        , Html.text " • "
+                        , Html.time [] [ Html.text (metadata.published |> Date.format "MMMM ddd, yyyy") ]
                         ]
-                    , renderGithubEditLink page.path
-                    , footer model
+                    , Html.img
+                        [ Attr.src (ImagePath.toString metadata.image)
+                        , Attr.alt "Post cover photo"
+                        ]
+                        []
                     ]
-            }
-
-        Metadata.BlogIndex ->
-            { title = siteName
-            , body =
-                Html.div [ Attr.class "main-content" ]
-                    [ header page.path
-                    , Index.view siteMetadata
-                    , footer model
-                    ]
-            }
+                , content
+                ]
+            , githubEditLink
+            , footer
+            ]
+    }
 
 
-header : PagePath Pages.PathKey -> Html msg
-header currentPath =
+viewHeader : PagePath Pages.PathKey -> Html msg
+viewHeader currentPath =
     Html.nav []
         [ Html.a [ Attr.href "/", Attr.class "blog-title" ]
             [ Html.text siteName
@@ -138,8 +161,8 @@ header currentPath =
         ]
 
 
-footer : Model -> Html Msg
-footer model =
+viewFooter : Model -> Html Msg
+viewFooter model =
     Html.footer []
         [ Html.form
             [ Attr.name "email-subscription"
@@ -163,6 +186,19 @@ footer model =
                 , Html.button [ Attr.type_ "submit" ] [ Html.text "Get Notified" ]
                 ]
             ]
+        ]
+
+
+viewGithubEditLink : PagePath Pages.PathKey -> Html msg
+viewGithubEditLink path =
+    Html.section [ Attr.class "edit-on-github" ]
+        [ Html.text "Found a typo? "
+        , Html.a
+            [ Attr.style "text-decoration" "underline"
+            , Attr.style "color" Palette.color.primary
+            , Attr.href (githubRepo ++ "/edit/master/content" ++ PagePath.toString path ++ ".md")
+            ]
+            [ Html.text "Edit this page GitHub." ]
         ]
 
 
@@ -262,19 +298,3 @@ canonicalSiteUrl =
 githubRepo : String
 githubRepo =
     "https://github.com/matheus23/website"
-
-
-
-{- I don't think I need this
-   githubRepoLink : Html msg
-   githubRepoLink =
-       Html.a
-           [ Attr.href githubRepo ]
-           [ Html.img
-               [ Attr.src (ImagePath.toString Pages.images.github)
-               , Attr.style "width" "22px"
-               , Attr.alt "GitHub repository"
-               ]
-               []
-           ]
--}

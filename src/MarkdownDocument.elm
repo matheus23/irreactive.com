@@ -3,37 +3,28 @@ module MarkdownDocument exposing (..)
 import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Loop
+import Markdown.Block exposing (ListItem(..))
 import Markdown.Html
-import Markdown.Parser exposing (ListItem(..), defaultHtmlRenderer)
+import Markdown.Parser as Markdown
+import Markdown.Renderer as Markdown exposing (defaultHtmlRenderer, withoutValidation)
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
 import Pages.Document
-import Parser
-import Parser.Advanced
+import Pages.StaticHttp as StaticHttp
 import Result.Extra as Result
 import String.Extra as String
 
 
-
--- TODO: Remove the Html rendering of markdown error messages.
-
-
-render : Markdown.Parser.Renderer (Model -> Html Msg) -> String -> Result String (List (Model -> Html Msg))
-render renderer markdown =
-    markdown
-        |> Markdown.Parser.parse
-        |> Result.mapError deadEndsToString
-        |> Result.andThen (Markdown.Parser.render renderer)
-
-
 deadEndsToString deadEnds =
     deadEnds
-        |> List.map Markdown.Parser.deadEndToString
+        |> List.map Markdown.deadEndToString
         |> String.join "\n"
 
 
 
+-- TODO: Remove the Html rendering of markdown error messages.
 {-
    renderDeadEnds : String -> List (Parser.Advanced.DeadEnd String Parser.Problem) -> List (Model -> Html Msg)
    renderDeadEnds input =
@@ -63,17 +54,33 @@ deadEndsToString deadEnds =
 -}
 
 
-document : ( String, Pages.Document.DocumentHandler Metadata (Model -> Html Msg) )
+document : ( String, Pages.Document.DocumentHandler Metadata (StaticHttp.Request (Model -> Html Msg)) )
 document =
     Pages.Document.parser
         { extension = "md"
         , metadata = Metadata.decoder
         , body =
-            render customHtmlRenderer
+            Markdown.parse
+                >> Result.mapError deadEndsToString
+                >> Result.andThen
+                    (Markdown.render
+                        (withoutValidation customHtmlRenderer)
+                        (Markdown.Html.oneOf
+                            [ anythingCaptioned "img" []
+                            , anythingCaptioned "video" [ Attr.controls True ]
+                            , carousel
+                            , markdownEl
+                            ]
+                            |> htmlOverStaticHttp
+                        )
+                    )
                 >> Result.map
-                    (\children model ->
-                        Html.main_ [ Attr.class "content" ]
-                            (applyModel model children)
+                    (allStaticHttp
+                        >> StaticHttp.map
+                            (\children model ->
+                                applyModel model children
+                                    |> Html.main_ [ Attr.class "content" ]
+                            )
                     )
         }
 
@@ -83,53 +90,74 @@ applyModel m =
     List.map ((|>) m)
 
 
-customHtmlRenderer : Markdown.Parser.Renderer (Model -> Html Msg)
+allStaticHttp : List (StaticHttp.Request a) -> StaticHttp.Request (List a)
+allStaticHttp =
+    List.foldl (StaticHttp.map2 (::)) (StaticHttp.succeed [])
+
+
+customHtmlRenderer : Markdown.Renderer (StaticHttp.Request (Model -> Html Msg))
 customHtmlRenderer =
     defaultHtmlRenderer
         |> bumpHeadings 1
         |> rendererReader
-            (Markdown.Html.oneOf
-                [ anythingCaptioned "img" []
-                , anythingCaptioned "video" [ Attr.controls True ]
-                , carousel
-                , markdownEl
-                ]
-            )
-            (\link content ->
-                Ok <|
-                    \r ->
-                        Html.a [ Attr.href link.destination ] (applyModel r content)
-            )
+        |> staticHttpRenderer
 
 
-type alias LinkRenderer view =
-    { title : Maybe String
-    , destination : String
+staticHttpRenderer : Markdown.Renderer view -> Markdown.Renderer (StaticHttp.Request view)
+staticHttpRenderer renderer =
+    { heading =
+        \{ level, rawText, children } ->
+            allStaticHttp children
+                |> StaticHttp.map
+                    (\actualChildren ->
+                        renderer.heading { level = level, rawText = rawText, children = actualChildren }
+                    )
+    , paragraph = allStaticHttp >> StaticHttp.map renderer.paragraph
+    , hardLineBreak = renderer.hardLineBreak |> StaticHttp.succeed
+    , blockQuote = allStaticHttp >> StaticHttp.map renderer.blockQuote
+    , strong = allStaticHttp >> StaticHttp.map renderer.strong
+    , emphasis = allStaticHttp >> StaticHttp.map renderer.emphasis
+    , codeSpan = renderer.codeSpan >> StaticHttp.succeed
+    , link = \link -> allStaticHttp >> StaticHttp.map (renderer.link link)
+    , image = renderer.image >> StaticHttp.succeed
+    , text = renderer.text >> StaticHttp.succeed
+    , unorderedList =
+        \items ->
+            let
+                combineListItemResults (ListItem task results) =
+                    results
+                        |> allStaticHttp
+                        |> StaticHttp.map (ListItem task)
+            in
+            items
+                |> List.map combineListItemResults
+                |> allStaticHttp
+                |> StaticHttp.map renderer.unorderedList
+    , orderedList =
+        \startingIndex items ->
+            items
+                |> List.map allStaticHttp
+                |> allStaticHttp
+                |> StaticHttp.map (renderer.orderedList startingIndex)
+    , codeBlock = renderer.codeBlock >> StaticHttp.succeed
+    , thematicBreak = renderer.thematicBreak |> StaticHttp.succeed
     }
-    -> List view
-    -> Result String view
 
 
 rendererReader :
-    Markdown.Html.Renderer (List (r -> view) -> r -> view)
-    -> LinkRenderer (r -> view)
-    -> Markdown.Parser.Renderer view
-    -> Markdown.Parser.Renderer (r -> view)
-rendererReader htmlRenderer linkRenderer renderer =
+    Markdown.Renderer view
+    -> Markdown.Renderer (r -> view)
+rendererReader renderer =
     { heading =
         \{ level, rawText, children } r ->
             renderer.heading { level = level, rawText = rawText, children = applyModel r children }
-    , raw = \children r -> renderer.raw (applyModel r children)
-    , html = htmlRenderer
-    , plain = \text _ -> renderer.plain text
-    , code = \text _ -> renderer.code text
-    , bold = \text _ -> renderer.bold text
-    , italic = \text _ -> renderer.italic text
-    , link = linkRenderer
-    , image =
-        \info description ->
-            renderer.image info description
-                |> Result.map always
+    , paragraph = \children r -> renderer.paragraph (applyModel r children)
+    , text = \text _ -> renderer.text text
+    , codeSpan = \text _ -> renderer.codeSpan text
+    , strong = \children r -> renderer.strong (applyModel r children)
+    , emphasis = \children r -> renderer.emphasis (applyModel r children)
+    , link = \info children r -> renderer.link info (applyModel r children)
+    , image = \info _ -> renderer.image info
     , unorderedList =
         \listItems r ->
             renderer.unorderedList
@@ -138,12 +166,46 @@ rendererReader htmlRenderer linkRenderer renderer =
     , codeBlock = \info _ -> renderer.codeBlock info
     , thematicBreak = \_ -> renderer.thematicBreak
     , blockQuote = \children r -> renderer.blockQuote (applyModel r children)
+    , hardLineBreak = \_ -> renderer.hardLineBreak
     }
 
 
-bumpHeadings : Int -> Markdown.Parser.Renderer view -> Markdown.Parser.Renderer view
+bumpHeadings : Int -> Markdown.Renderer view -> Markdown.Renderer view
 bumpHeadings by renderer =
-    { renderer | heading = \info -> renderer.heading { info | level = info.level + by } }
+    { renderer
+        | heading =
+            \info ->
+                renderer.heading { info | level = Loop.for by bumpHeadingLevel info.level }
+    }
+
+
+bumpHeadingLevel : Markdown.Block.HeadingLevel -> Markdown.Block.HeadingLevel
+bumpHeadingLevel level =
+    case level of
+        Markdown.Block.H1 ->
+            Markdown.Block.H2
+
+        Markdown.Block.H2 ->
+            Markdown.Block.H3
+
+        Markdown.Block.H3 ->
+            Markdown.Block.H4
+
+        Markdown.Block.H4 ->
+            Markdown.Block.H5
+
+        Markdown.Block.H5 ->
+            Markdown.Block.H6
+
+        Markdown.Block.H6 ->
+            Markdown.Block.H6
+
+
+htmlOverStaticHttp :
+    Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+    -> Markdown.Html.Renderer (List (StaticHttp.Request (model -> Html msg)) -> StaticHttp.Request (model -> Html msg))
+htmlOverStaticHttp renderer =
+    Debug.todo "Dude :D"
 
 
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)

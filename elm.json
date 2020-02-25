@@ -3,7 +3,8 @@
     "source-directories": [
         "src",
         "gen",
-        "elm-markdown/src"
+        "elm-markdown/src",
+        "elm-markdown-extra/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {
