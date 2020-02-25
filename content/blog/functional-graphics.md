@@ -10,7 +10,7 @@
 }
 ---
 
-Have you seen how creating 2D graphics looks like in Cairo, Java AWT, Processing or the Web Canvas? What you'll see is a very imperative API along the lines of this:
+Have you seen what creating 2D graphics looks like in Cairo, Java AWT, Processing or the Web Canvas? What you'll see is an imperative API along the lines of this:
 
 ```js
 moveTo(100, 100);
@@ -23,7 +23,7 @@ rectangle(50, 30);
 fill();
 ```
 
-My subjective experience seems to be that more and more people are building a functional interface on top of this imperative API. The same result would then be generated like this (in pseudo code):
+My subjective experience seems to be that more and more people are building a functional interface on top of this imperative API. The comparable pseudo-code looks like this:
 
 ```hs
 scene =
@@ -33,7 +33,7 @@ scene =
 ```
 (superimpose == put one above the other)
 
-Notice that I used ML-style syntax for this statement, so syntax similar to Haskell, OCaml and Elm. ML-style uses spaces for function application. Multiple arguments are just applied with more spaces. You can parenthesise an expression to group it and apply it as a single argument. The equivalent in javascript syntax would look like this:
+Notice that I used ML-style syntax for this statement, so syntax similar to Haskell, OCaml and Elm: Using spaces for function application; multiple arguments are applied with multiple spaces; you can parenthesise an expression to group it and apply it as a single argument. The equivalent in javascript syntax would look like this:
 
 ```js
 const scene =
@@ -43,9 +43,9 @@ const scene =
   );
 ```
 
-Think of such an API as having immutable objects for graphical primitives like circles, rectangles, etc. It is then possible to wrap these objects in wrappers that then represent translated or colored objects (without modifying the original graphic). The result of all functional drawing will then be a single object that represents all of your graphical scene, composed of wrappers of wrappers of primitive objects, similar to a scene graph, if you that means something to you.
+Think of such an API as having immutable objects for graphical primitives like circles, rectangles, etc. It is then possible to wrap these objects in wrappers that then represent translated or colored objects (without modifying the original graphic). The result of all functional drawing will then be a single object that represents all of your graphical scene, composed of wrappers of wrappers of primitive objects, similar to a scene graph, if that means something to you.
 
-So I said my subjective experience is that more and more programmers are switching to this kind of functional interface. Why would they do that extra work?
+So, I mentioned my subjective experience is that more and more programmers are switching to this kind of functional interface. Why would they do that extra work?
 
 The new interface has concrete advantages:
 
