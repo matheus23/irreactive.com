@@ -7,6 +7,7 @@
     "dev": "yarn start",
     "serve": "yarn build && http-server ./dist -a localhost -p 3000 -c-1",
     "build": "yarn build:styles && elm-pages build",
+    "docs": "yarn elm-doc-preview -p 8080",
     "watch:styles": "sass --watch styles/main.scss:dist/style.css --source-map-urls absolute",
     "build:styles": "sass styles/main.scss:dist/style.css --source-map-urls absolute"
   },
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "elm": "^0.19.1",
+    "elm-doc-preview": "^3.0.4",
     "elm-pages": "^1.2.7",
     "http-server": "^0.11.1"
   }
