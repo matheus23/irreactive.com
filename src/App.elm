@@ -84,7 +84,7 @@ update msg model =
                     MarkdownComponent.update
                         Carousel.init
                         carouselId
-                        (Carousel.update carouselMsg)
+                        (Carousel.update carouselId carouselMsg)
                         model.carousels
             in
             ( { model | carousels = carouselsUpdated }

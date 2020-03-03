@@ -5,6 +5,7 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Json.Decode as Decode
+import Ports
 import Result.Extra as Result
 import Task
 
@@ -15,8 +16,9 @@ type alias Model =
 
 type Msg
     = NoOp
-    | OnScroll String
+    | OnScroll
     | GetViewport Viewport
+    | ScrollTo Float
 
 
 init : Model
@@ -24,13 +26,13 @@ init =
     { scrollPosition = 0 }
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : String -> Msg -> Model -> ( Model, Cmd Msg )
+update carouselId msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
 
-        OnScroll carouselId ->
+        OnScroll ->
             ( model
             , Browser.Dom.getViewportOf carouselId
                 |> Task.attempt
@@ -44,42 +46,51 @@ update msg model =
             , Cmd.none
             )
 
+        ScrollTo percentage ->
+            ( model
+            , Ports.smoothScrollToPercentage carouselId { left = Just percentage, top = Nothing }
+            )
+
 
 view : (Msg -> msg) -> String -> Model -> List (Html msg) -> Html msg
-view liftMsg identifier model children =
+view liftMsg carouselId model children =
     let
+        lastIndex =
+            toFloat (List.length children - 1)
+
+        amountChildren =
+            toFloat (List.length children)
+
         scrolledItem =
-            model.scrollPosition * toFloat (List.length children - 1)
-    in
-    Html.section [ Attr.class "carousel-container" ]
-        [ Html.div
-            [ Attr.class "carousel"
-            , Attr.id identifier
-            , Events.on "scroll" (Decode.succeed (liftMsg (OnScroll identifier)))
-            ]
-            children
-        , Html.div [ Attr.class "dots" ]
-            (List.indexedMap (\index _ -> viewDot scrolledItem index) children)
-        ]
+            model.scrollPosition * lastIndex
 
-
-viewDot : Float -> Int -> Html msg
-viewDot scrolledItem index =
-    let
-        irrelevancy =
+        irrelevancy index =
             (toFloat index - scrolledItem)
                 |> abs
                 |> clamp 0 1
 
-        color =
+        color index =
             String.concat
                 [ "rgba(146,131,116,"
-                , String.fromFloat (1 - irrelevancy)
+                , String.fromFloat (1 - irrelevancy index)
                 , ")"
                 ]
+
+        viewDot index =
+            Html.div
+                [ Attr.class "dot"
+                , Attr.style "background-color" (color index)
+                , Events.onClick <| liftMsg <| ScrollTo <| toFloat index / amountChildren
+                ]
+                []
     in
-    Html.div
-        [ Attr.class "dot"
-        , Attr.style "background-color" color
+    Html.section [ Attr.class "carousel-container" ]
+        [ Html.div
+            [ Attr.class "carousel"
+            , Attr.id carouselId
+            , Events.on "scroll" (Decode.succeed (liftMsg OnScroll))
+            ]
+            children
+        , Html.div [ Attr.class "dots" ]
+            (List.indexedMap (\index _ -> viewDot index) children)
         ]
-        []
