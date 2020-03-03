@@ -5,9 +5,10 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Loop
 import Markdown.Block exposing (ListItem(..))
+import Markdown.BlockStructure as BlockStructure exposing (BlockStructure)
 import Markdown.Html
 import Markdown.Parser as Markdown
-import Markdown.Renderer as Markdown exposing (defaultHtmlRenderer, withoutValidation)
+import Markdown.Renderer as Markdown
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
@@ -63,17 +64,7 @@ document =
         , body =
             Markdown.parse
                 >> Result.mapError deadEndsToString
-                >> Result.andThen
-                    (Markdown.render
-                        (withoutValidation customHtmlRenderer)
-                        (Markdown.Html.oneOf
-                            [ anythingCaptioned "img" []
-                            , anythingCaptioned "video" [ Attr.controls True ]
-                            , carousel
-                            , markdownEl
-                            ]
-                        )
-                    )
+                >> Result.andThen (Markdown.render customHtmlRenderer)
                 >> Result.map
                     (\children model ->
                         applyModel model children
@@ -89,44 +80,32 @@ applyModel m =
 
 customHtmlRenderer : Markdown.Renderer (Model -> Html Msg)
 customHtmlRenderer =
-    defaultHtmlRenderer
-        |> bumpHeadings 1
-        |> rendererReader
+    BlockStructure.toRenderer
+        { renderHtml =
+            Markdown.Html.oneOf
+                [ anythingCaptioned "img" []
+                , anythingCaptioned "video" [ Attr.controls True ]
+                , carousel
+                , markdownEl
+                ]
+        , renderMarkdown =
+            (\blockStructure _ ->
+                blockStructure
+                    |> bumpHeadings 1
+                    |> BlockStructure.renderToHtml
+            )
+                |> BlockStructure.parameterized
+        }
 
 
-rendererReader :
-    Markdown.Renderer view
-    -> Markdown.Renderer (r -> view)
-rendererReader renderer =
-    { heading =
-        \{ level, rawText, children } r ->
-            renderer.heading { level = level, rawText = rawText, children = applyModel r children }
-    , paragraph = \children r -> renderer.paragraph (applyModel r children)
-    , text = \text _ -> renderer.text text
-    , codeSpan = \text _ -> renderer.codeSpan text
-    , strong = \children r -> renderer.strong (applyModel r children)
-    , emphasis = \children r -> renderer.emphasis (applyModel r children)
-    , link = \info children r -> renderer.link info (applyModel r children)
-    , image = \info _ -> renderer.image info
-    , unorderedList =
-        \listItems r ->
-            renderer.unorderedList
-                (List.map (\(ListItem task children) -> ListItem task (applyModel r children)) listItems)
-    , orderedList = \num children r -> renderer.orderedList num (List.map (applyModel r) children)
-    , codeBlock = \info _ -> renderer.codeBlock info
-    , thematicBreak = \_ -> renderer.thematicBreak
-    , blockQuote = \children r -> renderer.blockQuote (applyModel r children)
-    , hardLineBreak = \_ -> renderer.hardLineBreak
-    }
+bumpHeadings : Int -> BlockStructure view -> BlockStructure view
+bumpHeadings by markdown =
+    case markdown of
+        BlockStructure.Heading info ->
+            BlockStructure.Heading { info | level = Loop.for by bumpHeadingLevel info.level }
 
-
-bumpHeadings : Int -> Markdown.Renderer view -> Markdown.Renderer view
-bumpHeadings by renderer =
-    { renderer
-        | heading =
-            \info ->
-                renderer.heading { info | level = Loop.for by bumpHeadingLevel info.level }
-    }
+        other ->
+            other
 
 
 bumpHeadingLevel : Markdown.Block.HeadingLevel -> Markdown.Block.HeadingLevel
