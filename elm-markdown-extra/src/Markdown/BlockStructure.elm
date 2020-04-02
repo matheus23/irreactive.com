@@ -61,6 +61,12 @@ type BlockStructure children
     | CodeBlock { body : String, language : Maybe String }
     | HardLineBreak
     | ThematicBreak
+    | Table (List children)
+    | TableHeader (List children)
+    | TableBody (List children)
+    | TableRow (List children)
+    | TableCell (List children)
+    | TableHeaderCell (Maybe Block.Alignment) (List children)
 
 
 {-| Transform each child of a `BlockStructure` using the given function.
@@ -116,6 +122,24 @@ map f markdown =
 
         ThematicBreak ->
             ThematicBreak
+
+        Table children ->
+            Table (List.map f children)
+
+        TableHeader children ->
+            TableHeader (List.map f children)
+
+        TableBody children ->
+            TableBody (List.map f children)
+
+        TableRow children ->
+            TableRow (List.map f children)
+
+        TableCell children ->
+            TableCell (List.map f children)
+
+        TableHeaderCell alignment children ->
+            TableHeaderCell alignment (List.map f children)
 
 
 {-| There are two ways of thinking about this function:
@@ -173,6 +197,24 @@ fromRenderer renderer markdown =
         ThematicBreak ->
             renderer.thematicBreak
 
+        Table children ->
+            renderer.table children
+
+        TableHeader children ->
+            renderer.tableHeader children
+
+        TableBody children ->
+            renderer.tableBody children
+
+        TableRow children ->
+            renderer.tableRow children
+
+        TableHeaderCell maybeAlignment children ->
+            renderer.tableHeaderCell maybeAlignment children
+
+        TableCell children ->
+            renderer.tableCell children
+
 
 {-| Convert a function that works with `BlockStructure` to a `Renderer` for use with
 elm-markdown.
@@ -212,6 +254,12 @@ toRenderer { renderMarkdown, renderHtml } =
                 |> renderMarkdown
     , codeBlock = CodeBlock >> renderMarkdown
     , thematicBreak = ThematicBreak |> renderMarkdown
+    , table = Table >> renderMarkdown
+    , tableHeader = TableHeader >> renderMarkdown
+    , tableBody = TableBody >> renderMarkdown
+    , tableRow = TableRow >> renderMarkdown
+    , tableHeaderCell = \maybeAlignment -> TableHeaderCell maybeAlignment >> renderMarkdown
+    , tableCell = TableCell >> renderMarkdown
     }
 
 
@@ -349,6 +397,39 @@ renderToHtml markdown =
         ThematicBreak ->
             Html.hr [] []
 
+        Table children ->
+            Html.table [] children
+
+        TableHeader children ->
+            Html.thead [] children
+
+        TableBody children ->
+            Html.tbody [] children
+
+        TableRow children ->
+            Html.tr [] children
+
+        TableHeaderCell maybeAlignment children ->
+            let
+                attrs =
+                    case maybeAlignment of
+                        Just Block.AlignLeft ->
+                            [ Attr.align "left" ]
+
+                        Just Block.AlignCenter ->
+                            [ Attr.align "center" ]
+
+                        Just Block.AlignRight ->
+                            [ Attr.align "right" ]
+
+                        Nothing ->
+                            []
+            in
+            Html.th attrs children
+
+        TableCell children ->
+            Html.td [] children
+
 
 {-| TODO: What does `extractText` mean in terms of Paragraphs, lists and code blocks?
 -}
@@ -356,17 +437,13 @@ extractText : BlockStructure String -> String
 extractText markdown =
     case markdown of
         Heading { children } ->
-            children
-                |> String.concat
+            String.concat children
 
         Paragraph children ->
-            children
-                |> List.intersperse "\n\n"
-                |> String.concat
+            String.join "\n\n" children
 
         BlockQuote children ->
-            children
-                |> String.concat
+            String.concat children
 
         Text content ->
             content
@@ -375,16 +452,13 @@ extractText markdown =
             content
 
         Strong children ->
-            children
-                |> String.concat
+            String.concat children
 
         Emphasis children ->
-            children
-                |> String.concat
+            String.concat children
 
         Link link ->
-            link.children
-                |> String.concat
+            String.concat link.children
 
         Image _ ->
             ""
@@ -409,10 +483,28 @@ extractText markdown =
             ""
 
         HardLineBreak ->
-            " "
+            "\n"
 
         ThematicBreak ->
             " "
+
+        Table children ->
+            String.join "\n" children
+
+        TableHeader children ->
+            String.join ", " children
+
+        TableBody children ->
+            String.join "\n" children
+
+        TableRow children ->
+            String.join ", " children
+
+        TableHeaderCell _ children ->
+            String.concat children
+
+        TableCell children ->
+            String.concat children
 
 
 
@@ -558,6 +650,36 @@ collapseResults markdown =
         ThematicBreak ->
             ThematicBreak
                 |> Ok
+
+        Table children ->
+            children
+                |> Result.combine
+                |> Result.map Table
+
+        TableHeader children ->
+            children
+                |> Result.combine
+                |> Result.map TableHeader
+
+        TableBody children ->
+            children
+                |> Result.combine
+                |> Result.map TableBody
+
+        TableRow children ->
+            children
+                |> Result.combine
+                |> Result.map TableRow
+
+        TableHeaderCell maybeAlignment children ->
+            children
+                |> Result.combine
+                |> Result.map (TableHeaderCell maybeAlignment)
+
+        TableCell children ->
+            children
+                |> Result.combine
+                |> Result.map TableCell
 
 
 {-| This function allows your renderer to access the raw text inside of your markdown

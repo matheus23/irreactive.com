@@ -24,34 +24,6 @@ deadEndsToString deadEnds =
 
 
 
--- TODO: Remove the Html rendering of markdown error messages.
-{-
-   renderDeadEnds : String -> List (Parser.Advanced.DeadEnd String Parser.Problem) -> List (Model -> Html Msg)
-   renderDeadEnds input =
-       let
-           inputLines =
-               String.split "\n" input
-       in
-       List.map (\deadEnd _ -> renderDeadEnd inputLines deadEnd)
-
-
-   renderDeadEnd : List String -> Parser.Advanced.DeadEnd String Parser.Problem -> Html msg
-   renderDeadEnd input { row, problem } =
-       let
-           linesPadding =
-               2
-
-           relevantLines =
-               input
-                   |> List.drop (List.length input - row - linesPadding)
-                   |> List.take (linesPadding * 2 + 1)
-       in
-       Html.div []
-           [ Html.pre []
-               [ Html.text (String.concat (List.intersperse "\n" relevantLines)) ]
-           , Html.text (Debug.toString problem)
-           ]
--}
 -- TODO: Do link checking at some point via StaticHttp.Request, but do this as a
 -- pass before rendering, and keep rendering having a (Model -> Html Msg) type
 
@@ -89,12 +61,12 @@ customHtmlRenderer =
                 , markdownEl
                 ]
         , renderMarkdown =
-            (\blockStructure _ ->
-                blockStructure
-                    |> bumpHeadings 1
-                    |> BlockStructure.renderToHtml
-            )
-                |> BlockStructure.parameterized
+            BlockStructure.parameterized
+                (\blockStructure _ ->
+                    blockStructure
+                        |> bumpHeadings 1
+                        |> BlockStructure.renderToHtml
+                )
         }
 
 
