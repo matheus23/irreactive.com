@@ -3,12 +3,11 @@ module MarkdownDocument exposing (..)
 import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Loop
 import Markdown.Block exposing (ListItem(..))
-import Markdown.BlockStructure as BlockStructure exposing (BlockStructure)
 import Markdown.Html
 import Markdown.Parser as Markdown
 import Markdown.Renderer as Markdown
+import Markdown.Scaffolded as Scaffolded
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
@@ -52,7 +51,7 @@ applyModel m =
 
 customHtmlRenderer : Markdown.Renderer (Model -> Html Msg)
 customHtmlRenderer =
-    BlockStructure.toRenderer
+    Scaffolded.toRenderer
         { renderHtml =
             Markdown.Html.oneOf
                 [ anythingCaptioned "img" []
@@ -61,45 +60,13 @@ customHtmlRenderer =
                 , markdownEl
                 ]
         , renderMarkdown =
-            BlockStructure.parameterized
+            Scaffolded.parameterized
                 (\blockStructure _ ->
                     blockStructure
-                        |> bumpHeadings 1
-                        |> BlockStructure.renderToHtml
+                        |> Scaffolded.bumpHeadings 1
+                        |> Scaffolded.toHtml
                 )
         }
-
-
-bumpHeadings : Int -> BlockStructure view -> BlockStructure view
-bumpHeadings by markdown =
-    case markdown of
-        BlockStructure.Heading info ->
-            BlockStructure.Heading { info | level = Loop.for by bumpHeadingLevel info.level }
-
-        other ->
-            other
-
-
-bumpHeadingLevel : Markdown.Block.HeadingLevel -> Markdown.Block.HeadingLevel
-bumpHeadingLevel level =
-    case level of
-        Markdown.Block.H1 ->
-            Markdown.Block.H2
-
-        Markdown.Block.H2 ->
-            Markdown.Block.H3
-
-        Markdown.Block.H3 ->
-            Markdown.Block.H4
-
-        Markdown.Block.H4 ->
-            Markdown.Block.H5
-
-        Markdown.Block.H5 ->
-            Markdown.Block.H6
-
-        Markdown.Block.H6 ->
-            Markdown.Block.H6
 
 
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
