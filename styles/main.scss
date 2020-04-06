@@ -51,6 +51,7 @@ html,
 body {
     margin: 0;
     padding: 0;
+    height: 100%;
     @include font-main;
 }
 
@@ -112,6 +113,12 @@ nav {
         background-color: $button-secondary;
         border-radius: $space-xxs;
     }
+}
+
+.main-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 article {
@@ -250,6 +257,7 @@ section.edit-on-github {
 
 footer {
     width: 100%;
+    margin-top: auto;
 
     background-color: $dark-background;
     color: $dark-font-main;
