@@ -4,7 +4,7 @@
   "author": "Philipp Krüger",
   "title": "Software Design by Abstraction",
   "description": "There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
-  "image": "/images/article-covers/mountain.jpg",
+  "image": "images/article-covers/fittslist.png",
   "draft": true,
   "published": "2019-11-28",
 }
@@ -23,3 +23,15 @@ More refactoring through static types.
 
 RESEARCH:
 Maybe interview 'expert functional programmers'?
+
+Maybe a simpler form of arguing the L-shaped thing is this by using the 'remotedata' thing from this post:
+  https://5e89068c6daf890006031b1d--hungry-darwin-eccd5b.netlify.com/blog/quiz-test
+(The `{ loaded : Bool, error : Bool }` thing).
+
+Just show the connections: Types = Algebra = Squares (This is the hook!)
+
+
+What is this post title? What does this have to do with abstraction exactly? Other ideas:
+* Algebraic Design of State
+* Algebraic Design of Data
+* 

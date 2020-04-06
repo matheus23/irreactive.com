@@ -4,7 +4,7 @@
   "author": "Philipp Krüger",
   "title": "The Holy Grail of Layouts",
   "description": "A draft. (TODO CHANGE THIS)",
-  "image": "/images/article-covers/fittslist.png",
+  "image": "images/article-covers/fittslist.png",
   "draft": false,
   "published": "2019-11-21",
 }

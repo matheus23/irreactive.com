@@ -4,7 +4,7 @@
   "author": "Philipp Krüger",
   "title": "Declarative and Composable Graphics",
   "description": "A draft. (TODO CHANGE THIS)",
-  "image": "/images/article-covers/mountains.jpg",
+  "image": "images/article-covers/mountains.jpg",
   "draft": false,
   "published": "2019-11-20",
 }
