@@ -190,7 +190,7 @@ viewGithubEditLink path =
         , Html.a
             [ Attr.style "text-decoration" "underline"
             , Attr.style "color" Palette.color.primary
-            , Attr.href (githubRepo ++ "/edit/master/content" ++ PagePath.toString path ++ ".md")
+            , Attr.href (githubRepo ++ "/blob/master/content/" ++ PagePath.toString path ++ ".md")
             ]
             [ Html.text "Edit this page GitHub." ]
         ]
