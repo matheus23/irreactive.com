@@ -5,7 +5,7 @@
   "title": "Software Design by Abstraction",
   "description": "There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
   "image": "images/article-covers/fittslist.png",
-  "draft": true,
+  "draft": false,
   "published": "2019-11-28",
 }
 ---
@@ -30,8 +30,11 @@ Maybe a simpler form of arguing the L-shaped thing is this by using the 'remoted
 
 Just show the connections: Types = Algebra = Squares (This is the hook!)
 
+## Can we subtract types?
+
+Not really, no. But we can abstract out a type variable that we set to 0: `Never`.
 
 What is this post title? What does this have to do with abstraction exactly? Other ideas:
 * Algebraic Design of State
 * Algebraic Design of Data
-* 
+* Maybe just split this post into two: The description describes quite something different than the content (???)

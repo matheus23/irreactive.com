@@ -123,11 +123,7 @@ viewArticle metadata { header, content, footer, githubEditLink } =
             , Html.article []
                 [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
                 , Html.section [ Attr.class "header" ]
-                    [ Html.section [ Attr.class "meta" ]
-                        [ Html.text metadata.author
-                        , Html.text " • "
-                        , Html.time [] [ Html.text (metadata.published |> Date.format "MMMM ddd, yyyy") ]
-                        ]
+                    [ Palette.viewArticleMetadata metadata
                     , Html.img
                         [ Attr.src (ImagePath.toString metadata.image)
                         , Attr.alt "Post cover photo"

@@ -47,6 +47,11 @@ $space-l: 32px;
     padding: $space-m $space-xm;
 }
 
+@mixin restricted-width-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 html,
 body {
     margin: 0;
@@ -121,32 +126,34 @@ nav {
     flex-direction: column;
 }
 
-article {
-    max-width: 800px;
-    margin: 0 auto;
-
-    h1.post-title {
-        padding: $space-m $space-xm;
-        background-color: $background-accent;
-        margin: 0;
+article .header,
+.post-preview {
+    section.meta {
+        @include font-secondary;
+        @include main-margins;
         text-align: center;
-        font-weight: bold;
+        font-style: italic;
     }
 
-    .header {
-        section.meta {
-            @include font-secondary;
-            @include main-margins;
-            text-align: center;
-            font-style: italic;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-            margin: 0 auto;
-        }
+    img {
+        max-width: 100%;
+        display: block;
+        margin: 0 auto;
     }
+}
+
+article h1.post-title,
+.post-preview h2 {
+    padding: $space-m $space-xm;
+    background-color: $background-accent;
+    margin: 0;
+    text-align: center;
+    font-weight: bold;
+    align-self: stretch;
+}
+
+article {
+    @include restricted-width-content;
 
     .content {
         line-height: 150%;
@@ -253,6 +260,37 @@ section.edit-on-github {
 
     @include font-secondary;
     @include main-paddings;
+}
+
+ul.posts-list {
+    @include restricted-width-content;
+
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $space-l;
+
+    li.post-preview {
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 0 0 3px $light4;
+        align-items: center;
+
+        a {
+            text-decoration: none;
+            color: inherit;
+
+            &:visited {
+                color: $faded-blue;
+            }
+        }
+
+        p {
+            margin: 0 $space-m $space-m $space-xm;
+        }
+
+        p.read-more {
+        }
+    }
 }
 
 footer {

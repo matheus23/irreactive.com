@@ -3,13 +3,13 @@
     "source-directories": [
         "src",
         "gen",
-        "elm-markdown/src",
         "../elm-markdown-transforms/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
             "avh4/elm-color": "1.0.0",
+            "dillonkearns/elm-markdown": "4.0.2",
             "dillonkearns/elm-pages": "4.0.1",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
