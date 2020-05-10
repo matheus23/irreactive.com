@@ -64,7 +64,7 @@ customHtmlRenderer =
                 (\blockStructure _ ->
                     blockStructure
                         |> Scaffolded.bumpHeadings 1
-                        |> Scaffolded.toHtml
+                        |> Scaffolded.foldHtml []
                 )
         }
 

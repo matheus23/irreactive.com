@@ -1,4 +1,0 @@
-[submodule "elm-markdown"]
-	path = elm-markdown
-	url = https://github.com/dillonkearns/elm-markdown
-	branch = rewrite-inlines
