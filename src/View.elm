@@ -2,10 +2,11 @@ module View exposing (..)
 
 import Date
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, disabled, for, href, id, method, name, placeholder, required, style, type_, value)
+import Html.Attributes exposing (attribute, class, disabled, for, height, href, id, method, name, placeholder, required, src, style, type_, value, width)
 import Html.Events as Events
 import Metadata exposing (Metadata)
-import Pages exposing (pages)
+import Pages exposing (images, pages)
+import Pages.ImagePath as ImagePath
 import Pages.PagePath as PagePath exposing (PagePath)
 
 
@@ -183,7 +184,51 @@ blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
 
 
 
+-- ABOUT ME
+
+
+aboutMe : Html msg
+aboutMe =
+    div [ class "flex flex-col flex-grow h-full mx-6 mb-12" ]
+        [ img
+            [ src (ImagePath.toString images.me)
+            , width 200
+            , height 200
+            , class "rounded-lg my-6 mx-auto"
+            ]
+            []
+        , p [ class "text-gruv-gray-6" ]
+            [ text "Hi, I’m Philipp." ]
+        , p [ class "mt-4 text-gruv-gray-6" ]
+            [ text "I’m passionate about user interfaces and functional programming" ]
+        , p [ class "mt-4 text-gruv-gray-6" ]
+            [ text "This blog is an attempt at sharing the research work I’m trying to create around graphics APIs, rethought from the bottom up in a purely functional way." ]
+        , p [ class "mt-4 text-gruv-gray-6" ]
+            [ text "If you would like to reach out to me, send me a (direct) message over twitter "
+            , textLink "https://twitter.com/matheusdev23" "@matheusdev23"
+            , text "."
+            ]
+        , p [ class "mt-4 text-gruv-gray-6" ]
+            [ text "If you want to get notified about new blog posts, follow me on twitter or use the E-Mail form below." ]
+        , p [ class "mt-4 text-gruv-gray-6" ]
+            [ text "Wondering about the technology behind this blog? Read "
+            , textLink (PagePath.toString pages.buildingABlogWithElmPages) "the release post"
+            , text "!"
+            ]
+        ]
+
+
+
 -- UTILITIES
+
+
+textLink : String -> String -> Html msg
+textLink destination content =
+    a
+        [ class "text-gruv-blue-d visited:text-gruv-purple-d"
+        , href destination
+        ]
+        [ text content ]
 
 
 classes : List String -> Attribute msg

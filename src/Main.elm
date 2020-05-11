@@ -96,9 +96,7 @@ pageView siteMetadata page viewContent model =
             , body =
                 View.body []
                     [ View.header page.path
-
-                    -- TODO view about page instead
-                    , Index.view siteMetadata
+                    , View.aboutMe
                     , viewFooter model
                     ]
             }
