@@ -120,9 +120,10 @@ blogFooter :
     , onInput : String -> msg
     , model : String
     , errorText : String
+    , submitSuccess : Bool
     }
     -> Html msg
-blogFooter { onSubmit, onInput, model, errorText } =
+blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
     footer [ class "bg-gruv-gray-0 p-5" ]
         [ form
             [ name "email-subscription"
@@ -146,7 +147,6 @@ blogFooter { onSubmit, onInput, model, errorText } =
                         , "flex-shrink flex-grow min-w-0 py-auto py-1 px-2"
                         , "focus:border-gruv-gray-7"
                         ]
-                    , required True
                     , style "transform" "translate(0, -4px)"
                     , style "box-shadow" "0 4px 0 0 rgba(102,92,84,1)"
                     , id "email"
@@ -163,7 +163,21 @@ blogFooter { onSubmit, onInput, model, errorText } =
                     ]
                     [ text "Get Notified" ]
                 ]
-            , p [ class "font-code text-gruv-yellow-l mt-2" ] [ text errorText ]
+            , p
+                [ classes
+                    [ "font-code text-gruv-yellow-l mt-2"
+                    , when (String.isEmpty errorText) "hidden"
+                    ]
+                ]
+                [ text errorText ]
+            , p
+                [ classes
+                    [ "font-code mt-2"
+                    , unless submitSuccess "hidden"
+                    ]
+                , style "color" "#49d27e"
+                ]
+                [ text "Thanks for subscribing!" ]
             ]
         ]
 

@@ -156,7 +156,26 @@ viewFooter model =
         { onSubmit = SubmitEmailSubscription
         , onInput = SubscribeEmailAddressChange
         , model = model.subscriptionEmail
-        , errorText = "Whoops! You need to enter an E-Mail address."
+        , errorText =
+            case model.emailStatus of
+                SubmitSuccessful ->
+                    ""
+
+                NotSubmittedYet ->
+                    ""
+
+                EmailMissing ->
+                    "Whoops! You need to enter an E-Mail address."
+
+                SubmitNoNetwork ->
+                    "Hmm. We couldn't connect to our servers. Are you perhaps offline?"
+
+                SubmitBadStatus code ->
+                    "Oh, here seems to be something wrong with our servers (status code: " ++ String.fromInt code ++ ")"
+
+                SubmitInternalError ->
+                    "Oh, there was some internal error. Please tell me about it."
+        , submitSuccess = model.emailStatus == SubmitSuccessful
         }
 
 

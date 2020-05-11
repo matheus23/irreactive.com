@@ -28,13 +28,24 @@ siteTagline =
 
 type alias Model =
     { subscriptionEmail : String
+    , emailStatus : SubscriptionStatus
     , carousels : Dict String Carousel.Model
     }
+
+
+type SubscriptionStatus
+    = NotSubmittedYet
+    | EmailMissing
+    | SubmitSuccessful
+    | SubmitBadStatus Int
+    | SubmitNoNetwork
+    | SubmitInternalError
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { subscriptionEmail = ""
+      , emailStatus = NotSubmittedYet
       , carousels = Dict.empty
       }
     , Cmd.none
@@ -56,27 +67,64 @@ update msg model =
             ( model, Cmd.none )
 
         SubmitEmailSubscription ->
-            ( model
-            , Http.request
-                { method = "POST"
-                , headers = [ Http.header "Content-Type" "application/x-www-form-urlencoded" ]
-                , url =
-                    Url.relative []
-                        [ Url.string "form-name" "email-subscription"
-                        , Url.string "email" model.subscriptionEmail
-                        ]
-                , body = Http.emptyBody
-                , expect = Http.expectWhatever SubscriptionEmailSubmitted
-                , timeout = Nothing
-                , tracker = Nothing
-                }
-            )
+            if model.subscriptionEmail |> String.isEmpty then
+                ( { model
+                    | emailStatus = EmailMissing
+                  }
+                , Cmd.none
+                )
+
+            else
+                ( model
+                , Http.request
+                    { method = "POST"
+                    , headers = [ Http.header "Content-Type" "application/x-www-form-urlencoded" ]
+                    , url =
+                        Url.relative []
+                            [ Url.string "form-name" "email-subscription"
+                            , Url.string "email" model.subscriptionEmail
+                            ]
+                    , body = Http.emptyBody
+                    , expect = Http.expectWhatever SubscriptionEmailSubmitted
+                    , timeout = Just 5000
+                    , tracker = Nothing
+                    }
+                )
 
         SubscribeEmailAddressChange subscriptionEmail ->
             ( { model | subscriptionEmail = subscriptionEmail }, Cmd.none )
 
-        SubscriptionEmailSubmitted _ ->
-            ( { model | subscriptionEmail = "" }, Cmd.none )
+        SubscriptionEmailSubmitted result ->
+            case result of
+                Ok () ->
+                    ( { model
+                        | subscriptionEmail = ""
+                        , emailStatus = SubmitSuccessful
+                      }
+                    , Cmd.none
+                    )
+
+                Err httpErr ->
+                    ( { model
+                        | emailStatus =
+                            case httpErr of
+                                Http.BadStatus status ->
+                                    SubmitBadStatus status
+
+                                Http.Timeout ->
+                                    SubmitNoNetwork
+
+                                Http.NetworkError ->
+                                    SubmitNoNetwork
+
+                                Http.BadUrl _ ->
+                                    SubmitInternalError
+
+                                Http.BadBody _ ->
+                                    SubmitInternalError
+                      }
+                    , Cmd.none
+                    )
 
         CarouselMsg carouselId carouselMsg ->
             let
