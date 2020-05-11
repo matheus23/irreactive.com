@@ -20,6 +20,7 @@ import Pages.PagePath as PagePath exposing (PagePath)
 import Pages.Platform
 import Pages.StaticHttp as StaticHttp
 import Palette
+import View
 
 
 manifest : Manifest.Config Pages.PathKey
@@ -69,13 +70,13 @@ pageView siteMetadata page viewContent model =
     case page.frontmatter of
         Metadata.Page metadata ->
             viewPage metadata
-                { header = viewHeader page.path
+                { header = View.header page.path
                 , content = viewContent model
                 }
 
         Metadata.Article metadata ->
             viewArticle metadata
-                { header = viewHeader page.path
+                { header = View.header page.path
                 , content = viewContent model
                 , footer = viewFooter model
                 , githubEditLink = viewGithubEditLink page.path
@@ -84,8 +85,20 @@ pageView siteMetadata page viewContent model =
         Metadata.BlogIndex ->
             { title = siteName
             , body =
-                Html.div [ Attr.class "main-content" ]
-                    [ viewHeader page.path
+                View.body []
+                    [ View.header page.path
+                    , Index.view siteMetadata
+                    , viewFooter model
+                    ]
+            }
+
+        Metadata.BlogAbout ->
+            { title = siteName
+            , body =
+                View.body []
+                    [ View.header page.path
+
+                    -- TODO view about page instead
                     , Index.view siteMetadata
                     , viewFooter model
                     ]
@@ -99,7 +112,7 @@ viewPage :
 viewPage metadata { header, content } =
     { title = metadata.title
     , body =
-        Html.div [ Attr.class "main-content" ]
+        View.body []
             [ header
             , content
             ]
@@ -118,7 +131,7 @@ viewArticle :
 viewArticle metadata { header, content, footer, githubEditLink } =
     { title = metadata.title
     , body =
-        Html.div [ Attr.class "main-content" ]
+        View.body []
             [ header
             , Html.article []
                 [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
@@ -136,20 +149,6 @@ viewArticle metadata { header, content, footer, githubEditLink } =
             , footer
             ]
     }
-
-
-viewHeader : PagePath Pages.PathKey -> Html msg
-viewHeader currentPath =
-    Html.nav []
-        [ Html.a [ Attr.href (PagePath.toString pages.index), Attr.class "blog-title" ]
-            [ Html.text siteName
-            ]
-
-        -- , navigationLink currentPath
-        --     pages.blog.directory
-        --     "All Posts"
-        --     [ Attr.class "all-posts" ]
-        ]
 
 
 viewFooter : Model -> Html Msg
@@ -277,6 +276,22 @@ head metadata =
                 , description = siteTagline
                 , locale = Nothing
                 , title = siteName ++ " - all posts"
+                }
+                |> Seo.website
+
+        Metadata.BlogAbout ->
+            Seo.summaryLarge
+                { canonicalUrlOverride = Nothing
+                , siteName = siteName
+                , image =
+                    { url = images.iconPng
+                    , alt = siteName ++ " logo"
+                    , dimensions = Nothing
+                    , mimeType = Nothing
+                    }
+                , description = siteTagline
+                , locale = Nothing
+                , title = siteName ++ " - about"
                 }
                 |> Seo.website
 
