@@ -1,7 +1,9 @@
 module View exposing (..)
 
+import Date
 import Html exposing (..)
 import Html.Attributes exposing (class, href, id, style)
+import Metadata exposing (Metadata)
 import Pages exposing (pages)
 import Pages.PagePath as PagePath exposing (PagePath)
 
@@ -68,6 +70,32 @@ header currentPath =
                 []
             ]
         ]
+
+
+articleList : List (Attribute msg) -> List (Html msg) -> Html msg
+articleList attributes children =
+    ul (class "flex flex-col" :: attributes) children
+
+
+postLinked : PagePath Pages.PathKey -> List (Html msg) -> Html msg
+postLinked postPath =
+    a [ href (PagePath.toString postPath) ]
+
+
+postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
+postPreview ( postPath, post ) =
+    li [ class "mx-auto mt-12" ]
+        [ h2 [ class "font-title text-4xl text-gruv-gray-4 text-center" ]
+            [ postLinked postPath [ text post.title ] ]
+        , articleMetadata post
+        , p [ class "description" ] [ postLinked postPath [ text post.description ] ]
+        , p [ class "read-more" ] [ postLinked postPath [ text "Read More" ] ]
+        ]
+
+
+articleMetadata : Metadata.ArticleMetadata -> Html msg
+articleMetadata { published } =
+    time [] [ text (Date.format "MMMM ddd, yyyy" published) ]
 
 
 

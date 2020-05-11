@@ -18,7 +18,6 @@ type alias ArticleMetadata =
     { title : String
     , description : String
     , published : Date
-    , author : String
     , image : ImagePath Pages.PathKey
     , draft : Bool
     }
@@ -44,7 +43,7 @@ decoder =
                         Decode.succeed BlogAbout
 
                     "blog" ->
-                        Decode.map6 ArticleMetadata
+                        Decode.map5 ArticleMetadata
                             (Decode.field "title" Decode.string)
                             (Decode.field "description" Decode.string)
                             (Decode.field "published"
@@ -60,7 +59,6 @@ decoder =
                                         )
                                 )
                             )
-                            (Decode.field "author" Decode.string)
                             (Decode.field "image" imageDecoder)
                             (Decode.field "draft" Decode.bool
                                 |> Decode.maybe

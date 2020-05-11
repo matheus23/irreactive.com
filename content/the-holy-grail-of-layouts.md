@@ -1,7 +1,6 @@
 ---
 {
   "type": "blog",
-  "author": "Philipp Krüger",
   "title": "The Holy Grail of Layouts",
   "description": "A draft. (TODO CHANGE THIS)",
   "image": "images/article-covers/fittslist.png",

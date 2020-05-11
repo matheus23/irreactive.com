@@ -19,7 +19,6 @@ import Pages.Manifest.Category
 import Pages.PagePath as PagePath exposing (PagePath)
 import Pages.Platform
 import Pages.StaticHttp as StaticHttp
-import Palette
 import View
 
 
@@ -136,7 +135,7 @@ viewArticle metadata { header, content, footer, githubEditLink } =
             , Html.article []
                 [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
                 , Html.section [ Attr.class "header" ]
-                    [ Palette.viewArticleMetadata metadata
+                    [ View.articleMetadata metadata
                     , Html.img
                         [ Attr.src (ImagePath.toString metadata.image)
                         , Attr.alt "Post cover photo"
@@ -185,7 +184,8 @@ viewGithubEditLink path =
         [ Html.text "Found a typo? "
         , Html.a
             [ Attr.style "text-decoration" "underline"
-            , Attr.style "color" Palette.color.primary
+
+            -- , Attr.style "color" Palette.color.primary
             , Attr.href (githubRepo ++ "/blob/master/content/" ++ PagePath.toString path ++ ".md")
             ]
             [ Html.text "Edit this page GitHub." ]
@@ -210,7 +210,7 @@ navigationLink currentPath linkDirectory displayName attributes =
 
                 else
                     Attr.style "text-decoration" "underline"
-                        :: Attr.style "color" Palette.color.primary
+                        -- :: Attr.style "color" Palette.color.primary
                         :: attributes
                )
         )

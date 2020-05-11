@@ -1,7 +1,6 @@
 ---
 {
   "type": "blog",
-  "author": "Philipp Krüger",
   "title": "Software Design by Abstraction",
   "description": "There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
   "image": "images/article-covers/fittslist.png",

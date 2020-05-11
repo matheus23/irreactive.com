@@ -1,7 +1,6 @@
 ---
 {
   "type": "blog",
-  "author": "Philipp Krüger",
   "title": "Boxes of Higher Order",
   "description": "Exploring graphical visualisations for code, especially for functional programming, inspired by category theory visualisations.",
   "image": "images/article-covers/mountains.jpg",

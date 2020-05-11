@@ -11,7 +11,7 @@
     "build:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css",
     "watch:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css --watch"
   },
-  "author": "Dillon Kearns",
+  "author": "Philipp Krüger",
   "license": "BSD-3",
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^2.2.0",

@@ -1,16 +1,15 @@
 module Index exposing (view)
 
 import Html exposing (Html)
-import Html.Attributes as Attr exposing (class)
 import Metadata exposing (Metadata)
 import Pages
-import Pages.PagePath as PagePath exposing (PagePath)
-import Palette
+import Pages.PagePath exposing (PagePath)
+import View
 
 
 view : List ( PagePath Pages.PathKey, Metadata ) -> Html msg
 view pages =
-    Html.ul [ class "posts-list" ]
+    View.articleList []
         (List.concatMap viewOnlyArticles pages)
 
 
@@ -22,22 +21,7 @@ viewOnlyArticles ( path, metadata ) =
                 []
 
             else
-                [ postPreview ( path, meta ) ]
+                [ View.postPreview ( path, meta ) ]
 
         _ ->
             []
-
-
-postLinked : PagePath Pages.PathKey -> List (Html msg) -> Html msg
-postLinked postPath =
-    Html.a [ Attr.href (PagePath.toString postPath) ]
-
-
-postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
-postPreview ( postPath, post ) =
-    Html.li [ class "post-preview" ]
-        [ Html.h2 [] [ postLinked postPath [ Html.text post.title ] ]
-        , Palette.viewArticleMetadata post
-        , Html.p [ class "description" ] [ postLinked postPath [ Html.text post.description ] ]
-        , Html.p [ class "read-more" ] [ postLinked postPath [ Html.text "Read More" ] ]
-        ]

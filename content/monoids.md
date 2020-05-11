@@ -1,7 +1,6 @@
 ---
 {
   "type": "blog",
-  "author": "Philipp Krüger",
   "title": "Monoids - The Essence of Composition",
   "description": "A draft. (TODO CHANGE THIS)",
   "image": "images/article-covers/fittslist.png",

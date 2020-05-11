@@ -1,7 +1,6 @@
 ---
 {
   "type": "blog",
-  "author": "Philipp Krüger",
   "title": "Why you should care about User Interface Development",
   "description": "Or: My Motivation for Creating Human Computer Interfaces",
   "image": "images/article-covers/fittslist.png",

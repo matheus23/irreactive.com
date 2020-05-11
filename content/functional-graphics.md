@@ -1,7 +1,6 @@
 ---
 {
   "type": "blog",
-  "author": "Philipp Krüger",
   "title": "Declarative and Composable Graphics",
   "description": "A draft. (TODO CHANGE THIS)",
   "image": "images/article-covers/mountains.jpg",
