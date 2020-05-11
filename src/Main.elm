@@ -141,13 +141,14 @@ viewArticle metadata { header, content, footer, githubEditLink } =
 viewHeader : PagePath Pages.PathKey -> Html msg
 viewHeader currentPath =
     Html.nav []
-        [ Html.a [ Attr.href "/", Attr.class "blog-title" ]
+        [ Html.a [ Attr.href (PagePath.toString pages.index), Attr.class "blog-title" ]
             [ Html.text siteName
             ]
-        , navigationLink currentPath
-            pages.blog.directory
-            "All Posts"
-            [ Attr.class "all-posts" ]
+
+        -- , navigationLink currentPath
+        --     pages.blog.directory
+        --     "All Posts"
+        --     [ Attr.class "all-posts" ]
         ]
 
 
