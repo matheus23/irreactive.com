@@ -11,7 +11,7 @@ import Pages.PagePath as PagePath exposing (PagePath)
 body : List (Attribute msg) -> List (Html msg) -> Html msg
 body attributes children =
     div
-        (class "bg-gruv-gray-12" :: attributes)
+        (class "text-base bg-gruv-gray-12" :: attributes)
         children
 
 
@@ -19,7 +19,7 @@ header : PagePath Pages.PathKey -> Html msg
 header currentPath =
     nav [ class "flex flex-row w-full bg-gruv-gray-12" ]
         [ a
-            [ class "flex-grow flex flex-col"
+            [ class "flex flex-col"
             , href (PagePath.toString pages.index)
             ]
             [ span
@@ -36,7 +36,7 @@ header currentPath =
             , href (PagePath.toString pages.index)
             ]
             [ span
-                [ class "font-body italic text-base m-auto" ]
+                [ class "font-body italic text-base m-auto text-gruv-gray-4" ]
                 [ text "Posts" ]
             , div
                 [ classes
@@ -55,7 +55,7 @@ header currentPath =
             , href (PagePath.toString pages.about)
             ]
             [ span
-                [ class "font-body italic text-base m-auto" ]
+                [ class "font-body italic text-base m-auto text-gruv-gray-4" ]
                 [ text "About" ]
             , div
                 [ classes
@@ -74,7 +74,7 @@ header currentPath =
 
 articleList : List (Attribute msg) -> List (Html msg) -> Html msg
 articleList attributes children =
-    ul (class "flex flex-col" :: attributes) children
+    ul (class "flex flex-col mx-6 mb-12" :: attributes) children
 
 
 postLinked : PagePath Pages.PathKey -> List (Html msg) -> Html msg
@@ -84,18 +84,20 @@ postLinked postPath =
 
 postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
 postPreview ( postPath, post ) =
-    li [ class "mx-auto mt-12" ]
-        [ h2 [ class "font-title text-4xl text-gruv-gray-4 text-center" ]
+    li [ class "w-full mx-auto mt-12" ]
+        [ articleMetadata post
+        , h2 [ class "font-title text-4xl text-gruv-gray-4 text-center leading-tight" ]
             [ postLinked postPath [ text post.title ] ]
-        , articleMetadata post
-        , p [ class "description" ] [ postLinked postPath [ text post.description ] ]
-        , p [ class "read-more" ] [ postLinked postPath [ text "Read More" ] ]
+        , p [ class "text-gruv-gray-4 text-justify mt-2" ] [ postLinked postPath [ text post.description ] ]
+        , p [ class "font-title text-xl text-gruv-blue-d block text-center mt-2" ] [ postLinked postPath [ text "Read More ..." ] ]
+        , hr [ style "height" "2px", class "max-w-xs bg-gruv-gray-9 mx-auto mt-12" ] []
         ]
 
 
 articleMetadata : Metadata.ArticleMetadata -> Html msg
 articleMetadata { published } =
-    time [] [ text (Date.format "MMMM ddd, yyyy" published) ]
+    time [ class "text-gruv-gray-4 italic text-base-sm text-center block" ]
+        [ text (Date.format "MMMM ddd, yyyy" published) ]
 
 
 

@@ -5,6 +5,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        'base': '1.125rem',
+        'base-sm': '0.875rem',
+      },
       colors: {
         'gruv-red-d': 'rgba(157,0,6,1)',
         'gruv-red-m': 'rgba(204,36,29,1)',
