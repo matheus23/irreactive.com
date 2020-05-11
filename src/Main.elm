@@ -68,10 +68,13 @@ pageView :
 pageView siteMetadata page viewContent model =
     case page.frontmatter of
         Metadata.Page metadata ->
-            viewPage metadata
-                { header = View.header page.path
-                , content = viewContent model
-                }
+            { title = metadata.title
+            , body =
+                View.body []
+                    [ View.header page.path
+                    , View.middle [ viewContent model ]
+                    ]
+            }
 
         Metadata.Article metadata ->
             viewArticle metadata
@@ -86,7 +89,7 @@ pageView siteMetadata page viewContent model =
             , body =
                 View.body []
                     [ View.header page.path
-                    , Index.view siteMetadata
+                    , View.middle [ Index.view siteMetadata ]
                     , viewFooter model
                     ]
             }
@@ -96,24 +99,10 @@ pageView siteMetadata page viewContent model =
             , body =
                 View.body []
                     [ View.header page.path
-                    , View.aboutMe
+                    , View.middle [ View.aboutMe ]
                     , viewFooter model
                     ]
             }
-
-
-viewPage :
-    Metadata.PageMetadata
-    -> { header : Html msg, content : Html msg }
-    -> { title : String, body : Html msg }
-viewPage metadata { header, content } =
-    { title = metadata.title
-    , body =
-        View.body []
-            [ header
-            , content
-            ]
-    }
 
 
 viewArticle :

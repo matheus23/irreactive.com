@@ -17,6 +17,16 @@ body attributes children =
         children
 
 
+middle : List (Html msg) -> Html msg
+middle children =
+    main_ [ class "flex flex-col flex-grow h-full px-5" ]
+        children
+
+
+
+-- HEADER
+
+
 header : PagePath Pages.PathKey -> Html msg
 header currentPath =
     nav [ class "flex flex-row w-full bg-gruv-gray-12" ]
@@ -80,7 +90,7 @@ header currentPath =
 
 articleList : List (Attribute msg) -> List (Html msg) -> Html msg
 articleList attributes children =
-    ul (class "flex flex-col flex-grow h-full mx-6 mb-12" :: attributes) children
+    ul (class "flex flex-col mb-12 container desktop:mx-auto" :: attributes) children
 
 
 postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
@@ -125,12 +135,13 @@ blogFooter :
     }
     -> Html msg
 blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
-    footer [ class "bg-gruv-gray-0 p-5" ]
+    footer [ class "flex flex-col bg-gruv-gray-0 p-5" ]
         [ form
             [ name "email-subscription"
             , method "POST"
             , attribute "data-netlify" "true"
             , Events.onSubmit onSubmit
+            , class "container desktop:mx-auto"
             ]
             [ p []
                 [ label [ for "email", class "font-code text-gruv-gray-11" ]
@@ -189,7 +200,7 @@ blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
 
 aboutMe : Html msg
 aboutMe =
-    div [ class "flex flex-col flex-grow h-full mx-6 mb-12" ]
+    article [ class "flex flex-col flex-grow h-full px-5 mb-12 desktop:mx-auto desktop:px-0 container" ]
         [ img
             [ src (ImagePath.toString images.me)
             , width 200

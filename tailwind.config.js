@@ -52,7 +52,13 @@ module.exports = {
       'title': ['Zilla Slab'],
       'code': ['Fira Code'],
       'main': ['sans serif'],
-    }
+    },
+    maxWidth: {
+      desktop: '600px',
+    },
+    screens: {
+      desktop: '600px',
+    },
   },
   variants: {
     textColor: ['visited', 'focus']
