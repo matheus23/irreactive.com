@@ -1,4 +1,5 @@
 import "./dist/style.css";
+import './gen/tailwind-gen.css';
 const { Elm } = require("./src/Main.elm");
 const pagesInit = require("elm-pages");
 

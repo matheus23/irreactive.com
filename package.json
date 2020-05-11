@@ -9,20 +9,25 @@
     "build": "yarn build:styles && elm-pages build",
     "docs": "yarn elm-doc-preview -p 8080",
     "watch:styles": "sass --watch styles/main.scss:dist/style.css --source-map-urls absolute",
-    "build:styles": "sass styles/main.scss:dist/style.css --source-map-urls absolute"
+    "build:styles": "sass styles/main.scss:dist/style.css --source-map-urls absolute",
+    "gen:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css"
   },
   "author": "Dillon Kearns",
   "license": "BSD-3",
   "dependencies": {
+    "@fullhuman/postcss-purgecss": "^2.2.0",
+    "cssnano": "^4.1.10",
     "highlight.js": "^9.15.10",
     "node-sass": "^4.12.0",
     "sass": "^1.23.7",
-    "sharp": "^0.25.2"
+    "sharp": "^0.25.2",
+    "tailwindcss": "^1.4.6"
   },
   "devDependencies": {
     "elm": "0.19.1",
     "elm-doc-preview": "3.0.4",
     "elm-pages": "1.3.0",
-    "http-server": "0.11.1"
+    "http-server": "0.11.1",
+    "postcss-cli": "^7.1.1"
   }
 }
