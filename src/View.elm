@@ -2,7 +2,8 @@ module View exposing (..)
 
 import Date
 import Html exposing (..)
-import Html.Attributes exposing (class, href, id, style)
+import Html.Attributes exposing (attribute, class, for, href, id, method, name, placeholder, style, type_, value)
+import Html.Events as Events
 import Metadata exposing (Metadata)
 import Pages exposing (pages)
 import Pages.PagePath as PagePath exposing (PagePath)
@@ -11,7 +12,7 @@ import Pages.PagePath as PagePath exposing (PagePath)
 body : List (Attribute msg) -> List (Html msg) -> Html msg
 body attributes children =
     div
-        (class "text-base bg-gruv-gray-12" :: attributes)
+        (class "flex flex-col min-h-screen text-base bg-gruv-gray-12" :: attributes)
         children
 
 
@@ -72,9 +73,13 @@ header currentPath =
         ]
 
 
+
+-- ARTICLE LIST
+
+
 articleList : List (Attribute msg) -> List (Html msg) -> Html msg
 articleList attributes children =
-    ul (class "flex flex-col mx-6 mb-12" :: attributes) children
+    ul (class "flex flex-col flex-grow h-full mx-6 mb-12" :: attributes) children
 
 
 postLinked : PagePath Pages.PathKey -> List (Html msg) -> Html msg
@@ -98,6 +103,57 @@ articleMetadata : Metadata.ArticleMetadata -> Html msg
 articleMetadata { published } =
     time [ class "text-gruv-gray-4 italic text-base-sm text-center block" ]
         [ text (Date.format "MMMM ddd, yyyy" published) ]
+
+
+
+-- FOOTER
+
+
+blogFooter :
+    { onSubmit : msg
+    , onInput : String -> msg
+    , model : String
+    }
+    -> Html msg
+blogFooter { onSubmit, onInput, model } =
+    footer [ class "bg-gruv-gray-0 p-5" ]
+        [ form
+            [ name "email-subscription"
+            , method "POST"
+            , attribute "data-netlify" "true"
+            , Events.onSubmit onSubmit
+            ]
+            [ p []
+                [ label [ for "email", class "font-code text-gruv-gray-11" ]
+                    [ text "Get an "
+                    , span [ class "text-gruv-orange-l" ] [ text "E-Mail" ]
+                    , text " for every new Post:"
+                    ]
+                ]
+            , p [ class "flex flex-row mt-2" ]
+                [ input
+                    [ classes
+                        [ "bg-gruv-gray-3"
+                        , "border border-gruv-gray-5"
+                        , "font-code text-gruv-gray-11"
+                        , "flex-shrink flex-grow min-w-0 py-auto mr-4 py-1 px-2"
+                        ]
+                    , id "email"
+                    , type_ "email"
+                    , name "email"
+                    , placeholder "Your E-Mail"
+                    , Events.onInput onInput
+                    , value model
+                    ]
+                    []
+                , button
+                    [ classes [ "call-to-action inline flex-shrink-0 px-4 py-2 font-semibold tracking-widest" ]
+                    , type_ "submit"
+                    ]
+                    [ text "Get Notified" ]
+                ]
+            ]
+        ]
 
 
 

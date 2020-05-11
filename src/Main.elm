@@ -152,30 +152,11 @@ viewArticle metadata { header, content, footer, githubEditLink } =
 
 viewFooter : Model -> Html Msg
 viewFooter model =
-    Html.footer []
-        [ Html.form
-            [ Attr.name "email-subscription"
-            , Attr.method "POST"
-            , Attr.attribute "data-netlify" "true"
-            , Events.onSubmit SubmitEmailSubscription
-            ]
-            [ Html.p []
-                [ Html.label [ Attr.for "email" ]
-                    [ Html.text "Get an E-Mail for every new Post:" ]
-                ]
-            , Html.p [ Attr.class "inputs" ]
-                [ Html.input
-                    [ Attr.type_ "email"
-                    , Attr.name "email"
-                    , Attr.placeholder "your email address"
-                    , Events.onInput SubscribeEmailAddressChange
-                    , Attr.value model.subscriptionEmail
-                    ]
-                    []
-                , Html.button [ Attr.type_ "submit" ] [ Html.text "Get Notified" ]
-                ]
-            ]
-        ]
+    View.blogFooter
+        { onSubmit = SubmitEmailSubscription
+        , onInput = SubscribeEmailAddressChange
+        , model = model.subscriptionEmail
+        }
 
 
 viewGithubEditLink : PagePath Pages.PathKey -> Html msg
@@ -190,31 +171,6 @@ viewGithubEditLink path =
             ]
             [ Html.text "Edit this page GitHub." ]
         ]
-
-
-navigationLink :
-    PagePath Pages.PathKey
-    -> Directory Pages.PathKey Directory.WithIndex
-    -> String
-    -> List (Html.Attribute msg)
-    -> Html msg
-navigationLink currentPath linkDirectory displayName attributes =
-    let
-        isLinkToCurrentPage =
-            currentPath |> Directory.includes linkDirectory
-    in
-    Html.a
-        (Attr.href (linkDirectory |> Directory.indexPath |> PagePath.toString)
-            :: (if isLinkToCurrentPage then
-                    attributes
-
-                else
-                    Attr.style "text-decoration" "underline"
-                        -- :: Attr.style "color" Palette.color.primary
-                        :: attributes
-               )
-        )
-        [ Html.text displayName ]
 
 
 {-| <https://developer.twitter.com/en/docs/tweets/optimize-with-cards/overview/abouts-cards>

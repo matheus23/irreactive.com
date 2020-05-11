@@ -1,1 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code&family=Zilla+Slab:wght@500;700&display=swap");
+
+.call-to-action {
+    box-shadow: 0 3px 0 0 #45594c;
+    background-color: #49d27e;
+    font-family: "Zilla Slab";
+    color: #45594c;
+    border-radius: 6px;
+}
+
+html,
+body {
+    min-height: 100vh;
+}
