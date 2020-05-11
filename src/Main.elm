@@ -156,6 +156,7 @@ viewFooter model =
         { onSubmit = SubmitEmailSubscription
         , onInput = SubscribeEmailAddressChange
         , model = model.subscriptionEmail
+        , errorText = "Whoops! You need to enter an E-Mail address."
         }
 
 

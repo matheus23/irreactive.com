@@ -2,7 +2,7 @@ module View exposing (..)
 
 import Date
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, for, href, id, method, name, placeholder, style, type_, value)
+import Html.Attributes exposing (attribute, class, disabled, for, href, id, method, name, placeholder, required, style, type_, value)
 import Html.Events as Events
 import Metadata exposing (Metadata)
 import Pages exposing (pages)
@@ -82,19 +82,25 @@ articleList attributes children =
     ul (class "flex flex-col flex-grow h-full mx-6 mb-12" :: attributes) children
 
 
-postLinked : PagePath Pages.PathKey -> List (Html msg) -> Html msg
-postLinked postPath =
-    a [ href (PagePath.toString postPath) ]
-
-
 postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
 postPreview ( postPath, post ) =
     li [ class "w-full mx-auto mt-12" ]
         [ articleMetadata post
         , h2 [ class "font-title text-4xl text-gruv-gray-4 text-center leading-tight" ]
-            [ postLinked postPath [ text post.title ] ]
-        , p [ class "text-gruv-gray-4 text-justify mt-2" ] [ postLinked postPath [ text post.description ] ]
-        , p [ class "font-title text-xl text-gruv-blue-d block text-center mt-2" ] [ postLinked postPath [ text "Read More ..." ] ]
+            [ a [ href (PagePath.toString postPath) ]
+                [ text post.title ]
+            ]
+        , p [ class "text-gruv-gray-4 text-justify mt-2" ]
+            [ a [ href (PagePath.toString postPath) ]
+                [ text post.description ]
+            ]
+        , p [ class "font-title text-xl text-gruv-blue-d block text-center mt-2" ]
+            [ a
+                [ href (PagePath.toString postPath)
+                , class "visited:text-gruv-purple-d"
+                ]
+                [ text "Read More ..." ]
+            ]
         , hr [ style "height" "2px", class "max-w-xs bg-gruv-gray-9 mx-auto mt-12" ] []
         ]
 
@@ -113,9 +119,10 @@ blogFooter :
     { onSubmit : msg
     , onInput : String -> msg
     , model : String
+    , errorText : String
     }
     -> Html msg
-blogFooter { onSubmit, onInput, model } =
+blogFooter { onSubmit, onInput, model, errorText } =
     footer [ class "bg-gruv-gray-0 p-5" ]
         [ form
             [ name "email-subscription"
@@ -134,14 +141,18 @@ blogFooter { onSubmit, onInput, model } =
                 [ input
                     [ classes
                         [ "bg-gruv-gray-3"
-                        , "border border-gruv-gray-5"
+                        , "border-2 border-r-0 border-gruv-gray-5 rounded-l-md"
                         , "font-code text-gruv-gray-11"
-                        , "flex-shrink flex-grow min-w-0 py-auto mr-4 py-1 px-2"
+                        , "flex-shrink flex-grow min-w-0 py-auto py-1 px-2"
+                        , "focus:border-gruv-gray-7"
                         ]
+                    , required True
+                    , style "transform" "translate(0, -4px)"
+                    , style "box-shadow" "0 4px 0 0 rgba(102,92,84,1)"
                     , id "email"
                     , type_ "email"
                     , name "email"
-                    , placeholder "Your E-Mail"
+                    , placeholder "your e-mail"
                     , Events.onInput onInput
                     , value model
                     ]
@@ -152,6 +163,7 @@ blogFooter { onSubmit, onInput, model } =
                     ]
                     [ text "Get Notified" ]
                 ]
+            , p [ class "font-code text-gruv-yellow-l mt-2" ] [ text errorText ]
             ]
         ]
 

@@ -54,6 +54,8 @@ module.exports = {
       'main': ['sans serif'],
     }
   },
-  variants: {},
+  variants: {
+    textColor: ['visited', 'focus']
+  },
   plugins: [],
 }
