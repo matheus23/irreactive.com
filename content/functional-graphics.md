@@ -29,8 +29,10 @@ My subjective experience seems to be that more and more people are building a fu
 ```hs
 scene =
   superimposed
-    (moved 200 100 (filled "blue" (rectangle 50 30))
-    (moved 100 100 (stroked "red" (circle 20)))
+    (moved 200 100
+      (filled "blue" (rectangle 50 30))
+    (moved 100 100
+      (stroked "red" (circle 20)))
 ```
 (superimpose == put one above the other)
 
@@ -39,8 +41,10 @@ Notice that I used ML-style syntax for this statement, so syntax similar to Hask
 ```js
 const scene =
   superimposed(
-    move(200, 100, filled("blue", rectangle(50, 30))),
-    move(100, 100), stroked("red", circle(20))
+    move(200, 100,
+      filled("blue", rectangle(50, 30))),
+    move(100, 100,
+      stroked("red", circle(20))
   );
 ```
 
@@ -133,7 +137,9 @@ productMonoid = Monoid
 
 Speaking of many ways to combine many numbers into one, many of these don't form monoids. The mathematical definition requires two laws:
 * The `empty` element must not have an effect when `combined` with an element: for any `x`, `combine x empty == x` and `combine empty x == x`.
-* Parenthesis around multiple `combine` expressions must not matter: for any `a`, `b` and `c`, `a \`combine\` (b \` combine \` c) == (a \` combine \` b) \`combine\` c`
+* Parenthesis around multiple `combine` expressions must not matter:
+
+  for any `a`, `b` and `c`, ``a `combine` (b `combine` c) == (a `combine` b) `combine` c``
 
 This is true for sums and products, but not for `(-)`, for example. Also notice that monoids don't require that you're able to swap the order of arguments to `combine`! Even though sums and products fulfill that law, this commutativity law is not required for monoids.
 

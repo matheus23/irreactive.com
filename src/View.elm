@@ -313,7 +313,7 @@ markdown attributes block =
             text content
 
         Scaffolded.CodeSpan content ->
-            code attributes [ text content ]
+            code (class "text-gruv-orange-d" :: attributes) [ text content ]
 
         Scaffolded.Strong children ->
             strong attributes children
@@ -399,7 +399,14 @@ markdown attributes block =
                 )
 
         Scaffolded.CodeBlock info ->
-            pre attributes
+            pre
+                (classes
+                    [ "mt-4 py-6 px-8"
+                    , "overflow-y-auto"
+                    , "font-code code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                    ]
+                    :: attributes
+                )
                 [ code []
                     [ text info.body
                     ]

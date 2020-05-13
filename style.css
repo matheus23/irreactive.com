@@ -72,3 +72,8 @@ footer input::placeholder {
     );
     outline: none;
 }
+
+/* MARKDOWN */
+.code-shadow {
+    text-shadow: 0 1.4px 0 black;
+}
