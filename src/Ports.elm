@@ -1,4 +1,4 @@
-port module Ports exposing (smoothScrollToPercentage)
+port module Ports exposing (scrollToBottom, smoothScrollToPercentage)
 
 import Json.Encode as Encode
 
@@ -23,3 +23,6 @@ smoothScrollToPercentage domId { left, top } =
         |> optionalField "top" Encode.float top
         |> Encode.object
         |> smoothScrollToPercentagePort
+
+
+port scrollToBottom : () -> Cmd msg

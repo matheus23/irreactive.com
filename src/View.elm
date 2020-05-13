@@ -1,6 +1,7 @@
 module View exposing (..)
 
-import Date
+import App exposing (githubRepo, siteName)
+import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (alt, attribute, checked, class, disabled, for, height, href, id, method, name, placeholder, src, start, style, title, type_, value, width)
 import Html.Events as Events
@@ -19,28 +20,24 @@ body attributes children =
         children
 
 
-document : (List (Attribute msg) -> List (Html msg) -> Html msg) -> List (Html msg) -> Html msg
-document html children =
+document : (List (Attribute msg) -> List (Html msg) -> Html msg) -> String -> List (Html msg) -> Html msg
+document html textColor children =
     main_
         [ classes
-            [ "w-full h-full z-10"
-            , "bg-gruv-gray-12 text-gruv-gray-6"
+            [ "w-full h-full flex-grow z-10"
+            , "bg-gruv-gray-12"
+            , textColor
             ]
         ]
         [ html
             [ classes
                 [ "container desktop:mx-auto desktop:px-0"
-                , "flex flex-col flex-grow"
+                , "flex flex-col"
                 , "h-full mb-12 overflow-y-hidden"
                 ]
             ]
             children
         ]
-
-
-accentLine : Html msg
-accentLine =
-    div [ class "top-0 inset-x-0 h-2 bg-gruv-orange-m z-20 fixed" ] []
 
 
 
@@ -51,7 +48,7 @@ header : PagePath Pages.PathKey -> Html msg
 header currentPath =
     nav [ class "flex flex-row w-full bg-gruv-gray-12 z-30" ]
         [ a
-            [ class "flex flex-col"
+            [ class "flex flex-col hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
             , href (PagePath.toString pages.index)
             ]
             [ span
@@ -60,11 +57,11 @@ header currentPath =
                     , "px-3 mx-auto"
                     ]
                 ]
-                [ text "Irreactive" ]
+                [ text siteName ]
             , div [ class "h-1 mr-1 bg-gruv-gray-10" ] []
             ]
         , a
-            [ class "flex-grow flex flex-col"
+            [ class "flex-grow flex flex-col hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
             , href (PagePath.toString pages.index)
             ]
             [ span
@@ -83,7 +80,7 @@ header currentPath =
                 []
             ]
         , a
-            [ class "flex-grow flex flex-col"
+            [ class "flex-grow flex flex-col hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
             , href (PagePath.toString pages.about)
             ]
             [ span
@@ -104,6 +101,11 @@ header currentPath =
         ]
 
 
+accentLine : Html msg
+accentLine =
+    div [ class "top-0 inset-x-0 h-2 bg-gruv-orange-m z-20 fixed" ] []
+
+
 
 -- ARTICLE LIST
 
@@ -116,37 +118,38 @@ articleList attributes children =
 postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
 postPreview ( postPath, post ) =
     li [ class "w-full mx-auto mt-12 px-5" ]
-        [ articleMetadata post
-        , h2 [ class "font-title text-4xl text-gruv-gray-4 text-center leading-tight" ]
-            [ a [ href (PagePath.toString postPath) ]
+        [ date [] post.published
+        , h2 [ class "font-title text-4xl text-center leading-tight text-gruv-gray-4" ]
+            [ a [ class "link-effect", href (PagePath.toString postPath) ]
                 [ text post.title ]
             ]
-        , p [ class "text-gruv-gray-4 text-justify mt-2" ]
-            [ a [ href (PagePath.toString postPath) ]
+        , p [ class "text-justify mt-2" ]
+            [ a [ class "link-effect", href (PagePath.toString postPath) ]
                 [ text post.description ]
             ]
         , p [ class "font-title text-xl text-gruv-blue-d block text-center mt-2" ]
             [ a
-                [ href (PagePath.toString postPath)
+                [ class "link-effect-purple"
+                , href (PagePath.toString postPath)
                 , class "visited:text-gruv-purple-d"
                 ]
                 [ text "Read More ..." ]
             ]
-        , hr [ style "height" "2px", class "max-w-xs bg-gruv-gray-9 mx-auto mt-12" ] []
+        , hairline
         ]
 
 
-articleMetadata : Metadata.ArticleMetadata -> Html msg
-articleMetadata { published } =
-    time [ class "text-gruv-gray-4 italic text-base-sm text-center block" ]
-        [ text (Date.format "MMMM ddd, yyyy" published) ]
+date : List String -> Date -> Html msg
+date clss d =
+    time [ classes ("text-gruv-gray-4 italic text-base-sm text-center block" :: clss) ]
+        [ text (Date.format "MMMM ddd, yyyy" d) ]
 
 
 
 -- FOOTER
 
 
-blogFooter :
+footer :
     { onSubmit : msg
     , onInput : String -> msg
     , model : String
@@ -154,14 +157,14 @@ blogFooter :
     , submitSuccess : Bool
     }
     -> Html msg
-blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
-    footer [ class "flex flex-col bg-gruv-gray-0 p-5 sticky bottom-0 inset-x-0" ]
+footer { onSubmit, onInput, model, errorText, submitSuccess } =
+    Html.footer [ class "flex flex-col bg-gruv-gray-0 sticky bottom-0 inset-x-0" ]
         [ form
             [ name "email-subscription"
             , method "POST"
             , attribute "data-netlify" "true"
             , Events.onSubmit onSubmit
-            , class "container desktop:mx-auto"
+            , class "container desktop:mx-auto py-6 px-3"
             ]
             [ p []
                 [ label [ for "email", class "font-code text-gruv-gray-11" ]
@@ -215,6 +218,47 @@ blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
 
 
 
+-- ARTICLES
+
+
+decorateArticle :
+    { path : PagePath Pages.PathKey
+    , metadata : Metadata.ArticleMetadata
+    , content : List (Html msg)
+    }
+    -> List (Html msg)
+decorateArticle { path, metadata, content } =
+    List.concat
+        [ [ img
+                [ class "desktop:mt-6"
+                , src (ImagePath.toString metadata.image)
+
+                -- TODO We don't want generic alt texts. How about defining the alt-text in the post?
+                , alt "Post cover photo"
+                ]
+                []
+          , date [ "mt-5 mb-3" ] metadata.published
+          , h1 [ class "font-title text-4xl leading-tight text-gruv-orange-d text-center font-semibold" ]
+                [ text metadata.title ]
+          ]
+        , content
+        , [ githubEditLink path ]
+        ]
+
+
+githubEditLink : PagePath Pages.PathKey -> Html msg
+githubEditLink path =
+    paragraph []
+        [ text "Found a typo? "
+        , link []
+            { destination = githubRepo ++ "/blob/master/content/" ++ PagePath.toString path ++ ".md"
+            , title = Just "Link to editing this page on Github"
+            , children = [ text "Edit this page GitHub." ]
+            }
+        ]
+
+
+
 -- MARKDOWN
 
 
@@ -242,7 +286,7 @@ markdown attributes block =
                     h6 (class "px-5" :: attributes) children
 
         Scaffolded.Paragraph children ->
-            p (class "mt-4 px-5" :: attributes) children
+            paragraph attributes children
 
         Scaffolded.BlockQuote children ->
             blockquote attributes children
@@ -259,19 +303,8 @@ markdown attributes block =
         Scaffolded.Emphasis children ->
             em attributes children
 
-        Scaffolded.Link link ->
-            let
-                addTitle attrs =
-                    link.title
-                        |> Maybe.map (\t -> title t :: attrs)
-                        |> Maybe.withDefault attrs
-            in
-            a
-                (href link.destination
-                    :: class "text-gruv-blue-d visited:text-gruv-purple-d"
-                    :: addTitle attributes
-                )
-                link.children
+        Scaffolded.Link info ->
+            link attributes info
 
         Scaffolded.Image imageInfo ->
             let
@@ -358,23 +391,47 @@ markdown attributes block =
             br attributes []
 
         Scaffolded.ThematicBreak ->
-            hr attributes []
+            hairline
 
         _ ->
             Scaffolded.foldHtml attributes block
+
+
+link :
+    List (Attribute msg)
+    ->
+        { title : Maybe String
+        , destination : String
+        , children : List (Html msg)
+        }
+    -> Html msg
+link attributes info =
+    let
+        addTitle attrs =
+            info.title
+                |> Maybe.map (\t -> title t :: attrs)
+                |> Maybe.withDefault attrs
+    in
+    a
+        (href info.destination
+            :: class "link-effect-purple text-gruv-blue-d visited:text-gruv-purple-d"
+            :: addTitle attributes
+        )
+        info.children
+
+
+paragraph : List (Attribute msg) -> List (Html msg) -> Html msg
+paragraph attributes children =
+    p (class "mt-4 px-3" :: attributes) children
 
 
 
 -- UTILITIES
 
 
-textLink : String -> String -> Html msg
-textLink destination content =
-    a
-        [ class "text-gruv-blue-d visited:text-gruv-purple-d"
-        , href destination
-        ]
-        [ text content ]
+hairline : Html msg
+hairline =
+    hr [ style "height" "2px", class "max-w-xs bg-gruv-gray-9 mx-auto mt-12" ] []
 
 
 classes : List String -> Attribute msg

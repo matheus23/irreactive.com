@@ -4,6 +4,7 @@ import Dict exposing (Dict)
 import Http
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponent
+import Ports
 import Url.Builder as Url
 
 
@@ -24,6 +25,16 @@ siteName =
 siteTagline : String
 siteTagline =
     "A Blog About Graphics and Functional Programming"
+
+
+canonicalSiteUrl : String
+canonicalSiteUrl =
+    "https://philippkruegerblog.netlify.com/"
+
+
+githubRepo : String
+githubRepo =
+    "https://github.com/matheus23/website"
 
 
 type alias Model =
@@ -71,7 +82,7 @@ update msg model =
                 ( { model
                     | emailStatus = EmailMissing
                   }
-                , Cmd.none
+                , Ports.scrollToBottom ()
                 )
 
             else
@@ -101,7 +112,7 @@ update msg model =
                         | subscriptionEmail = ""
                         , emailStatus = SubmitSuccessful
                       }
-                    , Cmd.none
+                    , Ports.scrollToBottom ()
                     )
 
                 Err httpErr ->
@@ -123,7 +134,7 @@ update msg model =
                                 Http.BadBody _ ->
                                     SubmitInternalError
                       }
-                    , Cmd.none
+                    , Ports.scrollToBottom ()
                     )
 
         CarouselMsg carouselId carouselMsg ->

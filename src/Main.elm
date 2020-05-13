@@ -70,7 +70,7 @@ pageView siteMetadata page content model =
                 View.body []
                     [ View.header page.path
                     , View.accentLine
-                    , View.document Html.article content
+                    , View.document Html.article "text-gruv-gray-1" content
                     , viewFooter model
                     ]
             }
@@ -82,20 +82,12 @@ pageView siteMetadata page content model =
                     [ View.header page.path
                     , View.accentLine
                     , View.document Html.article
-                        (List.concat
-                            [ [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
-                              , Html.section [ Attr.class "header" ]
-                                    [ View.articleMetadata metadata
-                                    , Html.img
-                                        [ Attr.src (ImagePath.toString metadata.image)
-                                        , Attr.alt "Post cover photo"
-                                        ]
-                                        []
-                                    ]
-                              ]
-                            , content
-                            , [ viewGithubEditLink page.path ]
-                            ]
+                        "text-gruv-gray-1"
+                        (View.decorateArticle
+                            { path = page.path
+                            , metadata = metadata
+                            , content = content
+                            }
                         )
                     , viewFooter model
                     ]
@@ -110,7 +102,7 @@ pageView siteMetadata page content model =
                     , siteMetadata
                         |> filterArticles
                         |> List.map View.postPreview
-                        |> View.document Html.ul
+                        |> View.document Html.ul "text-gruv-gray-6"
                     , viewFooter model
                     ]
             }
@@ -136,7 +128,7 @@ filterArticles =
 
 viewFooter : Model -> Html Msg
 viewFooter model =
-    View.blogFooter
+    View.footer
         { onSubmit = SubmitEmailSubscription
         , onInput = SubscribeEmailAddressChange
         , model = model.subscriptionEmail
@@ -161,20 +153,6 @@ viewFooter model =
                     "Oh, there was some internal error. Please tell me about it."
         , submitSuccess = model.emailStatus == SubmitSuccessful
         }
-
-
-viewGithubEditLink : PagePath Pages.PathKey -> Html msg
-viewGithubEditLink path =
-    Html.section [ Attr.class "edit-on-github" ]
-        [ Html.text "Found a typo? "
-        , Html.a
-            [ Attr.style "text-decoration" "underline"
-
-            -- , Attr.style "color" Palette.color.primary
-            , Attr.href (githubRepo ++ "/blob/master/content/" ++ PagePath.toString path ++ ".md")
-            ]
-            [ Html.text "Edit this page GitHub." ]
-        ]
 
 
 {-| <https://developer.twitter.com/en/docs/tweets/optimize-with-cards/overview/abouts-cards>
@@ -238,13 +216,3 @@ head metadata =
                 , title = siteName ++ " - all posts"
                 }
                 |> Seo.website
-
-
-canonicalSiteUrl : String
-canonicalSiteUrl =
-    "https://TODO.netlify.com/"
-
-
-githubRepo : String
-githubRepo =
-    "https://github.com/matheus23/website"

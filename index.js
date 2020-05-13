@@ -21,4 +21,10 @@ const smoothScrollToPercentage = ({ domId, left, top }) => {
 
 app.then(elmApplication => {
   elmApplication.ports.smoothScrollToPercentagePort.subscribe(smoothScrollToPercentage);
+  elmApplication.ports.scrollToBottom.subscribe(() => {
+    // Wait one frame for Elm to render additional elements (that push the page down)
+    window.requestAnimationFrame(() =>
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+    );
+  });
 });

@@ -47,13 +47,28 @@ customHtmlRenderer =
     Scaffolded.toRenderer
         { renderHtml =
             Markdown.Html.oneOf
-                [-- anythingCaptioned "img" []
-                 -- , anythingCaptioned "video" [ Attr.controls True ]
-                 -- , carousel
-                 -- , markdownEl
+                [ -- anythingCaptioned "img" []
+                  -- , anythingCaptioned "video" [ Attr.controls True ]
+                  -- , carousel
+                  -- , markdownEl
+                  -- TODO Implement carousel, etc. with custom elements
+                  dummy "imgcaptioned"
+                , dummy "videocaptioned"
+                , dummy "carousel"
+                , dummy "markdown"
                 ]
         , renderMarkdown = View.markdown []
         }
+
+
+dummy tagName =
+    Markdown.Html.tag tagName
+        (\_ _ _ children ->
+            Html.div [] children
+        )
+        |> Markdown.Html.withOptionalAttribute "src"
+        |> Markdown.Html.withOptionalAttribute "alt"
+        |> Markdown.Html.withOptionalAttribute "id"
 
 
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
@@ -70,7 +85,10 @@ anythingCaptioned tagName attributes =
         |> withOptionalIdTag
 
 
-carousel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
+
+-- carousel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
+
+
 carousel =
     Markdown.Html.tag "carousel"
         (\identifier children model ->
@@ -82,7 +100,10 @@ carousel =
         |> Markdown.Html.withAttribute "id"
 
 
-markdownEl : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+
+-- markdownEl : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
+
+
 markdownEl =
     Markdown.Html.tag "markdown"
         (\idAttrs children model ->

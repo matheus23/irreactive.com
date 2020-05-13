@@ -61,7 +61,8 @@ module.exports = {
     },
   },
   variants: {
-    textColor: ['visited', 'focus']
+    textColor: ['visited', 'focus'],
+    backgroundColor: ['focus', 'hover'],
   },
   plugins: [],
 }
