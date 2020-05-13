@@ -55,6 +55,7 @@ module.exports = {
     },
     maxWidth: {
       desktop: '600px',
+      'nav-item': '300px',
     },
     screens: {
       desktop: '600px',

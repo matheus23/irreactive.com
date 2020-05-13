@@ -48,20 +48,27 @@ header : PagePath Pages.PathKey -> Html msg
 header currentPath =
     nav [ class "flex flex-row w-full bg-gruv-gray-12 z-30" ]
         [ a
-            [ class "flex flex-col hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
+            [ classes
+                [ "flex-grow flex flex-col"
+                , "hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
+                ]
             , href (PagePath.toString pages.index)
             ]
             [ span
                 [ classes
                     [ "font-title font-semibold text-3xl text-gruv-orange-d"
-                    , "px-3 mx-auto"
+                    , "px-3 ml-auto"
                     ]
                 ]
                 [ text siteName ]
             , div [ class "h-1 mr-1 bg-gruv-gray-10" ] []
             ]
         , a
-            [ class "flex-grow flex flex-col hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
+            [ classes
+                [ "w-full max-w-nav-item flex-grow"
+                , "flex flex-col"
+                , "hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
+                ]
             , href (PagePath.toString pages.index)
             ]
             [ span
@@ -80,7 +87,11 @@ header currentPath =
                 []
             ]
         , a
-            [ class "flex-grow flex flex-col hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
+            [ classes
+                [ "w-full max-w-nav-item flex-grow"
+                , "flex flex-col"
+                , "hover:bg-gruv-gray-10 focus:bg-gruv-gray-10 outline-none"
+                ]
             , href (PagePath.toString pages.about)
             ]
             [ span
@@ -98,6 +109,13 @@ header currentPath =
                 ]
                 []
             ]
+        , div
+            [ class "flex-shrink-0 hidden desktop:flex flex-col h-fill"
+
+            -- This item should be just as wide as the right page margin on desktop
+            , style "width" "calc((100vw - 600px) / 2)"
+            ]
+            [ div [ class "h-1 ml-1 mt-auto bg-gruv-gray-10" ] [] ]
         ]
 
 

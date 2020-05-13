@@ -1,9 +1,26 @@
 @import url("https://fonts.googleapis.com/css2?family=Fira+Code&family=Zilla+Slab:wght@500;700&display=swap");
 
+/* HTML/BODY */
+
 html,
 body {
     min-height: 100vh;
 }
+
+/* On Mac and iOS you can scroll further than the page.
+This gradient (with a hard stop at 50%) causes the background
+above the page and below the page to match the main background
+and footer color respectively */
+html {
+    background-image: linear-gradient(
+        to top,
+        /* gruv-gray-0 */ rgba(29, 32, 33, 1),
+        /* gruv-gray-0 */ rgba(29, 32, 33, 1) 50%,
+        /* gruv-gray-12 */ rgba(249, 245, 215, 1) 50%
+    );
+}
+
+/* FOOTER */
 
 .call-to-action {
     box-shadow: 0 4px 0 0 #48825f;
@@ -31,6 +48,7 @@ footer input::placeholder {
     color: rgba(146, 131, 116, 1) !important;
 }
 
+/* LINKS */
 .link-effect:hover,
 .link-effect:focus {
     /* gruv-gray-12 */
@@ -53,17 +71,4 @@ footer input::placeholder {
         rgba(255, 255, 255, 0) 45%
     );
     outline: none;
-}
-
-/* On Mac and iOS you can scroll further than the page.
-This gradient (with a hard stop at 50%) causes the background
-above the page and below the page to match the main background
-and footer color respectively */
-html {
-    background-image: linear-gradient(
-        to top,
-        /* gruv-gray-0 */ rgba(29, 32, 33, 1),
-        /* gruv-gray-0 */ rgba(29, 32, 33, 1) 50%,
-        /* gruv-gray-12 */ rgba(249, 245, 215, 1) 50%
-    );
 }
