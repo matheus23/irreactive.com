@@ -7,7 +7,6 @@ import Head
 import Head.Seo as Seo
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Index
 import MarkdownDocument
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
@@ -36,7 +35,7 @@ manifest =
     }
 
 
-main : Pages.Platform.Program Model Msg Metadata (Model -> Html Msg)
+main : Pages.Platform.Program Model Msg Metadata (List (Html Msg))
 main =
     Pages.Platform.init
         { init = \_ -> init
@@ -60,10 +59,10 @@ main =
 pageView :
     List ( PagePath Pages.PathKey, Metadata )
     -> { path : PagePath Pages.PathKey, frontmatter : Metadata }
-    -> (Model -> Html Msg)
+    -> List (Html Msg)
     -> Model
     -> { title : String, body : Html Msg }
-pageView siteMetadata page viewContent model =
+pageView siteMetadata page content model =
     case page.frontmatter of
         Metadata.Page metadata ->
             { title = metadata.title
@@ -71,17 +70,36 @@ pageView siteMetadata page viewContent model =
                 View.body []
                     [ View.header page.path
                     , View.accentLine
-                    , View.middle [ viewContent model ]
+                    , View.document Html.article content
+                    , viewFooter model
                     ]
             }
 
         Metadata.Article metadata ->
-            viewArticle metadata
-                { header = View.header page.path
-                , content = viewContent model
-                , footer = viewFooter model
-                , githubEditLink = viewGithubEditLink page.path
-                }
+            { title = metadata.title
+            , body =
+                View.body []
+                    [ View.header page.path
+                    , View.accentLine
+                    , View.document Html.article
+                        (List.concat
+                            [ [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
+                              , Html.section [ Attr.class "header" ]
+                                    [ View.articleMetadata metadata
+                                    , Html.img
+                                        [ Attr.src (ImagePath.toString metadata.image)
+                                        , Attr.alt "Post cover photo"
+                                        ]
+                                        []
+                                    ]
+                              ]
+                            , content
+                            , [ viewGithubEditLink page.path ]
+                            ]
+                        )
+                    , viewFooter model
+                    ]
+            }
 
         Metadata.BlogIndex ->
             { title = siteName
@@ -89,54 +107,31 @@ pageView siteMetadata page viewContent model =
                 View.body []
                     [ View.header page.path
                     , View.accentLine
-                    , View.middle [ Index.view siteMetadata ]
-                    , viewFooter model
-                    ]
-            }
-
-        Metadata.BlogAbout ->
-            { title = siteName
-            , body =
-                View.body []
-                    [ View.header page.path
-                    , View.accentLine
-                    , View.middle [ View.aboutMe ]
+                    , siteMetadata
+                        |> filterArticles
+                        |> List.map View.postPreview
+                        |> View.document Html.ul
                     , viewFooter model
                     ]
             }
 
 
-viewArticle :
-    Metadata.ArticleMetadata
-    ->
-        { header : Html msg
-        , content : Html msg
-        , footer : Html msg
-        , githubEditLink : Html msg
-        }
-    -> { title : String, body : Html msg }
-viewArticle metadata { header, content, footer, githubEditLink } =
-    { title = metadata.title
-    , body =
-        View.body []
-            [ header
-            , View.accentLine
-            , Html.article []
-                [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
-                , Html.section [ Attr.class "header" ]
-                    [ View.articleMetadata metadata
-                    , Html.img
-                        [ Attr.src (ImagePath.toString metadata.image)
-                        , Attr.alt "Post cover photo"
-                        ]
-                        []
-                    ]
-                , content
-                ]
-            , githubEditLink
-            , footer
-            ]
-    }
+filterArticles : List ( PagePath Pages.PathKey, Metadata ) -> List ( PagePath Pages.PathKey, Metadata.ArticleMetadata )
+filterArticles =
+    let
+        filterArticle ( path, metadata ) =
+            case metadata of
+                Metadata.Article meta ->
+                    if meta.draft then
+                        Nothing
+
+                    else
+                        Just ( path, meta )
+
+                _ ->
+                    Nothing
+    in
+    List.filterMap filterArticle
 
 
 viewFooter : Model -> Html Msg
@@ -202,7 +197,7 @@ head metadata =
                     }
                 , description = siteTagline
                 , locale = Nothing
-                , title = meta.title
+                , title = siteName ++ " - " ++ meta.title
                 }
                 |> Seo.website
 
@@ -241,22 +236,6 @@ head metadata =
                 , description = siteTagline
                 , locale = Nothing
                 , title = siteName ++ " - all posts"
-                }
-                |> Seo.website
-
-        Metadata.BlogAbout ->
-            Seo.summaryLarge
-                { canonicalUrlOverride = Nothing
-                , siteName = siteName
-                , image =
-                    { url = images.iconPng
-                    , alt = siteName ++ " logo"
-                    , dimensions = Nothing
-                    , mimeType = Nothing
-                    }
-                , description = siteTagline
-                , locale = Nothing
-                , title = siteName ++ " - about"
                 }
                 |> Seo.website
 

@@ -13,6 +13,7 @@ import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
 import Result.Extra as Result
 import String.Extra as String
+import View
 
 
 deadEndsToString deadEnds =
@@ -33,11 +34,6 @@ document =
         Markdown.parse
             >> Result.mapError deadEndsToString
             >> Result.andThen (Markdown.render customHtmlRenderer)
-            >> Result.map
-                (\children model ->
-                    applyModel model children
-                        |> Html.main_ [ Attr.class "content" ]
-                )
     }
 
 
@@ -46,23 +42,17 @@ applyModel m =
     List.map ((|>) m)
 
 
-customHtmlRenderer : Markdown.Renderer (Model -> Html Msg)
+customHtmlRenderer : Markdown.Renderer (Html Msg)
 customHtmlRenderer =
     Scaffolded.toRenderer
         { renderHtml =
             Markdown.Html.oneOf
-                [ anythingCaptioned "img" []
-                , anythingCaptioned "video" [ Attr.controls True ]
-                , carousel
-                , markdownEl
+                [-- anythingCaptioned "img" []
+                 -- , anythingCaptioned "video" [ Attr.controls True ]
+                 -- , carousel
+                 -- , markdownEl
                 ]
-        , renderMarkdown =
-            Scaffolded.parameterized
-                (\blockStructure _ ->
-                    blockStructure
-                        |> Scaffolded.bumpHeadings 1
-                        |> Scaffolded.foldHtml []
-                )
+        , renderMarkdown = View.markdown []
         }
 
 

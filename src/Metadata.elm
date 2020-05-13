@@ -11,7 +11,6 @@ type Metadata
     = Page PageMetadata
     | Article ArticleMetadata
     | BlogIndex
-    | BlogAbout
 
 
 type alias ArticleMetadata =
@@ -38,9 +37,6 @@ decoder =
 
                     "blog-index" ->
                         Decode.succeed BlogIndex
-
-                    "blog-about" ->
-                        Decode.succeed BlogAbout
 
                     "blog" ->
                         Decode.map5 ArticleMetadata

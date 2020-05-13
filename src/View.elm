@@ -2,9 +2,11 @@ module View exposing (..)
 
 import Date
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, for, height, href, id, method, name, placeholder, src, style, type_, value, width)
+import Html.Attributes exposing (alt, attribute, checked, class, disabled, for, height, href, id, method, name, placeholder, src, start, style, title, type_, value, width)
 import Html.Events as Events
-import Metadata exposing (Metadata)
+import Markdown.Block as Markdown
+import Markdown.Scaffolded as Scaffolded
+import Metadata
 import Pages exposing (images, pages)
 import Pages.ImagePath as ImagePath
 import Pages.PagePath as PagePath exposing (PagePath)
@@ -17,10 +19,23 @@ body attributes children =
         children
 
 
-middle : List (Html msg) -> Html msg
-middle children =
-    main_ [ class "flex flex-col flex-grow h-full px-5 bg-gruv-gray-12 z-10" ]
-        children
+document : (List (Attribute msg) -> List (Html msg) -> Html msg) -> List (Html msg) -> Html msg
+document html children =
+    main_
+        [ classes
+            [ "w-full h-full z-10"
+            , "bg-gruv-gray-12 text-gruv-gray-6"
+            ]
+        ]
+        [ html
+            [ classes
+                [ "container desktop:mx-auto desktop:px-0"
+                , "flex flex-col flex-grow"
+                , "h-full mb-12 overflow-y-hidden"
+                ]
+            ]
+            children
+        ]
 
 
 accentLine : Html msg
@@ -95,12 +110,12 @@ header currentPath =
 
 articleList : List (Attribute msg) -> List (Html msg) -> Html msg
 articleList attributes children =
-    ul (class "flex flex-col mb-12 container desktop:mx-auto" :: attributes) children
+    ul (class "flex flex-col" :: attributes) children
 
 
 postPreview : ( PagePath Pages.PathKey, Metadata.ArticleMetadata ) -> Html msg
 postPreview ( postPath, post ) =
-    li [ class "w-full mx-auto mt-12" ]
+    li [ class "w-full mx-auto mt-12 px-5" ]
         [ articleMetadata post
         , h2 [ class "font-title text-4xl text-gruv-gray-4 text-center leading-tight" ]
             [ a [ href (PagePath.toString postPath) ]
@@ -200,38 +215,153 @@ blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
 
 
 
--- ABOUT ME
+-- MARKDOWN
 
 
-aboutMe : Html msg
-aboutMe =
-    article [ class "flex flex-col flex-grow h-full px-5 mb-12 desktop:mx-auto desktop:px-0 container" ]
-        [ img
-            [ src (ImagePath.toString images.me)
-            , width 200
-            , height 200
-            , class "rounded-lg my-6 mx-auto"
-            ]
-            []
-        , p [ class "text-gruv-gray-6" ]
-            [ text "Hi, I’m Philipp." ]
-        , p [ class "mt-4 text-gruv-gray-6" ]
-            [ text "I’m passionate about user interfaces and functional programming" ]
-        , p [ class "mt-4 text-gruv-gray-6" ]
-            [ text "This blog is an attempt at sharing the research work I’m trying to create around graphics APIs, rethought from the bottom up in a purely functional way." ]
-        , p [ class "mt-4 text-gruv-gray-6" ]
-            [ text "If you would like to reach out to me, send me a (direct) message over twitter "
-            , textLink "https://twitter.com/matheusdev23" "@matheusdev23"
-            , text "."
-            ]
-        , p [ class "mt-4 text-gruv-gray-6" ]
-            [ text "If you want to get notified about new blog posts, follow me on twitter or use the E-Mail form below." ]
-        , p [ class "mt-4 text-gruv-gray-6" ]
-            [ text "Wondering about the technology behind this blog? Read "
-            , textLink (PagePath.toString pages.buildingABlogWithElmPages) "the release post"
-            , text "!"
-            ]
-        ]
+markdown : List (Attribute msg) -> Scaffolded.Block (Html msg) -> Html msg
+markdown attributes block =
+    case block of
+        Scaffolded.Heading { level, children } ->
+            case level of
+                Markdown.H1 ->
+                    h2 (class "px-5" :: attributes) children
+
+                Markdown.H2 ->
+                    h3 (class "px-5" :: attributes) children
+
+                Markdown.H3 ->
+                    h4 (class "px-5" :: attributes) children
+
+                Markdown.H4 ->
+                    h5 (class "px-5" :: attributes) children
+
+                Markdown.H5 ->
+                    h6 (class "px-5" :: attributes) children
+
+                Markdown.H6 ->
+                    h6 (class "px-5" :: attributes) children
+
+        Scaffolded.Paragraph children ->
+            p (class "mt-4 px-5" :: attributes) children
+
+        Scaffolded.BlockQuote children ->
+            blockquote attributes children
+
+        Scaffolded.Text content ->
+            text content
+
+        Scaffolded.CodeSpan content ->
+            code attributes [ text content ]
+
+        Scaffolded.Strong children ->
+            strong attributes children
+
+        Scaffolded.Emphasis children ->
+            em attributes children
+
+        Scaffolded.Link link ->
+            let
+                addTitle attrs =
+                    link.title
+                        |> Maybe.map (\t -> title t :: attrs)
+                        |> Maybe.withDefault attrs
+            in
+            a
+                (href link.destination
+                    :: class "text-gruv-blue-d visited:text-gruv-purple-d"
+                    :: addTitle attributes
+                )
+                link.children
+
+        Scaffolded.Image imageInfo ->
+            let
+                addTitle attrs =
+                    imageInfo.title
+                        |> Maybe.map (\t -> title t :: attrs)
+                        |> Maybe.withDefault attrs
+
+                addSizeProps attrs =
+                    if imageInfo.src == ImagePath.toString images.me then
+                        class "rounded-lg my-6 mx-auto"
+                            :: width 200
+                            :: height 200
+                            :: attrs
+
+                    else
+                        attrs
+            in
+            img
+                (src imageInfo.src
+                    :: alt imageInfo.alt
+                    :: addSizeProps (addTitle attributes)
+                )
+                []
+
+        Scaffolded.UnorderedList { items } ->
+            ul attributes
+                (items
+                    |> List.map
+                        (\item ->
+                            case item of
+                                Markdown.ListItem task children ->
+                                    let
+                                        checkbox =
+                                            case task of
+                                                Markdown.NoTask ->
+                                                    text ""
+
+                                                Markdown.IncompleteTask ->
+                                                    input
+                                                        [ disabled True
+                                                        , checked False
+                                                        , type_ "checkbox"
+                                                        ]
+                                                        []
+
+                                                Markdown.CompletedTask ->
+                                                    input
+                                                        [ disabled True
+                                                        , checked True
+                                                        , type_ "checkbox"
+                                                        ]
+                                                        []
+                                    in
+                                    li [] (checkbox :: children)
+                        )
+                )
+
+        Scaffolded.OrderedList { startingIndex, items } ->
+            ol
+                (case startingIndex of
+                    1 ->
+                        start startingIndex :: attributes
+
+                    _ ->
+                        attributes
+                )
+                (items
+                    |> List.map
+                        (\itemBlocks ->
+                            li []
+                                itemBlocks
+                        )
+                )
+
+        Scaffolded.CodeBlock info ->
+            pre attributes
+                [ code []
+                    [ text info.body
+                    ]
+                ]
+
+        Scaffolded.HardLineBreak ->
+            br attributes []
+
+        Scaffolded.ThematicBreak ->
+            hr attributes []
+
+        _ ->
+            Scaffolded.foldHtml attributes block
 
 
 
