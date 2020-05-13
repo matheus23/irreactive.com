@@ -11,7 +11,6 @@ import Markdown.Scaffolded as Scaffolded
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Metadata exposing (Metadata)
-import Pages.Document
 import Result.Extra as Result
 import String.Extra as String
 
@@ -27,21 +26,19 @@ deadEndsToString deadEnds =
 -- pass before rendering, and keep rendering having a (Model -> Html Msg) type
 
 
-document : ( String, Pages.Document.DocumentHandler Metadata (Model -> Html Msg) )
 document =
-    Pages.Document.parser
-        { extension = "md"
-        , metadata = Metadata.decoder
-        , body =
-            Markdown.parse
-                >> Result.mapError deadEndsToString
-                >> Result.andThen (Markdown.render customHtmlRenderer)
-                >> Result.map
-                    (\children model ->
-                        applyModel model children
-                            |> Html.main_ [ Attr.class "content" ]
-                    )
-        }
+    { extension = "md"
+    , metadata = Metadata.decoder
+    , body =
+        Markdown.parse
+            >> Result.mapError deadEndsToString
+            >> Result.andThen (Markdown.render customHtmlRenderer)
+            >> Result.map
+                (\children model ->
+                    applyModel model children
+                        |> Html.main_ [ Attr.class "content" ]
+                )
+    }
 
 
 applyModel : m -> List (m -> a) -> List a

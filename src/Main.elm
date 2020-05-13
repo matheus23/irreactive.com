@@ -7,12 +7,10 @@ import Head
 import Head.Seo as Seo
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events as Events
 import Index
 import MarkdownDocument
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
-import Pages.Directory as Directory exposing (Directory)
 import Pages.ImagePath as ImagePath
 import Pages.Manifest as Manifest
 import Pages.Manifest.Category
@@ -40,7 +38,7 @@ manifest =
 
 main : Pages.Platform.Program Model Msg Metadata (Model -> Html Msg)
 main =
-    Pages.Platform.application
+    Pages.Platform.init
         { init = \_ -> init
         , view =
             \siteMetadata page ->
@@ -51,12 +49,12 @@ main =
         , update = update
         , subscriptions = subscriptions
         , documents = [ MarkdownDocument.document ]
-        , onPageChange = \_ -> NoOp
+        , onPageChange = Nothing
         , manifest = manifest
         , canonicalSiteUrl = canonicalSiteUrl
         , internals = Pages.internals
-        , generateFiles = \_ -> []
         }
+        |> Pages.Platform.toProgram
 
 
 pageView :
