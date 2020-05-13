@@ -2,7 +2,7 @@ module View exposing (..)
 
 import Date
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, disabled, for, height, href, id, method, name, placeholder, required, src, style, type_, value, width)
+import Html.Attributes exposing (attribute, class, for, height, href, id, method, name, placeholder, src, style, type_, value, width)
 import Html.Events as Events
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
@@ -13,14 +13,19 @@ import Pages.PagePath as PagePath exposing (PagePath)
 body : List (Attribute msg) -> List (Html msg) -> Html msg
 body attributes children =
     div
-        (class "flex flex-col min-h-screen text-base bg-gruv-gray-12" :: attributes)
+        (class "flex flex-col min-h-screen text-base" :: attributes)
         children
 
 
 middle : List (Html msg) -> Html msg
 middle children =
-    main_ [ class "flex flex-col flex-grow h-full px-5" ]
+    main_ [ class "flex flex-col flex-grow h-full px-5 bg-gruv-gray-12 z-10" ]
         children
+
+
+accentLine : Html msg
+accentLine =
+    div [ class "top-0 inset-x-0 h-2 bg-gruv-orange-m z-20 fixed" ] []
 
 
 
@@ -29,7 +34,7 @@ middle children =
 
 header : PagePath Pages.PathKey -> Html msg
 header currentPath =
-    nav [ class "flex flex-row w-full bg-gruv-gray-12" ]
+    nav [ class "flex flex-row w-full bg-gruv-gray-12 z-30" ]
         [ a
             [ class "flex flex-col"
             , href (PagePath.toString pages.index)
@@ -135,7 +140,7 @@ blogFooter :
     }
     -> Html msg
 blogFooter { onSubmit, onInput, model, errorText, submitSuccess } =
-    footer [ class "flex flex-col bg-gruv-gray-0 p-5" ]
+    footer [ class "flex flex-col bg-gruv-gray-0 p-5 sticky bottom-0 inset-x-0" ]
         [ form
             [ name "email-subscription"
             , method "POST"

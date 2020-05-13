@@ -70,6 +70,7 @@ pageView siteMetadata page viewContent model =
             , body =
                 View.body []
                     [ View.header page.path
+                    , View.accentLine
                     , View.middle [ viewContent model ]
                     ]
             }
@@ -87,6 +88,7 @@ pageView siteMetadata page viewContent model =
             , body =
                 View.body []
                     [ View.header page.path
+                    , View.accentLine
                     , View.middle [ Index.view siteMetadata ]
                     , viewFooter model
                     ]
@@ -97,6 +99,7 @@ pageView siteMetadata page viewContent model =
             , body =
                 View.body []
                     [ View.header page.path
+                    , View.accentLine
                     , View.middle [ View.aboutMe ]
                     , viewFooter model
                     ]
@@ -117,6 +120,7 @@ viewArticle metadata { header, content, footer, githubEditLink } =
     , body =
         View.body []
             [ header
+            , View.accentLine
             , Html.article []
                 [ Html.h1 [ Attr.class "post-title" ] [ Html.text metadata.title ]
                 , Html.section [ Attr.class "header" ]
