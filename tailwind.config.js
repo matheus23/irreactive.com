@@ -7,7 +7,7 @@ module.exports = {
     extend: {
       fontSize: {
         'base': '1.125rem',
-        'base-sm': '0.875rem',
+        'base-sm': '0.9375rem',
       },
       colors: {
         'gruv-red-d': 'rgba(157,0,6,1)',

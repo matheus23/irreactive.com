@@ -11,6 +11,7 @@ import Metadata
 import Pages exposing (images, pages)
 import Pages.ImagePath as ImagePath
 import Pages.PagePath as PagePath exposing (PagePath)
+import SyntaxHighlight
 
 
 body : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -153,7 +154,7 @@ postPreview ( postPath, post ) =
                 ]
                 [ text "Read More ..." ]
             ]
-        , hairline
+        , hairline [ "mt-12" ]
         ]
 
 
@@ -286,22 +287,29 @@ markdown attributes block =
         Scaffolded.Heading { level, children } ->
             case level of
                 Markdown.H1 ->
-                    h2 (class "px-5" :: attributes) children
+                    div [ class "flex flex-row mt-8" ]
+                        [ div [ class "w-3 self-stretch bg-gruv-orange-m" ] []
+                        , h2 (class "flex-grow px-5 font-title text-3xl" :: attributes) children
+                        ]
 
                 Markdown.H2 ->
-                    h3 (class "px-5" :: attributes) children
+                    div [ class "flex flex-row mt-8" ]
+                        [ div [ class "w-3 self-stretch bg-gruv-gray-3" ] []
+                        , h3 (class "flex-grow px-5 font-title text-2xl" :: attributes) children
+                        ]
 
                 Markdown.H3 ->
-                    h4 (class "px-5" :: attributes) children
+                    div [ class "flex flex-row mt-6" ]
+                        [ div [ class "w-3 self-stretch bg-gruv-gray-6" ] []
+                        , h4 (class "flex-grow px-5 font-title text-xl" :: attributes) children
+                        ]
 
-                Markdown.H4 ->
-                    h5 (class "px-5" :: attributes) children
-
-                Markdown.H5 ->
-                    h6 (class "px-5" :: attributes) children
-
-                Markdown.H6 ->
-                    h6 (class "px-5" :: attributes) children
+                -- We only support up to h4
+                _ ->
+                    div [ class "flex flex-row mt-6" ]
+                        [ div [ class "w-3 self-stretch bg-gruv-gray-10" ] []
+                        , h5 (class "flex-grow px-5 font-title text-xl" :: attributes) children
+                        ]
 
         Scaffolded.Paragraph children ->
             paragraph attributes children
@@ -313,7 +321,7 @@ markdown attributes block =
             text content
 
         Scaffolded.CodeSpan content ->
-            code (class "text-gruv-orange-d" :: attributes) [ text content ]
+            code (class "text-gruv-orange-d text-base-sm" :: attributes) [ text content ]
 
         Scaffolded.Strong children ->
             strong attributes children
@@ -399,24 +407,81 @@ markdown attributes block =
                 )
 
         Scaffolded.CodeBlock info ->
-            pre
-                (classes
-                    [ "mt-4 py-6 px-8"
-                    , "overflow-y-auto"
-                    , "font-code code-shadow text-gruv-gray-12 bg-gruv-gray-0"
-                    ]
-                    :: attributes
-                )
-                [ code []
-                    [ text info.body
-                    ]
-                ]
+            let
+                wrap renderedCode =
+                    pre
+                        (classes
+                            [ "mt-4 py-6 px-8"
+                            , "overflow-y-auto"
+                            , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                            ]
+                            :: attributes
+                        )
+                        [ code [] renderedCode ]
+
+                findHighlighter string =
+                    case string of
+                        "elm" ->
+                            Just SyntaxHighlight.elm
+
+                        "js" ->
+                            Just SyntaxHighlight.javascript
+
+                        _ ->
+                            Nothing
+            in
+            case info.language |> Maybe.andThen findHighlighter of
+                Just syntaxHighlight ->
+                    case syntaxHighlight info.body of
+                        Ok highlightedCode ->
+                            let
+                                styled clss content =
+                                    span [ class clss ] [ text content ]
+                            in
+                            wrap
+                                (SyntaxHighlight.toCustom
+                                    { noOperation = div []
+                                    , highlight = div []
+                                    , addition = div []
+                                    , deletion = div []
+                                    , default = text
+                                    , comment = styled "text-gruv-gray-8 italic"
+
+                                    -- numbers
+                                    , style1 = styled "text-gruv-blue-l"
+
+                                    -- Literal string, attribute value
+                                    , style2 = styled "text-gruv-green-l"
+
+                                    -- Keyword, tag, operator symbols
+                                    , style3 = styled "text-gruv-gray-12"
+
+                                    -- Keyword 2, group symbols, type signature
+                                    , style4 = styled "text-gruv-gray-12"
+
+                                    -- Function, attribute name
+                                    , style5 = styled "text-gruv-yellow-l"
+
+                                    -- Literal keyword, capitalized types
+                                    , style6 = styled "text-gruv-green-l"
+
+                                    -- argument, parameter
+                                    , style7 = styled "text-gruv-gray-12"
+                                    }
+                                    highlightedCode
+                                )
+
+                        Err _ ->
+                            wrap [ text info.body ]
+
+                _ ->
+                    wrap [ text info.body ]
 
         Scaffolded.HardLineBreak ->
             br attributes []
 
         Scaffolded.ThematicBreak ->
-            hairline
+            hairline [ "mt-6 mb-3" ]
 
         _ ->
             Scaffolded.foldHtml attributes block
@@ -454,9 +519,13 @@ paragraph attributes children =
 -- UTILITIES
 
 
-hairline : Html msg
-hairline =
-    hr [ style "height" "2px", class "max-w-xs bg-gruv-gray-9 mx-auto mt-12" ] []
+hairline : List String -> Html msg
+hairline clss =
+    hr
+        [ style "height" "2px"
+        , classes ("self-stretch mx-16 bg-gruv-gray-9" :: clss)
+        ]
+        []
 
 
 classes : List String -> Attribute msg
