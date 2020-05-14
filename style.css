@@ -77,3 +77,8 @@ footer input::placeholder {
 .code-shadow {
     text-shadow: 0 1.4px 0 black;
 }
+
+/* loading indicator in elm-pages needs to be above the page */
+.__elm-pages-loading {
+    z-index: 50;
+}
