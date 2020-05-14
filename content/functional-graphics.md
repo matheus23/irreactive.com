@@ -95,7 +95,7 @@ It is nice to be able to define 'combinators' like `besides`. Sometimes we want 
 I think this advantage is mostly practically true, but not theoretically: It is possible to abstract statements in javascript for example, by passing functions. However, in languages like Java or C++ this used to be harder, as only objects could be passed as a parameter to functions, not functions themselves (functions are said to not be *first class*).
 
 
-## Mathematics
+# Mathematics
 
 We'll now shift up a gear. The following sections require some familiarity with ML-style programming languages.
 
@@ -173,7 +173,7 @@ combineAll (Monoid empty combine) list = foldl' combine empty list
 
 Now that we have this definition, we can combine a list of `Graphics` into one via `atopAll graphics = combineAll superimposingMonoid graphics`. We could use `combineAll` for sums and products as well, but that would be boring, so let's create another instance of monoids. Let me introduce our next guest:
 
-### Sized Graphics
+## Sized Graphics
 
 ```hs
 -- invariant: width and height must be non-negative
@@ -262,7 +262,7 @@ Web's flexbox layouts have similar deficiencies: the allowed values for `align-i
 
 Let's fix these deficiencies with our last guest:
 
-### Bounded Graphics
+## Bounded Graphics
 
 ```hs
 data Bounds
@@ -329,7 +329,7 @@ movedBounds translateX translateY bounds =
 - Associativity: Parenthesis doesn't matter! You'll always be able to abstract over a 'continuous' streak of monoids! (imagine a part of a list in an 'mconcat')
 - Identity element: Imagine abstracting over something in the graphic: Putting empty in this graphic will always just remove it / have no effect!
 
-## More power to our graphical primitives!
+# More power to our graphical primitives!
 
 * More power to our graphics: Give them a size, and let them be placed side by side.
 * More power to our graphics: Give them an origin to allow them to be placed besides with alignment! (and allow rendering lines between their origins!)
@@ -357,33 +357,33 @@ When I was pursuing this direction for myself, from a lower-level point, so that
 
 Today I will only focus on the lower-level of graphical user interfaces: Creating graphics. I am sorry for not delving into the details of event handling, layout or state management, yet, but stay tuned for the upcoming blog posts, if you're also interested in that.
 
-## Graphics in Functional Programming Languages
+# Graphics in Functional Programming Languages
 
 What I have learned over the years is that ideas are rarely unique or original. There are many attempts at creating a graphics library in a functional programming language, the results are almost always declarative and composable in some way. I want to highlight some solutions I found out about when first researching this topic:
 
-### Elm's collages
+## Elm's collages
 
 ...
 
-### Racket's Picts
+## Racket's Picts
 
 Racket's picts are a library not for creating graphics for a real-world use case, but for education. The [racket tutorial](https://docs.racket-lang.org/quick/) uses them to introduce newcomers to the language or even programming itself.
 
 ...
 
-### Haskell's Diagrams
+## Haskell's Diagrams
 
 ...
 
-### My DeclarativeGraphics
+## My DeclarativeGraphics
 
 ...
 
-## Education
+# Education
 
 How about using this in education? ElmJr, Racket picts, Universität tübingen?
 
-## What is the right way to do it?
+# What is the right way to do it?
 
 All of them.
 
