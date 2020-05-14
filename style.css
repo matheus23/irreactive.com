@@ -79,6 +79,6 @@ footer input::placeholder {
 }
 
 /* loading indicator in elm-pages needs to be above the page */
-.__elm-pages-loading {
+#__elm-pages-loading {
     z-index: 50;
 }
