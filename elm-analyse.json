@@ -8,6 +8,7 @@
         "ExposeAll": false,
         "SingleFieldRecord": false,
         "ImportAll": false,
+        "UnusedImportAlias": false,
         "MultiLineRecordFormatting": false
     }
 }

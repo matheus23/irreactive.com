@@ -6,11 +6,9 @@ import Date
 import Head
 import Head.Seo as Seo
 import Html exposing (Html)
-import Html.Attributes as Attr
 import MarkdownDocument
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
-import Pages.ImagePath as ImagePath
 import Pages.Manifest as Manifest
 import Pages.Manifest.Category
 import Pages.PagePath as PagePath exposing (PagePath)
@@ -100,7 +98,7 @@ pageView siteMetadata page content model =
                     [ View.header page.path
                     , View.accentLine
                     , siteMetadata
-                        |> filterArticles
+                        |> articleList
                         |> List.map View.postPreview
                         |> View.document Html.ul "text-gruv-gray-6"
                     , viewFooter model
@@ -108,8 +106,8 @@ pageView siteMetadata page content model =
             }
 
 
-filterArticles : List ( PagePath Pages.PathKey, Metadata ) -> List ( PagePath Pages.PathKey, Metadata.ArticleMetadata )
-filterArticles =
+articleList : List ( PagePath Pages.PathKey, Metadata ) -> List ( PagePath Pages.PathKey, Metadata.ArticleMetadata )
+articleList =
     let
         filterArticle ( path, metadata ) =
             case metadata of
@@ -124,6 +122,10 @@ filterArticles =
                     Nothing
     in
     List.filterMap filterArticle
+        >> List.sortBy
+            (\( _, article ) ->
+                article.published |> Date.toRataDie |> negate
+            )
 
 
 viewFooter : Model -> Html Msg
