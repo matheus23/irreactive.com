@@ -3,15 +3,15 @@ module View exposing (..)
 import App exposing (githubRepo, siteName)
 import Date exposing (Date)
 import Html exposing (..)
-import Html.Attributes exposing (alt, attribute, checked, class, disabled, for, height, href, id, method, name, placeholder, src, start, style, title, type_, value, width)
+import Html.Attributes exposing (alt, attribute, checked, class, disabled, for, height, href, id, method, name, placeholder, property, src, start, style, title, type_, value, width)
 import Html.Events as Events
+import Json.Encode as Encode
 import Markdown.Block as Markdown
 import Markdown.Scaffolded as Scaffolded
 import Metadata
 import Pages exposing (images, pages)
 import Pages.ImagePath as ImagePath
 import Pages.PagePath as PagePath exposing (PagePath)
-import SyntaxHighlight
 
 
 body : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -407,75 +407,13 @@ markdown attributes block =
                 )
 
         Scaffolded.CodeBlock info ->
-            let
-                wrap renderedCode =
-                    pre
-                        (classes
-                            [ "mt-4 py-6 px-8"
-                            , "overflow-y-auto"
-                            , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
-                            ]
-                            :: attributes
-                        )
-                        [ code [] renderedCode ]
-
-                findHighlighter string =
-                    case string of
-                        "elm" ->
-                            Just SyntaxHighlight.elm
-
-                        "js" ->
-                            Just SyntaxHighlight.javascript
-
-                        _ ->
-                            Nothing
-            in
-            case info.language |> Maybe.andThen findHighlighter of
-                Just syntaxHighlight ->
-                    case syntaxHighlight info.body of
-                        Ok highlightedCode ->
-                            let
-                                styled clss content =
-                                    span [ class clss ] [ text content ]
-                            in
-                            wrap
-                                (SyntaxHighlight.toCustom
-                                    { noOperation = div []
-                                    , highlight = div []
-                                    , addition = div []
-                                    , deletion = div []
-                                    , default = text
-                                    , comment = styled "text-gruv-gray-8 italic"
-
-                                    -- numbers
-                                    , style1 = styled "text-gruv-blue-l"
-
-                                    -- Literal string, attribute value
-                                    , style2 = styled "text-gruv-green-l"
-
-                                    -- Keyword, tag, operator symbols
-                                    , style3 = styled "text-gruv-gray-12"
-
-                                    -- Keyword 2, group symbols, type signature
-                                    , style4 = styled "text-gruv-gray-12"
-
-                                    -- Function, attribute name
-                                    , style5 = styled "text-gruv-yellow-l"
-
-                                    -- Literal keyword, capitalized types
-                                    , style6 = styled "text-gruv-green-l"
-
-                                    -- argument, parameter
-                                    , style7 = styled "text-gruv-gray-12"
-                                    }
-                                    highlightedCode
-                                )
-
-                        Err _ ->
-                            wrap [ text info.body ]
-
-                _ ->
-                    wrap [ text info.body ]
+            node "custom-code"
+                (info.language
+                    |> Maybe.map (attribute "language")
+                    |> Maybe.map List.singleton
+                    |> Maybe.withDefault []
+                )
+                [ text info.body ]
 
         Scaffolded.HardLineBreak ->
             br attributes []
