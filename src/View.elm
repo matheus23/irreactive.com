@@ -321,7 +321,7 @@ markdown attributes block =
             text content
 
         Scaffolded.CodeSpan content ->
-            code (class "text-gruv-orange-d text-base-sm" :: attributes) [ text content ]
+            code (class "text-gruv-orange-d text-base-sm mx-2" :: attributes) [ text content ]
 
         Scaffolded.Strong children ->
             strong attributes children
@@ -357,7 +357,10 @@ markdown attributes block =
                 []
 
         Scaffolded.UnorderedList { items } ->
-            ul attributes
+            ul
+                (class "pl-8 pr-3 mt-6 mb-2 list-outside list-disc"
+                    :: attributes
+                )
                 (items
                     |> List.map
                         (\item ->
@@ -391,12 +394,9 @@ markdown attributes block =
 
         Scaffolded.OrderedList { startingIndex, items } ->
             ol
-                (case startingIndex of
-                    1 ->
-                        start startingIndex :: attributes
-
-                    _ ->
-                        attributes
+                (class "pl-8 pr-3 mt-6 mb-2 list-outside list-decimal"
+                    :: start startingIndex
+                    :: attributes
                 )
                 (items
                     |> List.map
@@ -460,9 +460,7 @@ paragraph attributes children =
 hairline : List String -> Html msg
 hairline clss =
     hr
-        [ style "height" "2px"
-        , classes ("self-stretch mx-16 bg-gruv-gray-9" :: clss)
-        ]
+        [ classes ("h-2px self-stretch mx-16 bg-gruv-gray-9" :: clss) ]
         []
 
 

@@ -46,7 +46,10 @@ module.exports = {
         'gruv-gray-10s': 'rgba(242,229,188,1)',
         'gruv-gray-11': 'rgba(251,241,199,1)',
         'gruv-gray-12': 'rgba(249,245,215,1)',
-      }
+      },
+      height: {
+        '2px': '2px',
+      },
     },
     fontFamily: {
       'title': ['Zilla Slab'],
