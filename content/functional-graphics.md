@@ -13,7 +13,7 @@
 
 Have you seen what creating 2D graphics looks like in Cairo, Java AWT, Processing or the Web Canvas? What you'll see is an imperative API along the lines of this:
 
-```js
+```js interactive
 moveTo(100, 100);
 setFillStyle("red");
 circle(20);
