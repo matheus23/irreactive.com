@@ -2,7 +2,8 @@ import './gen/tailwind-gen.css';
 import './style.css';
 
 const { Elm } = require("./src/Main.elm");
-const Code = require("./src/Components/Code.elm");
+const CodeHighlighted = require("./src/Components/CodeHighlighted.elm");
+const CodeInteractive = require("./src/Components/CodeInteractive.elm");
 const pagesInit = require("elm-pages");
 
 
@@ -26,9 +27,15 @@ customElements.define('custom-code',
       const codeText = this.textContent;
       const language = this.getAttribute('language');
       const elmDiv = document.createElement('div');
+
+      const component = language == 'js interactive' ?
+        CodeInteractive.Elm.Components.CodeInteractive :
+        CodeHighlighted.Elm.Components.CodeHighlighted;
+
       this.innerHTML = '';
       this.appendChild(elmDiv);
-      Code.Elm.Components.Code.init({
+
+      component.init({
         node: elmDiv,
         flags: {
           language: language,

@@ -1,7 +1,7 @@
 module.exports = {
     plugins: [
         require('tailwindcss'),
-        // require('autoprefixer'),
+        require('autoprefixer'),
         // the tailwindcss plugin seems to do purgeing itself.
         // require('@fullhuman/postcss-purgecss')({
         //     content: [
