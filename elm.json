@@ -24,6 +24,7 @@
             "elm-community/maybe-extra": "5.2.0",
             "elm-community/result-extra": "2.4.0",
             "elm-community/string-extra": "4.0.1",
+            "elm-community/typed-svg": "6.0.0",
             "justinmimbs/date": "3.2.0",
             "lukewestby/elm-string-interpolate": "1.0.4",
             "matheus23/elm-markdown-transforms": "1.0.2",

@@ -1,11 +1,17 @@
 module Components.Code exposing (main)
 
 import Browser
+import Color
 import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (attribute, class)
 import Maybe.Extra as Maybe
 import Parser
+import Svg exposing (svg)
 import SyntaxHighlight
+import TypedSvg.Attributes as SvgA
+import TypedSvg.Attributes.InPx as SvgPx
+import TypedSvg.Core as Svg
+import TypedSvg.Types as Svg
 
 
 type alias Flags =
@@ -166,25 +172,63 @@ classes list =
 
 view : Model -> Html Msg
 view model =
-    pre
-        [ classes
-            [ "mt-4 py-6 px-8"
-            , "overflow-y-auto"
-            , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
-            ]
-        ]
-        [ code []
-            (case model of
-                Highlighted lines ->
-                    lines
+    case model of
+        Highlighted lines ->
+            pre
+                [ classes
+                    [ "mt-4 py-6 px-8"
+                    , "overflow-y-auto"
+                    , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                    ]
+                ]
+                [ code [] lines ]
 
-                NoHighlighting code ->
-                    [ text code ]
+        NoHighlighting content ->
+            pre
+                [ classes
+                    [ "mt-4 py-6 px-8"
+                    , "overflow-y-auto"
+                    , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                    ]
+                ]
+                [ code [] [ text content ] ]
 
-                InteractiveJs statements ->
-                    List.indexedMap viewStatement statements
-            )
-        ]
+        InteractiveJs statements ->
+            div [ class "mt-4" ]
+                [ svg
+                    [ attribute "class" "bg-gruv-gray-10"
+                    , SvgA.width (Svg.Percent 100)
+                    , SvgA.viewBox 0 0 500 200
+                    ]
+                    [ Svg.circle
+                        [ SvgPx.cx 100
+                        , SvgPx.cy 100
+                        , SvgPx.r 20
+                        , SvgA.stroke <| colorToPaint Red
+                        , SvgPx.strokeWidth 8
+                        , SvgA.fill Svg.PaintNone
+                        ]
+                        []
+                    , Svg.rect
+                        [ SvgPx.x 200
+                        , SvgPx.y 100
+                        , SvgPx.width 50
+                        , SvgPx.height 30
+                        , SvgA.fill <| colorToPaint Blue
+                        ]
+                        []
+                    ]
+                , pre
+                    [ classes
+                        [ "py-6 px-8"
+                        , "overflow-y-auto"
+                        , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                        ]
+                    ]
+                    [ code []
+                        (List.indexedMap viewStatement statements)
+                    ]
+                ]
 
 
 viewStatement : Int -> { enabled : Bool, statement : Statement } -> Html Msg
@@ -262,6 +306,35 @@ viewColor enabled color =
         , text name
         , text "\""
         ]
+
+
+colorToPaint : Color -> Svg.Paint
+colorToPaint color =
+    Svg.Paint <|
+        case color of
+            Red ->
+                Color.rgb255 251 73 52
+
+            Green ->
+                Color.rgb255 184 187 38
+
+            Blue ->
+                Color.rgb255 131 165 152
+
+            Purple ->
+                Color.rgb255 211 134 155
+
+            Yellow ->
+                Color.rgb255 250 189 47
+
+            Aqua ->
+                Color.rgb255 142 192 124
+
+            Orange ->
+                Color.rgb255 254 128 25
+
+            Magic ->
+                Color.rgb255 254 128 25
 
 
 ifEnabledColor : Bool -> String -> List (Attribute msg)
