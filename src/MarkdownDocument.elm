@@ -3,6 +3,7 @@ module MarkdownDocument exposing (..)
 import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Language.InteractiveJs as InteractiveJs
 import Markdown.Block exposing (ListItem(..))
 import Markdown.Html
 import Markdown.Parser as Markdown
@@ -33,8 +34,45 @@ document =
     , body =
         Markdown.parse
             >> Result.mapError deadEndsToString
+            >> Result.andThen checkCodeSnippets
             >> Result.andThen (Markdown.render customHtmlRenderer)
     }
+
+
+{-| Extracts only "js interactive" snippets as of yet
+-}
+extractCodeSnippets : List Markdown.Block.Block -> List String
+extractCodeSnippets =
+    List.concatMap
+        (\block ->
+            case block of
+                Markdown.Block.CodeBlock info ->
+                    case info.language of
+                        Just "js interactive" ->
+                            [ info.body ]
+
+                        _ ->
+                            []
+
+                Markdown.Block.HtmlBlock (Markdown.Block.HtmlElement _ _ children) ->
+                    extractCodeSnippets children
+
+                _ ->
+                    []
+        )
+
+
+checkCodeSnippets : List Markdown.Block.Block -> Result String (List Markdown.Block.Block)
+checkCodeSnippets blocks =
+    extractCodeSnippets blocks
+        |> Result.combineMap checkCodeSnippet
+        |> Result.map (always blocks)
+
+
+checkCodeSnippet : String -> Result String ()
+checkCodeSnippet str =
+    InteractiveJs.parse str
+        |> Result.map (always ())
 
 
 applyModel : m -> List (m -> a) -> List a

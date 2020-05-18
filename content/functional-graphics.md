@@ -19,7 +19,7 @@ setFillStyle("red");
 circle(20);
 stroke();
 moveTo(200, 100);
-setFillStyle("blue");
+setFillStyle("blue")
 rectangle(50, 30);
 fill();
 ```

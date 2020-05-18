@@ -6,9 +6,9 @@ import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
 import Json.Decode as Decode
+import Language.InteractiveJs exposing (..)
 import List.Extra as List
 import Maybe.Extra as Maybe
-import Parser
 import Svg exposing (Svg, svg)
 import TypedSvg.Attributes as SvgA
 import TypedSvg.Attributes.InPx as SvgPx
@@ -31,29 +31,9 @@ type Msg
     | CycleFillStyle Int
 
 
-type Statement
-    = Stroke
-    | Fill
-    | MoveTo Int Int
-    | SetFillStyle Color
-    | Circle Int
-    | Rectangle Int Int
-
-
 type Shape
     = ShapeCircle { x : Int, y : Int, radius : Int }
     | ShapeRect { x : Int, y : Int, width : Int, height : Int }
-
-
-type Color
-    = Red
-    | Green
-    | Blue
-    | Purple
-    | Yellow
-    | Aqua
-    | Orange
-    | Magic
 
 
 interpret : List Statement -> List (Svg msg)
@@ -179,15 +159,10 @@ interpret statements =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( [ { enabled = True, statement = MoveTo 100 100 }
-      , { enabled = True, statement = SetFillStyle Red }
-      , { enabled = True, statement = Circle 20 }
-      , { enabled = True, statement = Stroke }
-      , { enabled = True, statement = MoveTo 200 100 }
-      , { enabled = True, statement = SetFillStyle Blue }
-      , { enabled = True, statement = Rectangle 50 30 }
-      , { enabled = True, statement = Fill }
-      ]
+    ( flags.code
+        |> parse
+        |> Result.withDefault []
+        |> List.map (\statement -> { enabled = True, statement = statement })
     , Cmd.none
     )
 
