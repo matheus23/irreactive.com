@@ -5,6 +5,7 @@ import Color
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
+import Json.Decode as Decode
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Parser
@@ -27,6 +28,7 @@ type alias Model =
 
 type Msg
     = ToggleLine Int
+    | CycleFillStyle Int
 
 
 type Statement
@@ -70,25 +72,31 @@ interpret statements =
         finalizeShape fillOptions shape =
             case shape of
                 ShapeCircle { x, y, radius } ->
-                    Svg.circle
-                        ([ SvgPx.cx (toFloat x)
-                         , SvgPx.cy (toFloat y)
-                         , SvgPx.r (toFloat radius)
-                         ]
-                            ++ strokeOrFill fillOptions
-                        )
-                        []
+                    --
+                    Svg.g [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
+                        [ Svg.circle
+                            (SvgPx.r (toFloat radius) :: strokeOrFill fillOptions)
+                            []
+                        ]
 
                 ShapeRect { x, y, width, height } ->
-                    Svg.rect
-                        ([ SvgPx.x (toFloat x)
-                         , SvgPx.y (toFloat y)
-                         , SvgPx.width (toFloat width)
-                         , SvgPx.height (toFloat height)
-                         ]
-                            ++ strokeOrFill fillOptions
-                        )
-                        []
+                    Svg.g
+                        [ SvgA.transform
+                            [ Svg.Translate
+                                (toFloat x + (toFloat width / 2))
+                                (toFloat y + (toFloat height / 2))
+                            ]
+                        ]
+                        [ Svg.rect
+                            ([ SvgPx.x (toFloat -width / 2)
+                             , SvgPx.y (toFloat -height / 2)
+                             , SvgPx.width (toFloat width)
+                             , SvgPx.height (toFloat height)
+                             ]
+                                ++ strokeOrFill fillOptions
+                            )
+                            []
+                        ]
 
         interpretStatement statement state =
             case statement of
@@ -202,6 +210,51 @@ update msg statements =
             , Cmd.none
             )
 
+        CycleFillStyle lineIndex ->
+            ( List.updateAt lineIndex
+                (\{ enabled, statement } ->
+                    { enabled = enabled
+                    , statement =
+                        case statement of
+                            SetFillStyle color ->
+                                SetFillStyle (nextColor color)
+
+                            _ ->
+                                statement
+                    }
+                )
+                statements
+            , Cmd.none
+            )
+
+
+nextColor : Color -> Color
+nextColor color =
+    case color of
+        Red ->
+            Green
+
+        Green ->
+            Blue
+
+        Blue ->
+            Purple
+
+        Purple ->
+            Yellow
+
+        Yellow ->
+            Aqua
+
+        Aqua ->
+            Orange
+
+        Orange ->
+            Red
+
+        Magic ->
+            Magic
+
 
 
 -- VIEW
@@ -220,17 +273,18 @@ view statements =
             , SvgA.width (Svg.Percent 100)
             , SvgA.viewBox 0 0 500 200
             ]
-            (interpret
-                (List.filterMap
-                    (\{ enabled, statement } ->
-                        if enabled then
-                            Just statement
+            (linearGradient
+                :: interpret
+                    (List.filterMap
+                        (\{ enabled, statement } ->
+                            if enabled then
+                                Just statement
 
-                        else
-                            Nothing
+                            else
+                                Nothing
+                        )
+                        statements
                     )
-                    statements
-                )
             )
         , pre
             [ classes
@@ -265,7 +319,27 @@ viewStatement index { enabled, statement } =
             viewFunction clss attributes enabled "moveTo" [ viewInt enabled x, viewInt enabled y ]
 
         SetFillStyle col ->
-            viewFunction clss attributes enabled "setFillStyle" [ viewColor enabled col ]
+            viewFunction clss
+                attributes
+                enabled
+                "setFillStyle"
+                [ viewColor
+                    (if enabled then
+                        [ Events.custom "click"
+                            (Decode.succeed
+                                { message = CycleFillStyle index
+                                , stopPropagation = True
+                                , preventDefault = True
+                                }
+                            )
+                        ]
+
+                     else
+                        []
+                    )
+                    enabled
+                    col
+                ]
 
         Circle r ->
             viewFunction clss attributes enabled "circle" [ viewInt enabled r ]
@@ -298,8 +372,8 @@ viewInt enabled i =
     span [ class (ifEnabledColor enabled "text-gruv-blue-l") ] [ text (String.fromInt i) ]
 
 
-viewColor : Bool -> Color -> Html Msg
-viewColor enabled color =
+viewColor : List (Attribute Msg) -> Bool -> Color -> Html Msg
+viewColor attributes enabled color =
     let
         name =
             case color of
@@ -328,7 +402,9 @@ viewColor enabled color =
                     "magic"
     in
     span
-        [ class (ifEnabledColor enabled "text-gruv-green-l") ]
+        (class (ifEnabledColor enabled "text-gruv-green-l")
+            :: attributes
+        )
         [ text "\""
         , text name
         , text "\""
@@ -337,31 +413,30 @@ viewColor enabled color =
 
 colorToPaint : Color -> Svg.Paint
 colorToPaint color =
-    Svg.Paint <|
-        case color of
-            Red ->
-                Color.rgb255 251 73 52
+    case color of
+        Red ->
+            Svg.Paint <| Color.rgb255 251 73 52
 
-            Green ->
-                Color.rgb255 184 187 38
+        Green ->
+            Svg.Paint <| Color.rgb255 184 187 38
 
-            Blue ->
-                Color.rgb255 131 165 152
+        Blue ->
+            Svg.Paint <| Color.rgb255 131 165 152
 
-            Purple ->
-                Color.rgb255 211 134 155
+        Purple ->
+            Svg.Paint <| Color.rgb255 211 134 155
 
-            Yellow ->
-                Color.rgb255 250 189 47
+        Yellow ->
+            Svg.Paint <| Color.rgb255 250 189 47
 
-            Aqua ->
-                Color.rgb255 142 192 124
+        Aqua ->
+            Svg.Paint <| Color.rgb255 142 192 124
 
-            Orange ->
-                Color.rgb255 254 128 25
+        Orange ->
+            Svg.Paint <| Color.rgb255 254 128 25
 
-            Magic ->
-                Color.rgb255 254 128 25
+        Magic ->
+            Svg.Reference "rainbow"
 
 
 ifEnabledColor : Bool -> String -> String
@@ -371,6 +446,32 @@ ifEnabledColor enabled color =
 
     else
         "text-gruv-gray-6"
+
+
+linearGradient : Svg msg
+linearGradient =
+    Svg.defs []
+        [ Svg.linearGradient
+            [ SvgA.id "rainbow"
+            , SvgPx.x1 -40
+            , SvgPx.y1 -40
+            , SvgPx.x2 40
+            , SvgPx.y2 40
+            , SvgA.gradientUnits Svg.CoordinateSystemUserSpaceOnUse
+            ]
+            [ Svg.stop [ SvgA.offset "0.135417", SvgA.stopColor "#40F6F6", SvgA.stopOpacity (Svg.Opacity 0.84375) ] []
+            , Svg.stop [ SvgA.offset "0.296875", SvgA.stopColor "#24F6B7" ] []
+            , Svg.stop [ SvgA.offset "0.421875", SvgA.stopColor "#A9F829" ] []
+            , Svg.stop [ SvgA.offset "0.557292", SvgA.stopColor "#FCFEB2" ] []
+            , Svg.stop [ SvgA.offset "0.703125", SvgA.stopColor "#F8E85E" ] []
+            , Svg.stop [ SvgA.offset "0.838542", SvgA.stopColor "white" ] []
+            , Svg.stop [ SvgA.offset "1", SvgA.stopColor "#AAD0F2" ] []
+            ]
+        , Svg.animate
+            [ SvgA.xlinkHref "rainbow"
+            ]
+            []
+        ]
 
 
 
