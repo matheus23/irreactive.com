@@ -96,6 +96,7 @@ customHtmlRenderer =
                 , dummy "markdown"
                 , removeElement
                 , infoElement
+                , marginParagraph
                 ]
         , renderMarkdown = View.markdown []
         }
@@ -111,6 +112,11 @@ infoElement : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
 infoElement =
     Markdown.Html.tag "info" (View.infoCard [])
         |> Markdown.Html.withAttribute "title"
+
+
+marginParagraph : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
+marginParagraph =
+    Markdown.Html.tag "in-margin" (View.marginParagraph [])
 
 
 dummy tagName =

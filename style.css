@@ -82,3 +82,10 @@ footer input::placeholder {
 #__elm-pages-loading {
     z-index: 50;
 }
+
+@media (min-width: 1600px) {
+    .margin-paragraph {
+        left: calc(100% + 24px);
+        width: 450px;
+    }
+}

@@ -32,9 +32,9 @@ document html textColor children =
         ]
         [ html
             [ classes
-                [ "container desktop:mx-auto desktop:px-0"
+                [ "max-w-desktop desktop:mx-auto desktop:px-0"
                 , "flex flex-col"
-                , "h-full mb-12 overflow-y-hidden"
+                , "h-full mb-12"
                 ]
             ]
             children
@@ -454,7 +454,7 @@ paragraph attributes children =
 
 
 
--- ARTICLE CARDS
+-- ARTICLE ELEMENTS
 
 
 infoIcon : Maybe String -> Html msg
@@ -489,10 +489,10 @@ removeCard attributes infoText children =
                 , infoIcon infoText
                 ]
     in
-    section (class "mt-4 flex flex-row bg-gruv-yellow-l-25" :: attributes)
-        [ div [ class "mb-4 align-stretch flex-grow" ]
+    section (class "mt-4 flex flex-row flex-shrink min-w-0 bg-gruv-yellow-l-25" :: attributes)
+        [ div [ class "mb-4 align-stretch flex-grow flex-shrink min-w-0" ]
             (children ++ [ toBeRemovedIndicator ])
-        , div [ class "align-stretch w-2 bg-gruv-yellow-l flex-shrink-0" ] []
+        , div [ class "align-stretch w-2 bg-gruv-yellow-l flex-grow-0 flex-shrink-0" ] []
         ]
 
 
@@ -505,10 +505,21 @@ infoCard attributes infoText children =
                 , text infoText
                 ]
     in
-    section (class "mt-4 flex flex-row bg-gruv-aqua-l-25" :: attributes)
-        [ div [ class "mb-4 align-stretch flex-grow" ]
+    section (class "mt-4 flex flex-row flex-shrink min-w-0 bg-gruv-aqua-l-25" :: attributes)
+        [ div [ class "align-stretch w-2 bg-gruv-aqua-l flex-grow-0 flex-shrink-0" ] []
+        , div [ class "mb-4 flex-grow flex-shrink min-w-0" ]
             (infoIndicator :: children)
-        , div [ class "align-stretch w-2 bg-gruv-aqua-l flex-shrink-0" ] []
+        ]
+
+
+marginParagraph : List (Attribute msg) -> List (Html msg) -> Html msg
+marginParagraph attributes children =
+    div [ class "desktop-l:relative" ]
+        [ div
+            (class "desktop-l:absolute margin-paragraph"
+                :: attributes
+            )
+            children
         ]
 
 

@@ -61,9 +61,11 @@ module.exports = {
     maxWidth: {
       desktop: '600px',
       'nav-item': '300px',
+      'margin-item': '450px',
     },
     screens: {
       desktop: '600px',
+      'desktop-l': '1600px',
     },
   },
   variants: {

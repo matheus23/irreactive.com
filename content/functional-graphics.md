@@ -73,6 +73,9 @@ The way the program is defined above, at least two calls to `setColor` must be r
 
 Let's take a look at another attempt at such an API.
 
+# An Expression-Based API
+
+<in-margin>
 <info title="Info: About the programming language in following code examples.">
 I'll be using ML-style syntax for my examples in functional programming languages. Other languages with this style are for example:
 
@@ -85,19 +88,27 @@ If you're unfamiliar with these languages, here are short crash-course:
 ```elm
 -- a list (array) of the numbers 1, 2, 3, 4:
 [1, 2, 3, 4]
+
 -- a function call, like to sin(10):
 sin 10
--- a function call, like arcTangens2(100, 20):
-arcTangens2 100 20
+
+-- a function call, like arcTan2(100, 20):
+arcTan2 100 20
+
+-- you can group arguments (expressions)
+-- with parenthesis:
+arcTan2 (sin 50) 10
+-- is like arcTan2(sin(50),10)
 ```
 
 Everything in these languages is an expression. What does this mean exactly?
 
 * All functions return a value. There is nothing similar to a `void` return type.
-* There are no statements. Statements discard return values, but return values are the only thing you get from functions in functional programming languages. So instead, you can only assign return values to names (constants) for use later in the program.
+* There are no statements. Statements discard return values, but _return values are the only thing you get_ from functions in functional programming languages. So instead, you can only assign return values to names (constants) for use later in the program.
 
 Other than that, it's not a _real_ programming language. My code examples should be interpreted as pseudo-code.
 </info>
+</in-margin>
 
 ---
 
