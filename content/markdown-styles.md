@@ -124,11 +124,11 @@ Our dot's should look pretty nice when aligning to code:
 
 ```js
 moveTo(100, 100);
-setFillStyle("red");
+setColor("red");
 circle(20);
 stroke();
 moveTo(200, 100);
-setFillStyle("blue");
+setColor("blue");
 rectangle(50, 30);
 fill();
 ```

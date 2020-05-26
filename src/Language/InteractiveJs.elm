@@ -13,7 +13,7 @@ type Statement
     = Stroke
     | Fill
     | MoveTo Int Int
-    | SetFillStyle Color
+    | SetColor Color
     | Circle Int
     | Rectangle Int Int
 
@@ -87,8 +87,8 @@ parseStatement =
             |. symbol ", "
             |= int
             |. symbol ")"
-        , succeed SetFillStyle
-            |. backtrackable (token "setFillStyle")
+        , succeed SetColor
+            |. backtrackable (token "setColor")
             |. symbol "("
             |= parseColor
             |. symbol ")"

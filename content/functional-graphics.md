@@ -2,27 +2,104 @@
 {
   "type": "blog",
   "title": "Declarative and Composable Graphics",
-  "description": "A draft. (TODO CHANGE THIS)",
+  "description": "",
   "image": "images/article-covers/mountains.jpg",
   "draft": false,
   "published": "2019-11-20",
 }
 ---
 
-[Let's test this link!](#mathematics)
 
-Have you seen what creating 2D graphics looks like in Cairo, Java AWT, Processing or the Web Canvas? What you'll see is an imperative API along the lines of this:
+<!--
+* [X] See this imperative code
+* [X] Side effects are hard to predict
+  * [X] Because they're non-local: they effect the current state and any other that's coming
+  * [X] Because they can't (are usually not) typed: Removing a statement is always a valid operation. Existence of statements and statement conditions are not supported.
+* [ ] Declarative APIs are not like that
+  * [ ] Nested -> Wrapping effects wrapped elements
+* [ ] Typed APIs are not like that
+  * [ ] You can change the 'type' of what you're wrapping when you wrap it. Thus requiring things to be pluggable like LEGO or else they result in a type error. -> No more 'I don't know what color I should fill'.
+* [ ] The interaction between declarative code and static type checking is why they're such a good fit (in functional code vs imperative code): When everything is just a statement, types don't help you much.
+* [ ] If you leave something out, you lose something:
+  * [ ] See the non-statically typed DOM. Wrapping? YES. But if you wrap something that's just incompatible with its children, it doesn't have any effect.
+  * [ ] See the 'statically typed' example from the beginning: You don't have wrapping? Types don't help you much.
+* [ ] Where could this go? Can we go further?
+  * [ ] Can we build upon this awesome combination? Types + declarative? What about flexible layouts? What about interaction? I want to explore this. Future: An alternative to the virtual DOM.
+
+Why should they start to read? -> Understand why there's the fun interactive code samples
+Why should they read on? -> Learn about the concrete benefits of declarative code (and static type checking and how it all fits together!)
+
+-->
+
+Many lower level graphics APIs are imperative. That means they kind of look similar to the example code below:
 
 ```js interactive
 moveTo(100, 100);
-setFillStyle("red");
+setColor("red");
 circle(20);
 stroke();
 moveTo(200, 100);
-setFillStyle("blue");
+setColor("blue");
 rectangle(50, 30);
 fill();
 ```
+
+The code part is interactive: You can click on lines to enable/disable them, go play with it!
+
+Were you surprised by what happened when you turned off some lines? If you've worked with such an API before, this might not seem too bad. But imagine a beginner dipping their toes into computer graphics for the first time. What would they stumble upon?
+
+* No shapes appear unless there is a call to `fill` or `stroke`, even if there are calls to `circle` or `rectangle`.
+* What's the default color when there was no call to `setColor`? Let's hope it's not transparent.
+* Shapes are placed at the position of the last `moveTo` call, when there hasn't been a `moveTo` call in between. (Also: Where are shapes placed without a call to `moveTo`?)
+* What happens if you draw two shapes at the same position? Which one comes out at the top?
+
+The order and existence of statements plays a huge role in the outcome, but you can delete and re-order statements without getting an error.
+
+<remove reason="because it's not a strong point. You could generate runtime errors when your state-machine isn't walked through like it should. (Maybe this can be made into another point again, but that'd be too long of an argument.)">
+This means there are lots of programs that have to be given a meaning, such as the following one, for example:
+
+```js
+setColor("red");
+setColor("green");
+setColor("blue");
+rectangle(50, 30);
+fill();
+```
+
+This program has to have a meaning. It even has a meaning if there were no `setColor` statements.
+
+The way the program is defined above, at least two calls to `setColor` must be redundant, but you won't have any compiler support to tell you so in traditional (even statically typed) programming languages.
+</remove>
+
+Let's take a look at another attempt at such an API.
+
+<info title="Info: About the programming language in following code examples.">
+I'll be using ML-style syntax for my examples in functional programming languages. Other languages with this style are for example:
+
+* Haskell
+* Elm
+* Standard ML
+
+If you're unfamiliar with these languages, here are short crash-course:
+
+```elm
+-- a list (array) of the numbers 1, 2, 3, 4:
+[1, 2, 3, 4]
+-- a function call, like to sin(10):
+sin 10
+-- a function call, like arcTangens2(100, 20):
+arcTangens2 100 20
+```
+
+Everything in these languages is an expression. What does this mean exactly?
+
+* All functions return a value. There is nothing similar to a `void` return type.
+* There are no statements. Statements discard return values, but return values are the only thing you get from functions in functional programming languages. So instead, you can only assign return values to names (constants) for use later in the program.
+
+Other than that, it's not a _real_ programming language. My code examples should be interpreted as pseudo-code.
+</info>
+
+---
 
 My subjective experience seems to be that more and more people are building a functional interface on top of this imperative API. The comparable pseudo-code looks like this:
 
@@ -59,7 +136,7 @@ The new interface has concrete advantages:
 ```js
 function myCircle() {
   translate(100, 100);
-  setFillStyle("red");
+  setColor("red");
   circle(20);
   stroke();
 }
@@ -73,7 +150,7 @@ myCircle();
 myRectangle();
 ```
 
-You might expect that removing the `myCircle()` call would just remove the circle from our picture, but that is wrong! Unfortunately, `translate` has these mutable semantics: It will change any drawing calls in the future! The same is true for `setFillStyle`. However, `translate` is quite useful: If you used it everywhere, then you can specify the position of elements from outside their definition, and therefore re-use a graphic-generating function for the same scene at two different positions.
+You might expect that removing the `myCircle()` call would just remove the circle from our picture, but that is wrong! Unfortunately, `translate` has these mutable semantics: It will change any drawing calls in the future! The same is true for `setColor`. However, `translate` is quite useful: If you used it everywhere, then you can specify the position of elements from outside their definition, and therefore re-use a graphic-generating function for the same scene at two different positions.
 
 Generally it is nice to have these guaruntees like *'removing a call to a graphical primitive only removes it from the scene and has no other effects'*: In bigger codebases, you'll want to know exactly what effect removing or adding a line of code can have. If it is possible that removing a line of code has a side-effect on the rest of your project, it becomes hard to maintain.
 

@@ -321,7 +321,7 @@ markdown attributes block =
             text content
 
         Scaffolded.CodeSpan content ->
-            code (class "text-gruv-orange-d text-base-sm mx-2" :: attributes) [ text content ]
+            code (class "text-gruv-orange-d text-base-sm" :: attributes) [ text content ]
 
         Scaffolded.Strong children ->
             strong attributes children
@@ -451,6 +451,65 @@ link attributes info =
 paragraph : List (Attribute msg) -> List (Html msg) -> Html msg
 paragraph attributes children =
     p (class "mt-4 px-3" :: attributes) children
+
+
+
+-- ARTICLE CARDS
+
+
+infoIcon : Maybe String -> Html msg
+infoIcon infoText =
+    img
+        (class "mx-1 inline-block"
+            :: src (ImagePath.toString images.infoIcon)
+            :: width 24
+            :: height 24
+            :: (case infoText of
+                    Nothing ->
+                        []
+
+                    Just info ->
+                        [ title info ]
+               )
+        )
+        []
+
+
+removeCard : List (Attribute msg) -> Maybe String -> List (Html msg) -> Html msg
+removeCard attributes infoText children =
+    let
+        toBeRemovedIndicator =
+            p
+                [ classes
+                    [ "mt-4 text-right"
+                    , "font-code text-gruv-yellow-d"
+                    ]
+                ]
+                [ text "Remove this?"
+                , infoIcon infoText
+                ]
+    in
+    section (class "mt-4 flex flex-row bg-gruv-yellow-l-25" :: attributes)
+        [ div [ class "mb-4 align-stretch flex-grow" ]
+            (children ++ [ toBeRemovedIndicator ])
+        , div [ class "align-stretch w-2 bg-gruv-yellow-l flex-shrink-0" ] []
+        ]
+
+
+infoCard : List (Attribute msg) -> String -> List (Html msg) -> Html msg
+infoCard attributes infoText children =
+    let
+        infoIndicator =
+            p [ class "px-3 mt-4 font-code text-gruv-aqua-d" ]
+                [ infoIcon Nothing
+                , text infoText
+                ]
+    in
+    section (class "mt-4 flex flex-row bg-gruv-aqua-l-25" :: attributes)
+        [ div [ class "mb-4 align-stretch flex-grow" ]
+            (infoIndicator :: children)
+        , div [ class "align-stretch w-2 bg-gruv-aqua-l flex-shrink-0" ] []
+        ]
 
 
 

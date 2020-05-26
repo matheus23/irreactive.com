@@ -28,7 +28,7 @@ type alias Model =
 
 type Msg
     = ToggleLine Int
-    | CycleFillStyle Int
+    | CycleColor Int
 
 
 type Shape
@@ -114,7 +114,7 @@ interpret statements =
                         , y = py
                     }
 
-                SetFillStyle c ->
+                SetColor c ->
                     { state | color = c }
 
                 Circle r ->
@@ -185,14 +185,14 @@ update msg statements =
             , Cmd.none
             )
 
-        CycleFillStyle lineIndex ->
+        CycleColor lineIndex ->
             ( List.updateAt lineIndex
                 (\{ enabled, statement } ->
                     { enabled = enabled
                     , statement =
                         case statement of
-                            SetFillStyle color ->
-                                SetFillStyle (nextColor color)
+                            SetColor color ->
+                                SetColor (nextColor color)
 
                             _ ->
                                 statement
@@ -293,16 +293,16 @@ viewStatement index { enabled, statement } =
         MoveTo x y ->
             viewFunction clss attributes enabled "moveTo" [ viewInt enabled x, viewInt enabled y ]
 
-        SetFillStyle col ->
+        SetColor col ->
             viewFunction clss
                 attributes
                 enabled
-                "setFillStyle"
+                "setColor"
                 [ viewColor
                     (if enabled then
                         [ Events.custom "click"
                             (Decode.succeed
-                                { message = CycleFillStyle index
+                                { message = CycleColor index
                                 , stopPropagation = True
                                 , preventDefault = True
                                 }

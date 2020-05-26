@@ -94,9 +94,23 @@ customHtmlRenderer =
                 , dummy "videocaptioned"
                 , dummy "carousel"
                 , dummy "markdown"
+                , removeElement
+                , infoElement
                 ]
         , renderMarkdown = View.markdown []
         }
+
+
+removeElement : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
+removeElement =
+    Markdown.Html.tag "remove" (View.removeCard [])
+        |> Markdown.Html.withOptionalAttribute "reason"
+
+
+infoElement : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
+infoElement =
+    Markdown.Html.tag "info" (View.infoCard [])
+        |> Markdown.Html.withAttribute "title"
 
 
 dummy tagName =
