@@ -3,9 +3,18 @@ import './style.css';
 
 const { Elm } = require("./src/Main.elm");
 const CodeHighlighted = require("./src/Components/CodeHighlighted.elm");
-const CodeInteractive = require("./src/Components/CodeInteractive.elm");
+const CodeInteractiveJs = require("./src/Components/CodeInteractiveJs.elm");
+const CodeInteractiveElm = require("./src/Components/CodeInteractiveElm.elm");
 const pagesInit = require("elm-pages");
 
+
+function codeComponentByLanguage(language) {
+  switch (language) {
+    case 'js interactive': return CodeInteractiveJs.Elm.Components.CodeInteractiveJs;
+    case 'elm interactive': return CodeInteractiveElm.Elm.Components.CodeInteractiveElm;
+    default: return CodeHighlighted.Elm.Components.CodeHighlighted;
+  }
+}
 
 customElements.define('custom-code',
   class extends HTMLElement {
@@ -28,9 +37,7 @@ customElements.define('custom-code',
       const language = this.getAttribute('language');
       const elmDiv = document.createElement('div');
 
-      const component = language == 'js interactive' ?
-        CodeInteractive.Elm.Components.CodeInteractive :
-        CodeHighlighted.Elm.Components.CodeHighlighted;
+      const component = codeComponentByLanguage(language);
 
       this.innerHTML = '';
       this.appendChild(elmDiv);
@@ -46,10 +53,6 @@ customElements.define('custom-code',
   }
 );
 
-const app = pagesInit({
-  mainElmModule: Elm.Main
-});
-
 const smoothScrollToPercentage = ({ domId, left, top }) => {
   const elem = document.getElementById(domId);
   if (elem != null) {
@@ -61,9 +64,9 @@ const smoothScrollToPercentage = ({ domId, left, top }) => {
   }
 }
 
-app.then(elmApplication => {
-  elmApplication.ports.smoothScrollToPercentagePort.subscribe(smoothScrollToPercentage);
-  elmApplication.ports.scrollToBottom.subscribe(() => {
+pagesInit({ mainElmModule: Elm.Main }).then(app => {
+  app.ports.smoothScrollToPercentagePort.subscribe(smoothScrollToPercentage);
+  app.ports.scrollToBottom.subscribe(() => {
     // Wait one frame for Elm to render additional elements (that push the page down)
     window.requestAnimationFrame(() =>
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })

@@ -129,7 +129,7 @@ In the words of analogies, the expression-based API works more like a higher-lev
 
 The expression-based code that is the equivalent of the first code sample looks like this:
 
-```elm
+```elm interactive
 superimposed
   [ moved 200 100
       (filled "blue" (rectangle 50 30))
