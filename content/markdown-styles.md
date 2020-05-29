@@ -96,6 +96,34 @@ someMeters =
 -}
 ```
 
+<in-margin>
+Like this text in the margin for example.
+</in-margin>
+
+Sometimes I want to explain something with some information attached to the side. This is then inside the margin on wider screens and in the flow of the text on smaller screens.
+
+<in-margin>
+<info title="Here's an interactive code example">
+You can
+
+* Click on lines to enable/disable them
+* Click on colors to cycle through them
+
+```js interactive
+moveTo(100, 100);
+setColor("red");
+circle(20);
+stroke();
+moveTo(200, 100);
+setColor("blue");
+rectangle(50, 30);
+fill();
+```
+</info>
+</in-margin>
+
+But it can also be way more complicated things. For example interactive code examples in information boxes.
+
 Code works fine. We get it. How about ordered lists?
 
 This code has some problems:
@@ -109,6 +137,7 @@ You know, that's fine and dandy and all, but what about lists that don't start a
 9. It's a pretty high number, crazy right?
 10. Even higher.
 
+<remove reason="Remove because this is just too cheesy writing. Damn.">
 Studies showed, sometimes numbers are just too much. Let's go for dots:
 
 * This is a dot
@@ -134,3 +163,4 @@ fill();
 ```
 
 * And now we mark it as done. Point.
+</remove>

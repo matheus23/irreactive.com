@@ -110,6 +110,7 @@ Other than that, it's not a _real_ programming language. My code examples should
 </info>
 </in-margin>
 
+<!-- 
 ---
 
 My subjective experience seems to be that more and more people are building a functional interface on top of this imperative API. The comparable pseudo-code looks like this:
@@ -479,4 +480,5 @@ All of them.
 Example: Doing something like Drawing Dynamic Visualisations (!!).
 Example: Having multiple layers but still be able to do 'besides' in what ever layer I want.)
 
-Next blog post: All the different ways of composing monoids!
+Next blog post: All the different ways of composing monoids! 
+-->
