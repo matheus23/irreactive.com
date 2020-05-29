@@ -321,36 +321,12 @@ viewInt enabled i =
 
 viewColor : List (Attribute Msg) -> Bool -> Common.Color -> Html Msg
 viewColor attributes enabled color =
-    let
-        name =
-            case color of
-                Common.Red ->
-                    "red"
-
-                Common.Green ->
-                    "green"
-
-                Common.Blue ->
-                    "blue"
-
-                Common.Purple ->
-                    "purple"
-
-                Common.Yellow ->
-                    "yellow"
-
-                Common.Aqua ->
-                    "aqua"
-
-                Common.Orange ->
-                    "orange"
-    in
     span
         (class (ifEnabledColor enabled "text-gruv-green-l")
             :: attributes
         )
         [ text "\""
-        , text name
+        , text (Common.colorName color)
         , text "\""
         ]
 

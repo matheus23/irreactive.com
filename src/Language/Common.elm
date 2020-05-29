@@ -64,6 +64,31 @@ colorToRGB color =
             Color.rgb255 254 128 25
 
 
+colorName : Color -> String
+colorName color =
+    case color of
+        Red ->
+            "red"
+
+        Green ->
+            "green"
+
+        Blue ->
+            "blue"
+
+        Purple ->
+            "purple"
+
+        Yellow ->
+            "yellow"
+
+        Aqua ->
+            "aqua"
+
+        Orange ->
+            "orange"
+
+
 
 -- PARSE
 
