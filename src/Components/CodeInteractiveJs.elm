@@ -1,11 +1,11 @@
-module Components.CodeInteractive exposing (main)
+module Components.CodeInteractiveJs exposing (main)
 
 import Browser
-import Color
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
 import Json.Decode as Decode
+import Language.Common as Common
 import Language.InteractiveJs exposing (..)
 import List.Extra as List
 import Maybe.Extra as Maybe
@@ -115,7 +115,7 @@ interpret statements =
                     }
 
                 SetColor c ->
-                    { state | color = c }
+                    { state | color = Just c }
 
                 Circle r ->
                     { state
@@ -145,7 +145,7 @@ interpret statements =
     List.foldl interpretStatement
         { x = 0
         , y = 0
-        , color = Magic
+        , color = Nothing
         , currentShapes = []
         , finalizedShapes = []
         }
@@ -192,7 +192,7 @@ update msg statements =
                     , statement =
                         case statement of
                             SetColor color ->
-                                SetColor (nextColor color)
+                                SetColor (Common.nextColor color)
 
                             _ ->
                                 statement
@@ -201,34 +201,6 @@ update msg statements =
                 statements
             , Cmd.none
             )
-
-
-nextColor : Color -> Color
-nextColor color =
-    case color of
-        Red ->
-            Green
-
-        Green ->
-            Blue
-
-        Blue ->
-            Purple
-
-        Purple ->
-            Yellow
-
-        Yellow ->
-            Aqua
-
-        Aqua ->
-            Orange
-
-        Orange ->
-            Red
-
-        Magic ->
-            Magic
 
 
 
@@ -347,34 +319,31 @@ viewInt enabled i =
     span [ class (ifEnabledColor enabled "text-gruv-blue-l") ] [ text (String.fromInt i) ]
 
 
-viewColor : List (Attribute Msg) -> Bool -> Color -> Html Msg
+viewColor : List (Attribute Msg) -> Bool -> Common.Color -> Html Msg
 viewColor attributes enabled color =
     let
         name =
             case color of
-                Red ->
+                Common.Red ->
                     "red"
 
-                Green ->
+                Common.Green ->
                     "green"
 
-                Blue ->
+                Common.Blue ->
                     "blue"
 
-                Purple ->
+                Common.Purple ->
                     "purple"
 
-                Yellow ->
+                Common.Yellow ->
                     "yellow"
 
-                Aqua ->
+                Common.Aqua ->
                     "aqua"
 
-                Orange ->
+                Common.Orange ->
                     "orange"
-
-                Magic ->
-                    "magic"
     in
     span
         (class (ifEnabledColor enabled "text-gruv-green-l")
@@ -386,31 +355,13 @@ viewColor attributes enabled color =
         ]
 
 
-colorToPaint : Color -> Svg.Paint
+colorToPaint : Maybe Common.Color -> Svg.Paint
 colorToPaint color =
     case color of
-        Red ->
-            Svg.Paint <| Color.rgb255 251 73 52
+        Just col ->
+            Svg.Paint (Common.colorToRGB col)
 
-        Green ->
-            Svg.Paint <| Color.rgb255 184 187 38
-
-        Blue ->
-            Svg.Paint <| Color.rgb255 131 165 152
-
-        Purple ->
-            Svg.Paint <| Color.rgb255 211 134 155
-
-        Yellow ->
-            Svg.Paint <| Color.rgb255 250 189 47
-
-        Aqua ->
-            Svg.Paint <| Color.rgb255 142 192 124
-
-        Orange ->
-            Svg.Paint <| Color.rgb255 254 128 25
-
-        Magic ->
+        Nothing ->
             Svg.Reference "rainbow"
 
 

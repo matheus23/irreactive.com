@@ -1,5 +1,6 @@
 module Language.InteractiveJs exposing (..)
 
+import Language.Common as Common
 import List.Extra as List
 import Parser exposing (..)
 import Result.Extra as Result
@@ -13,20 +14,9 @@ type Statement
     = Stroke
     | Fill
     | MoveTo Int Int
-    | SetColor Color
+    | SetColor Common.Color
     | Circle Int
     | Rectangle Int Int
-
-
-type Color
-    = Red
-    | Green
-    | Blue
-    | Purple
-    | Yellow
-    | Aqua
-    | Orange
-    | Magic
 
 
 
@@ -107,19 +97,18 @@ parseStatement =
         ]
 
 
-parseColor : Parser Color
+parseColor : Parser Common.Color
 parseColor =
     succeed identity
         |. symbol "\""
         |= oneOf
-            [ succeed Red |. backtrackable (token "red")
-            , succeed Green |. backtrackable (token "green")
-            , succeed Blue |. backtrackable (token "blue")
-            , succeed Purple |. backtrackable (token "purple")
-            , succeed Yellow |. backtrackable (token "yellow")
-            , succeed Aqua |. backtrackable (token "aqua")
-            , succeed Orange |. backtrackable (token "orange")
-            , succeed Magic |. backtrackable (token "magic")
+            [ succeed Common.Red |. backtrackable (token "red")
+            , succeed Common.Green |. backtrackable (token "green")
+            , succeed Common.Blue |. backtrackable (token "blue")
+            , succeed Common.Purple |. backtrackable (token "purple")
+            , succeed Common.Yellow |. backtrackable (token "yellow")
+            , succeed Common.Aqua |. backtrackable (token "aqua")
+            , succeed Common.Orange |. backtrackable (token "orange")
             ]
         |. symbol "\""
 
