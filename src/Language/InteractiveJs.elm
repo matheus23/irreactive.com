@@ -80,7 +80,7 @@ parseStatement =
         , succeed SetColor
             |. backtrackable (token "setColor")
             |. symbol "("
-            |= parseColor
+            |= Common.parseColor
             |. symbol ")"
         , succeed Circle
             |. backtrackable (token "circle")
@@ -95,22 +95,6 @@ parseStatement =
             |= int
             |. symbol ")"
         ]
-
-
-parseColor : Parser Common.Color
-parseColor =
-    succeed identity
-        |. symbol "\""
-        |= oneOf
-            [ succeed Common.Red |. backtrackable (token "red")
-            , succeed Common.Green |. backtrackable (token "green")
-            , succeed Common.Blue |. backtrackable (token "blue")
-            , succeed Common.Purple |. backtrackable (token "purple")
-            , succeed Common.Yellow |. backtrackable (token "yellow")
-            , succeed Common.Aqua |. backtrackable (token "aqua")
-            , succeed Common.Orange |. backtrackable (token "orange")
-            ]
-        |. symbol "\""
 
 
 parseStatements : Parser (List Statement)

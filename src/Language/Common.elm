@@ -1,6 +1,7 @@
 module Language.Common exposing (..)
 
 import Color
+import Parser exposing (..)
 
 
 type Color
@@ -61,3 +62,23 @@ colorToRGB color =
 
         Orange ->
             Color.rgb255 254 128 25
+
+
+
+-- PARSE
+
+
+parseColor : Parser Color
+parseColor =
+    succeed identity
+        |. symbol "\""
+        |= oneOf
+            [ succeed Red |. backtrackable (token "red")
+            , succeed Green |. backtrackable (token "green")
+            , succeed Blue |. backtrackable (token "blue")
+            , succeed Purple |. backtrackable (token "purple")
+            , succeed Yellow |. backtrackable (token "yellow")
+            , succeed Aqua |. backtrackable (token "aqua")
+            , succeed Orange |. backtrackable (token "orange")
+            ]
+        |. symbol "\""
