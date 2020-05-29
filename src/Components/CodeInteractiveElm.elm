@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
 import Json.Decode as Decode
+import Language.Common as Common
 import Language.InteractiveElm exposing (..)
 import List.Extra as List
 import Maybe.Extra as Maybe
@@ -84,9 +85,115 @@ view model =
                 ]
             ]
             [ code []
-                [ text "Expect code to show up here." ]
+                (viewExpression model.expression)
             ]
         ]
+
+
+viewExpression : Expression -> List (Html Msg)
+viewExpression expression =
+    [ viewFunction
+        { classes = []
+        , attributes = []
+        , name = "superimposed"
+        , thisLineParams = []
+        , nextLinesParams =
+            [ asMultilineList []
+                [ viewFunction
+                    { classes = []
+                    , attributes = []
+                    , name = "moved"
+                    , thisLineParams = [ text "200", text "100" ]
+                    , nextLinesParams =
+                        [ viewFunction
+                            { classes = []
+                            , attributes = []
+                            , name = "filled"
+                            , thisLineParams =
+                                [ text ("\"" ++ Common.colorName Common.Blue ++ "\"")
+                                , text "100"
+                                ]
+                            , nextLinesParams = []
+                            }
+                        ]
+                    }
+                , viewFunction
+                    { classes = []
+                    , attributes = []
+                    , name = "moved"
+                    , thisLineParams = [ text "100", text "100" ]
+                    , nextLinesParams = []
+                    }
+                ]
+            ]
+        }
+        { firstPrefix = "", otherPrefix = "" }
+    ]
+
+
+type alias FunctionConfig =
+    { classes : List String
+    , attributes : List (Attribute Msg)
+    , name : String
+    , thisLineParams : List (Html Msg)
+    , nextLinesParams : List Rendered
+    }
+
+
+type alias Rendered =
+    { firstPrefix : String
+    , otherPrefix : String
+    }
+    -> Html Msg
+
+
+viewFunction : FunctionConfig -> Rendered
+viewFunction config { firstPrefix, otherPrefix } =
+    span config.attributes
+        (List.concat
+            [ [ text firstPrefix
+              , text config.name
+              ]
+            , config.thisLineParams
+                |> List.concatMap (\param -> [ text " ", param ])
+            , config.nextLinesParams
+                |> List.concatMap
+                    (\param ->
+                        [ text "\n"
+                        , param
+                            { firstPrefix = "    " ++ otherPrefix
+                            , otherPrefix = "    " ++ otherPrefix
+                            }
+                        ]
+                    )
+            ]
+        )
+
+
+asMultilineList : List (Attribute Msg) -> List Rendered -> Rendered
+asMultilineList attributes elements { firstPrefix, otherPrefix } =
+    let
+        lineBegin index =
+            case index of
+                0 ->
+                    "[ "
+
+                _ ->
+                    ", "
+
+        renderItem index item =
+            [ text firstPrefix
+            , item
+                { firstPrefix = lineBegin index
+                , otherPrefix = "  " ++ otherPrefix
+                }
+            , text "\n"
+            ]
+    in
+    span attributes
+        (List.concat (List.indexedMap renderItem elements)
+            ++ [ text otherPrefix, text "]" ]
+        )
 
 
 
