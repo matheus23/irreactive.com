@@ -83,7 +83,7 @@ I'll be using ML-style syntax for my examples in functional programming language
 * Elm
 * Standard ML
 
-If you're unfamiliar with these languages, here are short crash-course:
+If you're unfamiliar with these languages, here's a short crash-course:
 
 ```elm
 -- a list (array) of the numbers 1, 2, 3, 4:
@@ -100,6 +100,7 @@ arcTan2 100 20
 arcTan2 (sin 50) 10
 -- is like arcTan2(sin(50),10)
 ```
+(Please ignore confusing syntax highlighting.)
 
 Everything in these languages is an expression. What does this mean exactly?
 
@@ -109,6 +110,33 @@ Everything in these languages is an expression. What does this mean exactly?
 Other than that, it's not a _real_ programming language. My code examples should be interpreted as pseudo-code.
 </info>
 </in-margin>
+
+Expression-based APIs look quite a bit different. The real-world analogy that the imperative API is modeled after is someone with a pencil that's instructed what to do:
+* "Move your pencil to 100, 100."
+* "Use the red pencil."
+* "Sketch a circle with radius 20."
+* "Outline your sketch."
+* "Move your pencil to 200, 100."
+* "Use the blue pencil."
+* "Sketch a rectangle with width 50 and height 30."
+* "Fill in your sketch."
+
+In the words of analogies, the expression-based API works more like a higher-level explanation of a picture:
+
+"The picture consists of two objects on top of each other:
+* At 200, 100, a blue filled rectangle with width 50 and height 30 and
+* at 100, 100, a red outlined circle with radius 20."
+
+The expression-based code that is the equivalent of the first code sample looks like this:
+
+```elm
+superimposed
+  [ moved 200 100
+      (filled "blue" (rectangle 50 30))
+  , moved 100 100
+      (outlined "red" (circle 20))
+  ]
+```
 
 <!-- 
 ---
