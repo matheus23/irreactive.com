@@ -1,6 +1,7 @@
 module Language.Common exposing (..)
 
 import Color
+import List.Extra as List
 import Parser exposing (..)
 
 
@@ -107,3 +108,34 @@ parseColor =
             , succeed Orange |. backtrackable (token "orange")
             ]
         |. symbol "\""
+
+
+explainErrors : String -> List DeadEnd -> String
+explainErrors sourceCode deadEnds =
+    let
+        sourceLines =
+            String.split "\n" sourceCode
+
+        showErrorsInLine lineNum lineLength =
+            case List.filter (\{ row } -> row == lineNum) deadEnds of
+                [] ->
+                    []
+
+                errors ->
+                    [ List.foldl
+                        (\{ col } errorLine ->
+                            List.setAt (col - 1) "^" errorLine
+                        )
+                        (List.repeat lineLength " ")
+                        errors
+                        |> String.concat
+                        |> String.append "    "
+                    ]
+
+        showLineWithErrors index line =
+            ("    " ++ line) :: showErrorsInLine (index + 1) (String.length line)
+    in
+    String.join "\n" <|
+        "Failed parsing this 'elm interactive' code:"
+            :: ""
+            :: List.concat (List.indexedMap showLineWithErrors sourceLines)

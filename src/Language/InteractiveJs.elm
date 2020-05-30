@@ -27,38 +27,7 @@ parse : String -> Result String (List Statement)
 parse str =
     str
         |> run (parseStatements |. end)
-        |> Result.mapError (explainErrors str)
-
-
-explainErrors : String -> List DeadEnd -> String
-explainErrors sourceCode deadEnds =
-    let
-        sourceLines =
-            String.split "\n" sourceCode
-
-        showErrorsInLine lineNum lineLength =
-            case List.filter (\{ row } -> row == lineNum) deadEnds of
-                [] ->
-                    []
-
-                errors ->
-                    [ List.foldl
-                        (\{ col } errorLine ->
-                            List.setAt (col - 1) "^" errorLine
-                        )
-                        (List.repeat lineLength " ")
-                        errors
-                        |> String.concat
-                        |> String.append "    "
-                    ]
-
-        showLineWithErrors index line =
-            ("    " ++ line) :: showErrorsInLine (index + 1) (String.length line)
-    in
-    String.join "\n" <|
-        "I had a problem understanding this 'js interactive' code:"
-            :: ""
-            :: List.concat (List.indexedMap showLineWithErrors sourceLines)
+        |> Result.mapError (Common.explainErrors str)
 
 
 parseStatement : Parser Statement

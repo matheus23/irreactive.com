@@ -9,6 +9,7 @@ import Language.Common as Common
 import Language.InteractiveElm exposing (..)
 import List.Extra as List
 import Maybe.Extra as Maybe
+import Result.Extra as Result
 import Svg exposing (Svg, svg)
 import TypedSvg.Attributes as SvgA
 import TypedSvg.Attributes.InPx as SvgPx
@@ -43,8 +44,11 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { expression =
             flags.code
+                |> Debug.log "code"
                 |> parse
-                |> Result.withDefault (Superimposed "Error parsing..." { elements = [], tail = "" } "")
+                |> Result.unpack
+                    (Superimposed "" { elements = [], tail = "" })
+                    identity
       }
     , Cmd.none
     )
@@ -85,7 +89,7 @@ view model =
                 ]
             ]
             [ code []
-                (viewExpression example)
+                (viewExpression model.expression)
             ]
         ]
 

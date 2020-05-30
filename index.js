@@ -33,7 +33,7 @@ customElements.define('custom-code',
     static get observedAttributes() { return ['language']; }
 
     mountElm() {
-      const codeText = this.textContent;
+      const codeText = this.customCode;
       const language = this.getAttribute('language');
       const elmDiv = document.createElement('div');
 

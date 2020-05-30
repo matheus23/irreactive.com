@@ -3,6 +3,7 @@ module MarkdownDocument exposing (..)
 import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Language.InteractiveElm as InteractiveElm
 import Language.InteractiveJs as InteractiveJs
 import Markdown.Block exposing (ListItem(..))
 import Markdown.Html
@@ -39,9 +40,14 @@ document =
     }
 
 
-{-| Extracts only "js interactive" snippets as of yet
+type CodeSnippet
+    = JsInteractive String
+    | ElmInteractive String
+
+
+{-| Extracts "interactive" snippets
 -}
-extractCodeSnippets : List Markdown.Block.Block -> List String
+extractCodeSnippets : List Markdown.Block.Block -> List CodeSnippet
 extractCodeSnippets =
     List.concatMap
         (\block ->
@@ -49,7 +55,10 @@ extractCodeSnippets =
                 Markdown.Block.CodeBlock info ->
                     case info.language of
                         Just "js interactive" ->
-                            [ info.body ]
+                            [ JsInteractive info.body ]
+
+                        Just "elm interactive" ->
+                            [ ElmInteractive info.body ]
 
                         _ ->
                             []
@@ -69,10 +78,18 @@ checkCodeSnippets blocks =
         |> Result.map (always blocks)
 
 
-checkCodeSnippet : String -> Result String ()
-checkCodeSnippet str =
-    InteractiveJs.parse str
-        |> Result.map (always ())
+checkCodeSnippet : CodeSnippet -> Result String ()
+checkCodeSnippet snippet =
+    let
+        discard =
+            Result.map (\_ -> ())
+    in
+    case snippet of
+        JsInteractive str ->
+            discard (InteractiveJs.parse str)
+
+        ElmInteractive str ->
+            discard (InteractiveElm.parse str)
 
 
 applyModel : m -> List (m -> a) -> List a
@@ -126,62 +143,4 @@ dummy tagName =
         )
         |> Markdown.Html.withOptionalAttribute "src"
         |> Markdown.Html.withOptionalAttribute "alt"
-        |> Markdown.Html.withOptionalAttribute "id"
-
-
-anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
-anythingCaptioned tagName attributes =
-    Markdown.Html.tag (tagName ++ "captioned")
-        (\src alt idAttrs children model ->
-            Html.figure idAttrs
-                [ Html.node tagName (Attr.src src :: Attr.alt alt :: attributes) []
-                , Html.figcaption [] (applyModel model children)
-                ]
-        )
-        |> Markdown.Html.withAttribute "src"
-        |> Markdown.Html.withAttribute "alt"
-        |> withOptionalIdTag
-
-
-
--- carousel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
-
-
-carousel =
-    Markdown.Html.tag "carousel"
-        (\identifier children model ->
-            Carousel.view (CarouselMsg identifier)
-                identifier
-                (MarkdownComponents.init Carousel.init identifier model.carousels)
-                (applyModel model children)
-        )
-        |> Markdown.Html.withAttribute "id"
-
-
-
--- markdownEl : Markdown.Html.Renderer (List (model -> Html msg) -> model -> Html msg)
-
-
-markdownEl =
-    Markdown.Html.tag "markdown"
-        (\idAttrs children model ->
-            Html.div
-                (Attr.class "markdown" :: idAttrs)
-                (applyModel model children)
-        )
-        |> withOptionalIdTag
-
-
-withOptionalIdTag : Markdown.Html.Renderer (List (Html.Attribute msg) -> view) -> Markdown.Html.Renderer view
-withOptionalIdTag rend =
-    rend
-        |> Markdown.Html.map
-            (\continue maybeId ->
-                case maybeId of
-                    Just id ->
-                        continue [ Attr.id id ]
-
-                    Nothing ->
-                        continue []
-            )
         |> Markdown.Html.withOptionalAttribute "id"

@@ -409,8 +409,12 @@ markdown attributes block =
         Scaffolded.CodeBlock info ->
             node "custom-code"
                 (info.language
-                    |> Maybe.map (attribute "language")
-                    |> Maybe.map List.singleton
+                    |> Maybe.map
+                        (\lang ->
+                            [ attribute "language" lang
+                            , property "customCode" (Encode.string info.body)
+                            ]
+                        )
                     |> Maybe.withDefault []
                 )
                 [ text info.body ]

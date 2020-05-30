@@ -30,41 +30,45 @@ type Shape
 
 example =
     Superimposed "superimposed\n    "
-        { elements =
-            [ { prefix = "[ "
-              , expression =
-                    Moved "moved "
-                        200
-                        " "
-                        100
-                        "\n        "
-                        (Filled "(filled "
-                            Common.Blue
-                            " "
-                            (Rectangle "(rectangle " 50 " " 30 ")")
-                            ")"
-                        )
-                        ""
-              }
-            , { prefix = "\n    , "
-              , expression =
-                    Moved "moved "
-                        100
-                        " "
-                        100
-                        "\n        "
-                        (Outlined "(outlined "
-                            Common.Red
-                            " "
-                            (Circle "(circle " 20 ")")
-                            ")"
-                        )
-                        ""
-              }
-            ]
-        , tail = "\n    ]"
-        }
+        elemList
         ""
+
+
+elemList =
+    { elements =
+        [ { prefix = "[ "
+          , expression =
+                Moved "moved "
+                    200
+                    " "
+                    100
+                    "\n        "
+                    (Filled "(filled "
+                        Common.Blue
+                        " "
+                        (Rectangle "(rectangle " 50 " " 30 ")")
+                        ")"
+                    )
+                    ""
+          }
+        , { prefix = "\n    , "
+          , expression =
+                Moved "moved "
+                    100
+                    " "
+                    100
+                    "\n        "
+                    (Outlined "(outlined "
+                        Common.Red
+                        " "
+                        (Circle "(circle " 20 ")")
+                        ")"
+                    )
+                    ""
+          }
+        ]
+    , tail = "\n    ]"
+    }
 
 
 
@@ -73,35 +77,29 @@ example =
 
 parse : String -> Result String Expression
 parse str =
-    Ok example
+    str
+        |> run parseExpression
+        |> Result.mapError (Common.explainErrors str)
 
 
-explainErrors : String -> List DeadEnd -> String
-explainErrors sourceCode deadEnds =
-    let
-        sourceLines =
-            String.split "\n" sourceCode
+parseExpression : Parser Expression
+parseExpression =
+    oneOf
+        [ succeed Superimposed
+            |= tokenAndWhitespace "superimposed"
+            |= succeed { elements = [], tail = "[]" }
+            |= succeed ""
+        ]
 
-        showErrorsInLine lineNum lineLength =
-            case List.filter (\{ row } -> row == lineNum) deadEnds of
-                [] ->
-                    []
 
-                errors ->
-                    [ List.foldl
-                        (\{ col } errorLine ->
-                            List.setAt (col - 1) "^" errorLine
-                        )
-                        (List.repeat lineLength " ")
-                        errors
-                        |> String.concat
-                        |> String.append "    "
-                    ]
+tokenAndWhitespace : String -> Parser String
+tokenAndWhitespace shouldStartWith =
+    succeed (\ws -> shouldStartWith ++ ws)
+        |. token shouldStartWith
+        |= spacesAndNewlines
 
-        showLineWithErrors index line =
-            ("    " ++ line) :: showErrorsInLine (index + 1) (String.length line)
-    in
-    String.join "\n" <|
-        "I had a problem understanding this 'elm interactive' code:"
-            :: ""
-            :: List.concat (List.indexedMap showLineWithErrors sourceLines)
+
+spacesAndNewlines : Parser String
+spacesAndNewlines =
+    chompWhile (\c -> c == ' ' || c == '\n')
+        |> getChompedString
