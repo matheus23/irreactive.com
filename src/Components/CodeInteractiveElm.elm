@@ -92,108 +92,142 @@ view model =
 
 viewExpression : Expression -> List (Html Msg)
 viewExpression expression =
-    [ viewFunction
-        { classes = []
-        , attributes = []
-        , name = "superimposed"
+    viewFunction
+        { name = "superimposed"
         , thisLineParams = []
         , nextLinesParams =
-            [ asMultilineList []
+            [ listOf
                 [ viewFunction
-                    { classes = []
-                    , attributes = []
-                    , name = "moved"
+                    { name = "moved"
                     , thisLineParams = [ text "200", text "100" ]
                     , nextLinesParams =
-                        [ viewFunction
-                            { classes = []
-                            , attributes = []
-                            , name = "filled"
-                            , thisLineParams =
-                                [ text ("\"" ++ Common.colorName Common.Blue ++ "\"")
-                                , text "100"
-                                ]
-                            , nextLinesParams = []
-                            }
+                        [ parens
+                            (viewFunction
+                                { name = "filled"
+                                , thisLineParams =
+                                    [ text ("\"" ++ Common.colorName Common.Blue ++ "\"")
+                                    ]
+                                , nextLinesParams =
+                                    [ SingleLine [ text "rectangle 50 30" ] ]
+                                }
+                            )
                         ]
                     }
                 , viewFunction
-                    { classes = []
-                    , attributes = []
-                    , name = "moved"
+                    { name = "moved"
                     , thisLineParams = [ text "100", text "100" ]
                     , nextLinesParams = []
                     }
                 ]
             ]
         }
-        { firstPrefix = "", otherPrefix = "" }
-    ]
+        |> extractRendered
 
 
 type alias FunctionConfig =
-    { classes : List String
-    , attributes : List (Attribute Msg)
-    , name : String
+    { name : String
     , thisLineParams : List (Html Msg)
     , nextLinesParams : List Rendered
     }
 
 
-type alias Rendered =
-    { firstPrefix : String
-    , otherPrefix : String
-    }
-    -> Html Msg
+type Rendered
+    = SingleLine (List (Html Msg))
+    | MultiLine (List (Html Msg)) (List Rendered)
+
+
+extractRendered : Rendered -> List (Html Msg)
+extractRendered rendered =
+    case rendered of
+        SingleLine elems ->
+            elems
+
+        MultiLine first elems ->
+            first
+                ++ List.concatMap
+                    (\elem -> text "\n" :: extractRendered elem)
+                    elems
+
+
+indent : { first : String, other : String } -> Rendered -> Rendered
+indent prefix rendered =
+    case rendered of
+        SingleLine elems ->
+            SingleLine (text prefix.first :: elems)
+
+        MultiLine first elems ->
+            MultiLine
+                (text prefix.first :: first)
+                (List.map
+                    (indent
+                        -- Only the first line (first layor of recursion)
+                        -- gets the "first" prefix.
+                        { first = prefix.other
+                        , other = prefix.other
+                        }
+                    )
+                    elems
+                )
 
 
 viewFunction : FunctionConfig -> Rendered
-viewFunction config { firstPrefix, otherPrefix } =
-    span config.attributes
-        (List.concat
-            [ [ text firstPrefix
-              , text config.name
-              ]
-            , config.thisLineParams
-                |> List.concatMap (\param -> [ text " ", param ])
-            , config.nextLinesParams
-                |> List.concatMap
-                    (\param ->
-                        [ text "\n"
-                        , param
-                            { firstPrefix = "    " ++ otherPrefix
-                            , otherPrefix = "    " ++ otherPrefix
-                            }
-                        ]
+viewFunction config =
+    case config.nextLinesParams of
+        [] ->
+            SingleLine
+                (text config.name
+                    :: (config.thisLineParams
+                            |> List.concatMap (\param -> [ text " ", param ])
+                       )
+                )
+
+        _ ->
+            MultiLine
+                (text config.name
+                    :: (config.thisLineParams
+                            |> List.concatMap (\param -> [ text " ", param ])
+                       )
+                )
+                config.nextLinesParams
+                |> indent { first = "", other = "    " }
+
+
+listOf : List Rendered -> Rendered
+listOf elements =
+    case elements of
+        [] ->
+            SingleLine [ text "[]" ]
+
+        first :: rest ->
+            MultiLine
+                (indent
+                    { first = "[ "
+                    , other = "  "
+                    }
+                    first
+                    |> extractRendered
+                )
+                (List.map
+                    (indent
+                        { first = ", "
+                        , other = "  "
+                        }
                     )
-            ]
-        )
+                    rest
+                    ++ [ SingleLine [ text "]" ] ]
+                )
 
 
-asMultilineList : List (Attribute Msg) -> List Rendered -> Rendered
-asMultilineList attributes elements { firstPrefix, otherPrefix } =
-    let
-        lineBegin index =
-            case index of
-                0 ->
-                    "[ "
+parens : Rendered -> Rendered
+parens rendered =
+    case rendered of
+        SingleLine elems ->
+            SingleLine ([ text "(" ] ++ elems ++ [ text ")" ])
 
-                _ ->
-                    ", "
-
-        renderItem index item =
-            [ text firstPrefix
-            , item
-                { firstPrefix = lineBegin index
-                , otherPrefix = "  " ++ otherPrefix
-                }
-            , text "\n"
-            ]
-    in
-    span attributes
-        (List.concat (List.indexedMap renderItem elements)
-            ++ [ text otherPrefix, text "]" ]
-        )
+        MultiLine first rest ->
+            MultiLine
+                (text "(" :: first)
+                (rest ++ [ SingleLine [ text ")" ] ])
 
 
 
