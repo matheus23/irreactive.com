@@ -5,7 +5,6 @@ import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
 import Json.Decode as Decode
-import Language.Block as Block exposing (Block)
 import Language.Common as Common
 import Language.InteractiveElm exposing (..)
 import List.Extra as List
