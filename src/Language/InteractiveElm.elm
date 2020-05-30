@@ -11,22 +11,60 @@ languageId =
 
 
 type Expression
-    = Superimposed (List Expression)
-    | Moved Int Int Expression
-    | Filled Common.Color Shape
-    | Outlined Common.Color Shape
+    = Superimposed String ExpressionList String
+    | Moved String Int String Int String Expression String
+    | Filled String Common.Color String Shape String
+    | Outlined String Common.Color String Shape String
+
+
+type alias ExpressionList =
+    { elements : List { prefix : String, expression : Expression }
+    , tail : String
+    }
 
 
 type Shape
-    = Circle Int
-    | Rectangle Int Int
+    = Circle String Int String
+    | Rectangle String Int String Int String
 
 
 example =
-    Superimposed
-        [ Moved 200 100 (Filled Common.Blue (Rectangle 50 30))
-        , Moved 100 100 (Outlined Common.Red (Circle 20))
-        ]
+    Superimposed "superimposed\n    "
+        { elements =
+            [ { prefix = "[ "
+              , expression =
+                    Moved "moved "
+                        200
+                        " "
+                        100
+                        "\n        "
+                        (Filled "(filled "
+                            Common.Blue
+                            " "
+                            (Rectangle "(rectangle " 50 " " 30 ")")
+                            ")"
+                        )
+                        ""
+              }
+            , { prefix = "\n    , "
+              , expression =
+                    Moved "moved "
+                        100
+                        " "
+                        100
+                        "\n        "
+                        (Outlined "(outlined "
+                            Common.Red
+                            " "
+                            (Circle "(circle " 20 ")")
+                            ")"
+                        )
+                        ""
+              }
+            ]
+        , tail = "\n    ]"
+        }
+        ""
 
 
 
@@ -35,7 +73,7 @@ example =
 
 parse : String -> Result String Expression
 parse str =
-    Ok (Superimposed [])
+    Ok example
 
 
 explainErrors : String -> List DeadEnd -> String

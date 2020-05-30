@@ -131,11 +131,11 @@ The expression-based code that is the equivalent of the first code sample looks 
 
 ```elm interactive
 superimposed
-  [ moved 200 100
-      (filled "blue" (rectangle 50 30))
-  , moved 100 100
-      (outlined "red" (circle 20))
-  ]
+    [ moved 200 100
+        (filled "blue" (rectangle 50 30))
+    , moved 100 100
+        (outlined "red" (circle 20))
+    ]
 ```
 
 <!-- 

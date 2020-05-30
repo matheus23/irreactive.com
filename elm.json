@@ -30,9 +30,11 @@
             "matheus23/elm-markdown-transforms": "1.0.2",
             "mdgriffith/elm-markup": "3.0.1",
             "mdgriffith/elm-ui": "1.1.5",
+            "mgold/elm-nonempty-list": "4.1.0",
             "noahzgordon/elm-color-extra": "1.0.2",
             "pablohirafuji/elm-syntax-highlight": "3.3.0",
-            "rtfeldman/elm-hex": "1.0.0"
+            "rtfeldman/elm-hex": "1.0.0",
+            "turboMaCk/non-empty-list-alias": "1.0.1"
         },
         "indirect": {
             "elm/bytes": "1.0.8",
@@ -41,7 +43,6 @@
             "elm/virtual-dom": "1.0.2",
             "elm-community/dict-extra": "2.4.0",
             "fredcy/elm-parseint": "2.0.1",
-            "mgold/elm-nonempty-list": "4.1.0",
             "miniBill/elm-codec": "1.2.0",
             "tripokey/elm-fuzzy": "5.2.1",
             "zwilias/json-decode-exploration": "6.0.0"

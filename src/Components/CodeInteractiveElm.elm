@@ -5,6 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
 import Json.Decode as Decode
+import Language.Block as Block exposing (Block)
 import Language.Common as Common
 import Language.InteractiveElm exposing (..)
 import List.Extra as List
@@ -44,7 +45,7 @@ init flags =
     ( { expression =
             flags.code
                 |> parse
-                |> Result.withDefault (Superimposed [])
+                |> Result.withDefault (Superimposed "Error parsing..." { elements = [], tail = "" } "")
       }
     , Cmd.none
     )
@@ -85,149 +86,81 @@ view model =
                 ]
             ]
             [ code []
-                (viewExpression model.expression)
+                (viewExpression example)
             ]
         ]
 
 
 viewExpression : Expression -> List (Html Msg)
 viewExpression expression =
-    viewFunction
-        { name = "superimposed"
-        , thisLineParams = []
-        , nextLinesParams =
-            [ listOf
-                [ viewFunction
-                    { name = "moved"
-                    , thisLineParams = [ text "200", text "100" ]
-                    , nextLinesParams =
-                        [ parens
-                            (viewFunction
-                                { name = "filled"
-                                , thisLineParams =
-                                    [ text ("\"" ++ Common.colorName Common.Blue ++ "\"")
-                                    ]
-                                , nextLinesParams =
-                                    [ SingleLine [ text "rectangle 50 30" ] ]
-                                }
-                            )
-                        ]
-                    }
-                , viewFunction
-                    { name = "moved"
-                    , thisLineParams = [ text "100", text "100" ]
-                    , nextLinesParams = []
-                    }
+    case expression of
+        Superimposed t1 list t2 ->
+            List.concat
+                [ [ text t1 ]
+                , viewExpressionList list
+                , [ text t2 ]
                 ]
+
+        Moved t1 x t2 y t3 e t4 ->
+            List.concat
+                [ [ text t1
+                  , text (String.fromInt x)
+                  , text t2
+                  , text (String.fromInt y)
+                  , text t3
+                  ]
+                , viewExpression e
+                , [ text t4 ]
+                ]
+
+        Filled t1 col t2 shape t3 ->
+            List.concat
+                [ [ text t1
+                  , text ("\"" ++ Common.colorName col ++ "\"")
+                  , text t2
+                  ]
+                , viewShape shape
+                , [ text t3 ]
+                ]
+
+        Outlined t1 col t2 shape t3 ->
+            List.concat
+                [ [ text t1
+                  , text ("\"" ++ Common.colorName col ++ "\"")
+                  , text t2
+                  ]
+                , viewShape shape
+                , [ text t3 ]
+                ]
+
+
+viewExpressionList : ExpressionList -> List (Html Msg)
+viewExpressionList { elements, tail } =
+    List.concatMap viewListItem elements
+        ++ [ text tail ]
+
+
+viewListItem : { prefix : String, expression : Expression } -> List (Html Msg)
+viewListItem { prefix, expression } =
+    text prefix :: viewExpression expression
+
+
+viewShape : Shape -> List (Html Msg)
+viewShape shape =
+    case shape of
+        Circle t1 r t2 ->
+            [ text t1
+            , text (String.fromInt r)
+            , text t2
             ]
-        }
-        |> extractRendered
 
-
-type alias FunctionConfig =
-    { name : String
-    , thisLineParams : List (Html Msg)
-    , nextLinesParams : List Rendered
-    }
-
-
-type Rendered
-    = SingleLine (List (Html Msg))
-    | MultiLine (List (Html Msg)) (List Rendered)
-
-
-extractRendered : Rendered -> List (Html Msg)
-extractRendered rendered =
-    case rendered of
-        SingleLine elems ->
-            elems
-
-        MultiLine first elems ->
-            first
-                ++ List.concatMap
-                    (\elem -> text "\n" :: extractRendered elem)
-                    elems
-
-
-indent : { first : String, other : String } -> Rendered -> Rendered
-indent prefix rendered =
-    case rendered of
-        SingleLine elems ->
-            SingleLine (text prefix.first :: elems)
-
-        MultiLine first elems ->
-            MultiLine
-                (text prefix.first :: first)
-                (List.map
-                    (indent
-                        -- Only the first line (first layor of recursion)
-                        -- gets the "first" prefix.
-                        { first = prefix.other
-                        , other = prefix.other
-                        }
-                    )
-                    elems
-                )
-
-
-viewFunction : FunctionConfig -> Rendered
-viewFunction config =
-    case config.nextLinesParams of
-        [] ->
-            SingleLine
-                (text config.name
-                    :: (config.thisLineParams
-                            |> List.concatMap (\param -> [ text " ", param ])
-                       )
-                )
-
-        _ ->
-            MultiLine
-                (text config.name
-                    :: (config.thisLineParams
-                            |> List.concatMap (\param -> [ text " ", param ])
-                       )
-                )
-                config.nextLinesParams
-                |> indent { first = "", other = "    " }
-
-
-listOf : List Rendered -> Rendered
-listOf elements =
-    case elements of
-        [] ->
-            SingleLine [ text "[]" ]
-
-        first :: rest ->
-            MultiLine
-                (indent
-                    { first = "[ "
-                    , other = "  "
-                    }
-                    first
-                    |> extractRendered
-                )
-                (List.map
-                    (indent
-                        { first = ", "
-                        , other = "  "
-                        }
-                    )
-                    rest
-                    ++ [ SingleLine [ text "]" ] ]
-                )
-
-
-parens : Rendered -> Rendered
-parens rendered =
-    case rendered of
-        SingleLine elems ->
-            SingleLine ([ text "(" ] ++ elems ++ [ text ")" ])
-
-        MultiLine first rest ->
-            MultiLine
-                (text "(" :: first)
-                (rest ++ [ SingleLine [ text ")" ] ])
+        Rectangle t1 w t2 h t3 ->
+            [ text t1
+            , text (String.fromInt w)
+            , text t2
+            , text (String.fromInt h)
+            , text t3
+            ]
 
 
 
