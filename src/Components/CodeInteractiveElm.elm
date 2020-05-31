@@ -115,7 +115,9 @@ viewExpression expression =
                   , viewFunctionName "superimposed"
                   , text t1
                   ]
-                , viewExpressionList list
+                , list
+                    -- |> reverseExpressionList
+                    |> viewExpressionList
                 , [ text t2 ]
                 ]
 
@@ -141,7 +143,7 @@ viewExpression expression =
                   , viewColorLiteral col
                   , text t2
                   ]
-                , viewShape shape
+                , viewExpression shape
                 , [ text t3 ]
                 ]
 
@@ -153,9 +155,27 @@ viewExpression expression =
                   , viewColorLiteral col
                   , text t2
                   ]
-                , viewShape shape
+                , viewExpression shape
                 , [ text t3 ]
                 ]
+
+        Circle t0 t1 r t2 ->
+            [ text t0
+            , viewFunctionName "circle"
+            , text t1
+            , viewIntLiteral r
+            , text t2
+            ]
+
+        Rectangle t0 t1 w t2 h t3 ->
+            [ text t0
+            , viewFunctionName "rectangle"
+            , text t1
+            , viewIntLiteral w
+            , text t2
+            , viewIntLiteral h
+            , text t3
+            ]
 
 
 viewFunctionName : String -> Html Msg
@@ -182,28 +202,6 @@ viewExpressionList { elements, tail } =
 viewListItem : { prefix : String, expression : Expression } -> List (Html Msg)
 viewListItem { prefix, expression } =
     text prefix :: viewExpression expression
-
-
-viewShape : Shape -> List (Html Msg)
-viewShape shape =
-    case shape of
-        Circle t0 t1 r t2 ->
-            [ text t0
-            , viewFunctionName "circle"
-            , text t1
-            , viewIntLiteral r
-            , text t2
-            ]
-
-        Rectangle t0 t1 w t2 h t3 ->
-            [ text t0
-            , viewFunctionName "rectangle"
-            , text t1
-            , viewIntLiteral w
-            , text t2
-            , viewIntLiteral h
-            , text t3
-            ]
 
 
 

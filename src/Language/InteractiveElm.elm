@@ -10,11 +10,17 @@ languageId =
     "elm interactive"
 
 
+
+-- CONCRETE SYNTAX TREE
+
+
 type Expression
     = Superimposed String String ExpressionList String
     | Moved String String Int String Int String Expression String
-    | Filled String String Common.Color String Shape String
-    | Outlined String String Common.Color String Shape String
+    | Filled String String Common.Color String Expression String
+    | Outlined String String Common.Color String Expression String
+    | Circle String String Int String
+    | Rectangle String String Int String Int String
 
 
 type alias ExpressionList =
@@ -25,11 +31,6 @@ type alias ExpressionList =
 
 type alias ListElement =
     { prefix : String, expression : Expression }
-
-
-type Shape
-    = Circle String String Int String
-    | Rectangle String String Int String Int String
 
 
 example =
@@ -95,10 +96,6 @@ prefixExpressionWith str expression =
         Outlined t0 t1 col t2 shape t3 ->
             Outlined (str ++ t0) t1 col t2 shape t3
 
-
-prefixShapeWith : String -> Shape -> Shape
-prefixShapeWith str shape =
-    case shape of
         Circle t0 t1 r t2 ->
             Circle (str ++ t0) t1 r t2
 
@@ -130,7 +127,7 @@ parseExpression parens =
                     |. token (Token "superimposed" "Expected 'superimposed' function call")
                     |= whitespace
                     |= parseExpressionList
-                    |> handleExpressionParens parens
+                    |> handleParens parens
                     |> inContext "a 'superimposed' function call"
                 , succeed (Moved "")
                     |. token (Token "moved" "Expected 'moved' function call")
@@ -139,40 +136,30 @@ parseExpression parens =
                     |= whitespace
                     |= Common.parseInt
                     |= whitespace
-                    |= parseExpression parens
-                    |> handleExpressionParens parens
+                    |= parseExpression []
+                    |> handleParens parens
                     |> inContext "a 'moved' function call"
                 , succeed (Filled "")
                     |. token (Token "filled" "Expected 'filled' function call")
                     |= whitespace
                     |= Common.parseColor
                     |= whitespace
-                    |= parseShape []
-                    |> handleExpressionParens parens
+                    |= parseExpression []
+                    |> handleParens parens
                     |> inContext "a 'filled' function call"
                 , succeed (Outlined "")
                     |. token (Token "outlined" "Expected 'outlined' function call")
                     |= whitespace
                     |= Common.parseColor
                     |= whitespace
-                    |= parseShape []
-                    |> handleExpressionParens parens
+                    |= parseExpression []
+                    |> handleParens parens
                     |> inContext "a 'outlined' function call"
-                , tokenAndWhitespace "("
-                    |> andThen (\paren -> parseExpression (paren :: parens))
-                ]
-
-
-parseShape : ParenStack -> Common.Parser Shape
-parseShape parens =
-    lazy <|
-        \_ ->
-            oneOf
-                [ succeed (Circle "")
+                , succeed (Circle "")
                     |. token (Token "circle" "Expected 'circle' function call")
                     |= whitespace
                     |= Common.parseInt
-                    |> handleShapeParens parens
+                    |> handleParens parens
                     |> inContext "a 'circle' function call"
                 , succeed (Rectangle "")
                     |. token (Token "rectangle" "Expected 'rectangle' function call")
@@ -180,30 +167,20 @@ parseShape parens =
                     |= Common.parseInt
                     |= whitespace
                     |= Common.parseInt
-                    |> handleShapeParens parens
+                    |> handleParens parens
                     |> inContext "a 'rectangle' function call"
                 , tokenAndWhitespace "("
-                    |> andThen (\paren -> parseShape (paren :: parens))
+                    |> andThen (\paren -> parseExpression (paren :: parens))
                 ]
 
 
-handleExpressionParens : ParenStack -> Common.Parser (String -> Expression) -> Common.Parser Expression
-handleExpressionParens parens parser =
+handleParens : ParenStack -> Common.Parser (String -> Expression) -> Common.Parser Expression
+handleParens parens parser =
     parser
         |= parseCloseParens parens
         |> map
             (\expression ->
                 prefixExpressionWith (String.concat (List.reverse parens)) expression
-            )
-
-
-handleShapeParens : ParenStack -> Common.Parser (String -> Shape) -> Common.Parser Shape
-handleShapeParens parens parser =
-    parser
-        |= parseCloseParens parens
-        |> map
-            (\shape ->
-                prefixShapeWith (String.concat (List.reverse parens)) shape
             )
 
 
