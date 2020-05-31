@@ -46,7 +46,7 @@ init flags =
             flags.code
                 |> parse
                 -- An error should never happen.
-                |> Result.unpack (Superimposed "" { elements = [], tail = "" }) identity
+                |> Result.unpack (Superimposed "" " " { elements = [], tail = "[]\n" }) identity
       }
     , Cmd.none
     )
@@ -92,19 +92,38 @@ view model =
         ]
 
 
+reverseExpressionList : ExpressionList -> ExpressionList
+reverseExpressionList list =
+    let
+        prefixes =
+            List.map .prefix list.elements
+
+        expressions =
+            List.map .expression list.elements
+    in
+    { list
+        | elements = List.map2 ListElement prefixes (List.reverse expressions)
+    }
+
+
 viewExpression : Expression -> List (Html Msg)
 viewExpression expression =
     case expression of
-        Superimposed t1 list t2 ->
+        Superimposed t0 t1 list t2 ->
             List.concat
-                [ [ text t1 ]
+                [ [ text t0
+                  , text "superimposed"
+                  , text t1
+                  ]
                 , viewExpressionList list
                 , [ text t2 ]
                 ]
 
-        Moved t1 x t2 y t3 e t4 ->
+        Moved t0 t1 x t2 y t3 e t4 ->
             List.concat
-                [ [ text t1
+                [ [ text t0
+                  , text "moved"
+                  , text t1
                   , text (String.fromInt x)
                   , text t2
                   , text (String.fromInt y)
@@ -114,9 +133,11 @@ viewExpression expression =
                 , [ text t4 ]
                 ]
 
-        Filled t1 col t2 shape t3 ->
+        Filled t0 t1 col t2 shape t3 ->
             List.concat
-                [ [ text t1
+                [ [ text t0
+                  , text "filled"
+                  , text t1
                   , text ("\"" ++ Common.colorName col ++ "\"")
                   , text t2
                   ]
@@ -124,9 +145,11 @@ viewExpression expression =
                 , [ text t3 ]
                 ]
 
-        Outlined t1 col t2 shape t3 ->
+        Outlined t0 t1 col t2 shape t3 ->
             List.concat
-                [ [ text t1
+                [ [ text t0
+                  , text "outlined"
+                  , text t1
                   , text ("\"" ++ Common.colorName col ++ "\"")
                   , text t2
                   ]
@@ -149,14 +172,18 @@ viewListItem { prefix, expression } =
 viewShape : Shape -> List (Html Msg)
 viewShape shape =
     case shape of
-        Circle t1 r t2 ->
-            [ text t1
+        Circle t0 t1 r t2 ->
+            [ text t0
+            , text "circle"
+            , text t1
             , text (String.fromInt r)
             , text t2
             ]
 
-        Rectangle t1 w t2 h t3 ->
-            [ text t1
+        Rectangle t0 t1 w t2 h t3 ->
+            [ text t0
+            , text "rectangle"
+            , text t1
             , text (String.fromInt w)
             , text t2
             , text (String.fromInt h)

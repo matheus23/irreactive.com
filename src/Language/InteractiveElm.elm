@@ -11,10 +11,10 @@ languageId =
 
 
 type Expression
-    = Superimposed String ExpressionList String
-    | Moved String Int String Int String Expression String
-    | Filled String Common.Color String Shape String
-    | Outlined String Common.Color String Shape String
+    = Superimposed String String ExpressionList String
+    | Moved String String Int String Int String Expression String
+    | Filled String String Common.Color String Shape String
+    | Outlined String String Common.Color String Shape String
 
 
 type alias ExpressionList =
@@ -28,12 +28,13 @@ type alias ListElement =
 
 
 type Shape
-    = Circle String Int String
-    | Rectangle String Int String Int String
+    = Circle String String Int String
+    | Rectangle String String Int String Int String
 
 
 example =
-    Superimposed "superimposed\n    "
+    Superimposed ""
+        "\n    "
         elemList
         ""
 
@@ -42,30 +43,34 @@ elemList =
     { elements =
         [ { prefix = "[ "
           , expression =
-                Moved "moved "
+                Moved ""
+                    " "
                     200
                     " "
                     100
                     "\n        "
-                    (Filled "(filled "
+                    (Filled "("
+                        " "
                         Common.Blue
                         " "
-                        (Rectangle "(rectangle " 50 " " 30 ")")
+                        (Rectangle "(" " " 50 " " 30 ")")
                         ")"
                     )
                     ""
           }
         , { prefix = "\n    , "
           , expression =
-                Moved "moved "
+                Moved ""
+                    " "
                     100
                     " "
                     100
                     "\n        "
-                    (Outlined "(outlined "
+                    (Outlined "("
+                        " "
                         Common.Red
                         " "
-                        (Circle "(circle " 20 ")")
+                        (Circle "(" " " 20 ")")
                         ")"
                     )
                     ""
@@ -78,27 +83,27 @@ elemList =
 prefixExpressionWith : String -> Expression -> Expression
 prefixExpressionWith str expression =
     case expression of
-        Superimposed t1 expressionList t3 ->
-            Superimposed (str ++ t1) expressionList t3
+        Superimposed t0 t1 expressionList t3 ->
+            Superimposed (str ++ t0) t1 expressionList t3
 
-        Moved t1 x t2 y t3 e t4 ->
-            Moved (str ++ t1) x t2 y t3 e t4
+        Moved t0 t1 x t2 y t3 e t4 ->
+            Moved (str ++ t0) t1 x t2 y t3 e t4
 
-        Filled t1 col t2 shape t3 ->
-            Filled (str ++ t1) col t2 shape t3
+        Filled t0 t1 col t2 shape t3 ->
+            Filled (str ++ t0) t1 col t2 shape t3
 
-        Outlined t1 col t2 shape t3 ->
-            Outlined (str ++ t1) col t2 shape t3
+        Outlined t0 t1 col t2 shape t3 ->
+            Outlined (str ++ t0) t1 col t2 shape t3
 
 
 prefixShapeWith : String -> Shape -> Shape
 prefixShapeWith str shape =
     case shape of
-        Circle t1 r t2 ->
-            Circle (str ++ t1) r t2
+        Circle t0 t1 r t2 ->
+            Circle (str ++ t0) t1 r t2
 
-        Rectangle t1 w t2 h t3 ->
-            Rectangle (str ++ t1) w t2 h t3
+        Rectangle t0 t1 w t2 h t3 ->
+            Rectangle (str ++ t0) t1 w t2 h t3
 
 
 
@@ -121,13 +126,15 @@ parseExpression parens =
     lazy <|
         \_ ->
             oneOf
-                [ succeed Superimposed
-                    |= tokenAndWhitespace "superimposed"
+                [ succeed (Superimposed "")
+                    |. token (Token "superimposed" "Expected 'superimposed' function call")
+                    |= whitespace
                     |= parseExpressionList
                     |> handleExpressionParens parens
                     |> inContext "a 'superimposed' function call"
-                , succeed Moved
-                    |= tokenAndWhitespace "moved"
+                , succeed (Moved "")
+                    |. token (Token "moved" "Expected 'moved' function call")
+                    |= whitespace
                     |= Common.parseInt
                     |= whitespace
                     |= Common.parseInt
@@ -135,15 +142,17 @@ parseExpression parens =
                     |= parseExpression parens
                     |> handleExpressionParens parens
                     |> inContext "a 'moved' function call"
-                , succeed Filled
-                    |= tokenAndWhitespace "filled"
+                , succeed (Filled "")
+                    |. token (Token "filled" "Expected 'filled' function call")
+                    |= whitespace
                     |= Common.parseColor
                     |= whitespace
                     |= parseShape []
                     |> handleExpressionParens parens
                     |> inContext "a 'filled' function call"
-                , succeed Outlined
-                    |= tokenAndWhitespace "outlined"
+                , succeed (Outlined "")
+                    |. token (Token "outlined" "Expected 'outlined' function call")
+                    |= whitespace
                     |= Common.parseColor
                     |= whitespace
                     |= parseShape []
@@ -159,13 +168,15 @@ parseShape parens =
     lazy <|
         \_ ->
             oneOf
-                [ succeed Circle
-                    |= tokenAndWhitespace "circle"
+                [ succeed (Circle "")
+                    |. token (Token "circle" "Expected 'circle' function call")
+                    |= whitespace
                     |= Common.parseInt
                     |> handleShapeParens parens
                     |> inContext "a 'circle' function call"
-                , succeed Rectangle
-                    |= tokenAndWhitespace "rectangle"
+                , succeed (Rectangle "")
+                    |. token (Token "rectangle" "Expected 'rectangle' function call")
+                    |= whitespace
                     |= Common.parseInt
                     |= whitespace
                     |= Common.parseInt
