@@ -112,7 +112,7 @@ viewExpression expression =
         Superimposed t0 t1 list t2 ->
             List.concat
                 [ [ text t0
-                  , text "superimposed"
+                  , viewFunctionName "superimposed"
                   , text t1
                   ]
                 , viewExpressionList list
@@ -122,11 +122,11 @@ viewExpression expression =
         Moved t0 t1 x t2 y t3 e t4 ->
             List.concat
                 [ [ text t0
-                  , text "moved"
+                  , viewFunctionName "moved"
                   , text t1
-                  , text (String.fromInt x)
+                  , viewIntLiteral x
                   , text t2
-                  , text (String.fromInt y)
+                  , viewIntLiteral y
                   , text t3
                   ]
                 , viewExpression e
@@ -136,9 +136,9 @@ viewExpression expression =
         Filled t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ text t0
-                  , text "filled"
+                  , viewFunctionName "filled"
                   , text t1
-                  , text ("\"" ++ Common.colorName col ++ "\"")
+                  , viewColorLiteral col
                   , text t2
                   ]
                 , viewShape shape
@@ -148,14 +148,29 @@ viewExpression expression =
         Outlined t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ text t0
-                  , text "outlined"
+                  , viewFunctionName "outlined"
                   , text t1
-                  , text ("\"" ++ Common.colorName col ++ "\"")
+                  , viewColorLiteral col
                   , text t2
                   ]
                 , viewShape shape
                 , [ text t3 ]
                 ]
+
+
+viewFunctionName : String -> Html Msg
+viewFunctionName name =
+    span [ class "hover:bg-gruv-gray-3 cursor-pointer" ] [ text name ]
+
+
+viewIntLiteral : Int -> Html Msg
+viewIntLiteral i =
+    span [ class "text-gruv-blue-l" ] [ text (String.fromInt i) ]
+
+
+viewColorLiteral : Common.Color -> Html Msg
+viewColorLiteral col =
+    span [ class "text-gruv-green-l" ] [ text ("\"" ++ Common.colorName col ++ "\"") ]
 
 
 viewExpressionList : ExpressionList -> List (Html Msg)
@@ -174,19 +189,19 @@ viewShape shape =
     case shape of
         Circle t0 t1 r t2 ->
             [ text t0
-            , text "circle"
+            , viewFunctionName "circle"
             , text t1
-            , text (String.fromInt r)
+            , viewIntLiteral r
             , text t2
             ]
 
         Rectangle t0 t1 w t2 h t3 ->
             [ text t0
-            , text "rectangle"
+            , viewFunctionName "rectangle"
             , text t1
-            , text (String.fromInt w)
+            , viewIntLiteral w
             , text t2
-            , text (String.fromInt h)
+            , viewIntLiteral h
             , text t3
             ]
 
