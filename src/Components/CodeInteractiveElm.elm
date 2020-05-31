@@ -31,9 +31,56 @@ type alias Msg =
     Never
 
 
-interpret : Expression -> List (Svg msg)
+interpret : Expression -> Svg msg
 interpret expression =
-    []
+    case expression of
+        Superimposed _ _ expressions _ ->
+            expressions.elements
+                |> List.map (interpret << .expression)
+                |> List.reverse
+                |> Svg.g []
+
+        Moved _ _ x _ y _ e _ ->
+            Svg.g
+                [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
+                -- [ SvgPx.x (toFloat x)
+                -- , SvgPx.y (toFloat y)
+                -- ]
+                [ interpret e ]
+
+        Filled _ _ color _ e _ ->
+            Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
+                [ interpret e ]
+
+        Outlined _ _ color _ e _ ->
+            Svg.g
+                [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
+                , SvgPx.strokeWidth 8
+                , SvgA.fill Svg.PaintNone
+                ]
+                [ interpret e ]
+
+        Circle _ _ r _ ->
+            Svg.circle
+                [ SvgPx.r (toFloat r) ]
+                []
+
+        Rectangle _ _ wInt _ hInt _ ->
+            let
+                w =
+                    toFloat wInt
+
+                h =
+                    toFloat hInt
+            in
+            Svg.rect
+                [ SvgPx.width w
+                , SvgPx.height h
+                , SvgPx.x (-w / 2)
+                , SvgPx.y (-h / 2)
+                , SvgA.transform [ Svg.Translate (w / 2) (h / 2) ]
+                ]
+                []
 
 
 
@@ -78,7 +125,7 @@ view model =
             , SvgA.width (Svg.Percent 100)
             , SvgA.viewBox 0 0 500 200
             ]
-            (interpret model.expression)
+            [ interpret model.expression ]
         , pre
             [ classes
                 [ "py-6 px-8"

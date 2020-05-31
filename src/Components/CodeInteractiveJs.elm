@@ -52,10 +52,11 @@ interpret statements =
         finalizeShape fillOptions shape =
             case shape of
                 ShapeCircle { x, y, radius } ->
-                    --
                     Svg.g [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
                         [ Svg.circle
-                            (SvgPx.r (toFloat radius) :: strokeOrFill fillOptions)
+                            (SvgPx.r (toFloat radius)
+                                :: strokeOrFill fillOptions
+                            )
                             []
                         ]
 
