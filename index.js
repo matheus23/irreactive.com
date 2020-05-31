@@ -46,7 +46,7 @@ customElements.define('custom-code',
         node: elmDiv,
         flags: {
           language: language,
-          code: codeText,
+          code: codeText || '',
         },
       });
     }

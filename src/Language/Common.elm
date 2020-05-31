@@ -2,7 +2,7 @@ module Language.Common exposing (..)
 
 import Color
 import List.Extra as List
-import Parser exposing (..)
+import Parser.Advanced exposing (..)
 
 
 type Color
@@ -94,23 +94,34 @@ colorName color =
 -- PARSE
 
 
+type alias Parser a =
+    Parser.Advanced.Parser String String a
+
+
 parseColor : Parser Color
 parseColor =
     succeed identity
-        |. symbol "\""
+        |. symbol (Token "\"" "Expecting start of string")
         |= oneOf
-            [ succeed Red |. backtrackable (token "red")
-            , succeed Green |. backtrackable (token "green")
-            , succeed Blue |. backtrackable (token "blue")
-            , succeed Purple |. backtrackable (token "purple")
-            , succeed Yellow |. backtrackable (token "yellow")
-            , succeed Aqua |. backtrackable (token "aqua")
-            , succeed Orange |. backtrackable (token "orange")
+            [ succeed Red
+                |. backtrackable (token (Token "red" "Expected valid color name"))
+            , succeed Green
+                |. backtrackable (token (Token "green" "Expected valid color name"))
+            , succeed Blue
+                |. backtrackable (token (Token "blue" "Expected valid color name"))
+            , succeed Purple
+                |. backtrackable (token (Token "purple" "Expected valid color name"))
+            , succeed Yellow
+                |. backtrackable (token (Token "yellow" "Expected valid color name"))
+            , succeed Aqua
+                |. backtrackable (token (Token "aqua" "Expected valid color name"))
+            , succeed Orange
+                |. backtrackable (token (Token "orange" "Expected valid color name"))
             ]
-        |. symbol "\""
+        |. symbol (Token "\"" "Expecting end of string")
 
 
-explainErrors : String -> List DeadEnd -> String
+explainErrors : String -> List (DeadEnd String String) -> String
 explainErrors sourceCode deadEnds =
     let
         sourceLines =
@@ -126,7 +137,7 @@ explainErrors sourceCode deadEnds =
                         (\{ col } errorLine ->
                             List.setAt (col - 1) "^" errorLine
                         )
-                        (List.repeat lineLength " ")
+                        (List.repeat (lineLength + 1) " ")
                         errors
                         |> String.concat
                         |> String.append "    "
@@ -134,8 +145,23 @@ explainErrors sourceCode deadEnds =
 
         showLineWithErrors index line =
             ("    " ++ line) :: showErrorsInLine (index + 1) (String.length line)
+
+        listError { row, col, problem, contextStack } =
+            String.concat
+                [ "  * "
+                , "("
+                , String.fromInt row
+                , ":"
+                , String.fromInt col
+                , ") "
+                , problem
+                , " in "
+                , String.join ", in " (List.map .context contextStack)
+                ]
     in
     String.join "\n" <|
         "Failed parsing this 'elm interactive' code:"
             :: ""
-            :: List.concat (List.indexedMap showLineWithErrors sourceLines)
+            :: (List.concat (List.indexedMap showLineWithErrors sourceLines)
+                    ++ List.map listError deadEnds
+               )

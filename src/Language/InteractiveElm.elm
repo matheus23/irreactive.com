@@ -2,7 +2,7 @@ module Language.InteractiveElm exposing (..)
 
 import Language.Common as Common
 import List.Extra as List
-import Parser exposing (..)
+import Parser.Advanced exposing (..)
 import Result.Extra as Result
 
 
@@ -15,12 +15,17 @@ type Expression
     | Moved String Int String Int String Expression String
     | Filled String Common.Color String Shape String
     | Outlined String Common.Color String Shape String
+    | Unparsed String
 
 
 type alias ExpressionList =
-    { elements : List { prefix : String, expression : Expression }
+    { elements : List ListElement
     , tail : String
     }
+
+
+type alias ListElement =
+    { prefix : String, expression : Expression }
 
 
 type Shape
@@ -78,28 +83,68 @@ elemList =
 parse : String -> Result String Expression
 parse str =
     str
-        |> run parseExpression
+        |> run (parseExpression |. end "Expecting end of input")
         |> Result.mapError (Common.explainErrors str)
 
 
-parseExpression : Parser Expression
+parseExpression : Common.Parser Expression
 parseExpression =
     oneOf
         [ succeed Superimposed
             |= tokenAndWhitespace "superimposed"
-            |= succeed { elements = [], tail = "[]" }
-            |= succeed ""
+            |= parseExpressionList
+            |= whitespace
         ]
 
 
-tokenAndWhitespace : String -> Parser String
+parseExpressionList : Common.Parser ExpressionList
+parseExpressionList =
+    loop [] parseElementsHelp
+
+
+parseElementsHelp : List ListElement -> Common.Parser (Step (List ListElement) ExpressionList)
+parseElementsHelp revElements =
+    oneOf
+        [ parseElement
+            |> map (\elem -> Loop (elem :: revElements))
+        , tokenAndWhitespace "]"
+            |> map
+                (\tail ->
+                    Done
+                        { elements = List.reverse revElements
+                        , tail = tail
+                        }
+                )
+        ]
+
+
+parseElement : Common.Parser ListElement
+parseElement =
+    succeed ListElement
+        |= oneOf
+            [ tokenAndWhitespace "["
+            , tokenAndWhitespace ","
+            ]
+        |= mapChompedString
+            (\str _ -> Unparsed str)
+            (chompWhile (\c -> c /= ',' || c /= ']'))
+
+
+tokenAndWhitespace : String -> Common.Parser String
 tokenAndWhitespace shouldStartWith =
     succeed (\ws -> shouldStartWith ++ ws)
-        |. token shouldStartWith
-        |= spacesAndNewlines
+        |. token (Token shouldStartWith ("Expected " ++ shouldStartWith))
+        |= whitespace
 
 
-spacesAndNewlines : Parser String
-spacesAndNewlines =
+whitespaceAndToken : String -> Common.Parser String
+whitespaceAndToken shouldEndWith =
+    succeed (\ws -> ws ++ shouldEndWith)
+        |= whitespace
+        |. token (Token shouldEndWith ("Expected whitespace ending with " ++ shouldEndWith))
+
+
+whitespace : Common.Parser String
+whitespace =
     chompWhile (\c -> c == ' ' || c == '\n')
         |> getChompedString

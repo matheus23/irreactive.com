@@ -44,11 +44,8 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { expression =
             flags.code
-                |> Debug.log "code"
                 |> parse
-                |> Result.unpack
-                    (Superimposed "" { elements = [], tail = "" })
-                    identity
+                |> Result.unpack Unparsed identity
       }
     , Cmd.none
     )
@@ -135,6 +132,9 @@ viewExpression expression =
                 , viewShape shape
                 , [ text t3 ]
                 ]
+
+        Unparsed str ->
+            [ text str ]
 
 
 viewExpressionList : ExpressionList -> List (Html Msg)

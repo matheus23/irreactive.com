@@ -2,7 +2,7 @@ module Language.InteractiveJs exposing (..)
 
 import Language.Common as Common
 import List.Extra as List
-import Parser exposing (..)
+import Parser.Advanced exposing (..)
 import Result.Extra as Result
 
 
@@ -26,58 +26,58 @@ type Statement
 parse : String -> Result String (List Statement)
 parse str =
     str
-        |> run (parseStatements |. end)
+        |> run (parseStatements |. end "Expected end of input")
         |> Result.mapError (Common.explainErrors str)
 
 
-parseStatement : Parser Statement
+parseStatement : Common.Parser Statement
 parseStatement =
     oneOf
         [ succeed Stroke
-            |. backtrackable (token "stroke")
-            |. symbol "()"
+            |. backtrackable (token (Token "stroke" "Expected valid function name"))
+            |. symbol (Token "()" "Expected parenthesis")
         , succeed Fill
-            |. backtrackable (token "fill")
-            |. symbol "()"
+            |. backtrackable (token (Token "fill" "Expected valid function name"))
+            |. symbol (Token "()" "Expected parenthesis")
         , succeed MoveTo
-            |. backtrackable (token "moveTo")
-            |. symbol "("
-            |= int
-            |. symbol ", "
-            |= int
-            |. symbol ")"
+            |. backtrackable (token (Token "moveTo" "Expected valid function name"))
+            |. symbol (Token "(" "Expected start of function, an opening parenthesis")
+            |= int "Expected integer" "Invalid number"
+            |. symbol (Token ", " "Expected comma and another argument")
+            |= int "Expected integer" "Invalid number"
+            |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         , succeed SetColor
-            |. backtrackable (token "setColor")
-            |. symbol "("
+            |. backtrackable (token (Token "setColor" "Expected valid function name"))
+            |. symbol (Token "(" "Expected start of function, an opening parenthesis")
             |= Common.parseColor
-            |. symbol ")"
+            |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         , succeed Circle
-            |. backtrackable (token "circle")
-            |. symbol "("
-            |= int
-            |. symbol ")"
+            |. backtrackable (token (Token "circle" "Expected valid function name"))
+            |. symbol (Token "(" "Expected start of function, an opening parenthesis")
+            |= int "Expected integer" "Invalid number"
+            |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         , succeed Rectangle
-            |. backtrackable (token "rectangle")
-            |. symbol "("
-            |= int
-            |. symbol ", "
-            |= int
-            |. symbol ")"
+            |. backtrackable (token (Token "rectangle" "Expected valid function name"))
+            |. symbol (Token "(" "Expected start of function, an opening parenthesis")
+            |= int "Expected integer" "Invalid number"
+            |. symbol (Token ", " "Expected comma and another argument")
+            |= int "Expected integer" "Invalid number"
+            |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         ]
 
 
-parseStatements : Parser (List Statement)
+parseStatements : Common.Parser (List Statement)
 parseStatements =
     loop [] parseStatementsHelp
 
 
-parseStatementsHelp : List Statement -> Parser (Step (List Statement) (List Statement))
+parseStatementsHelp : List Statement -> Common.Parser (Step (List Statement) (List Statement))
 parseStatementsHelp reverseStatements =
     oneOf
         [ succeed (\stmt -> Loop (stmt :: reverseStatements))
             |= parseStatement
             |. spaces
-            |. symbol ";"
+            |. symbol (Token ";" "Expected end of statement with a semicolon")
             |. spaces
         , succeed ()
             |> map (\_ -> Done (List.reverse reverseStatements))
