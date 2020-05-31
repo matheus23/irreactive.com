@@ -121,6 +121,11 @@ parseColor =
         |. symbol (Token "\"" "Expecting end of string")
 
 
+parseInt : Parser Int
+parseInt =
+    int "Expected integer" "Invalid number"
+
+
 explainErrors : String -> List (DeadEnd String String) -> String
 explainErrors sourceCode deadEnds =
     let

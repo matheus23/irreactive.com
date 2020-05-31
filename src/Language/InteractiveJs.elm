@@ -42,9 +42,9 @@ parseStatement =
         , succeed MoveTo
             |. backtrackable (token (Token "moveTo" "Expected valid function name"))
             |. symbol (Token "(" "Expected start of function, an opening parenthesis")
-            |= int "Expected integer" "Invalid number"
+            |= Common.parseInt
             |. symbol (Token ", " "Expected comma and another argument")
-            |= int "Expected integer" "Invalid number"
+            |= Common.parseInt
             |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         , succeed SetColor
             |. backtrackable (token (Token "setColor" "Expected valid function name"))
@@ -54,14 +54,14 @@ parseStatement =
         , succeed Circle
             |. backtrackable (token (Token "circle" "Expected valid function name"))
             |. symbol (Token "(" "Expected start of function, an opening parenthesis")
-            |= int "Expected integer" "Invalid number"
+            |= Common.parseInt
             |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         , succeed Rectangle
             |. backtrackable (token (Token "rectangle" "Expected valid function name"))
             |. symbol (Token "(" "Expected start of function, an opening parenthesis")
-            |= int "Expected integer" "Invalid number"
+            |= Common.parseInt
             |. symbol (Token ", " "Expected comma and another argument")
-            |= int "Expected integer" "Invalid number"
+            |= Common.parseInt
             |. symbol (Token ")" "Expected end of arguments, a closing parenthesis")
         ]
 

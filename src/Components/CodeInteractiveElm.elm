@@ -45,7 +45,8 @@ init flags =
     ( { expression =
             flags.code
                 |> parse
-                |> Result.unpack Unparsed identity
+                -- An error should never happen.
+                |> Result.unpack (Superimposed "" { elements = [], tail = "" }) identity
       }
     , Cmd.none
     )
@@ -132,9 +133,6 @@ viewExpression expression =
                 , viewShape shape
                 , [ text t3 ]
                 ]
-
-        Unparsed str ->
-            [ text str ]
 
 
 viewExpressionList : ExpressionList -> List (Html Msg)
