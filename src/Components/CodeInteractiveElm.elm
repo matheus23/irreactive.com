@@ -27,8 +27,8 @@ type alias Model =
     { expression : Expression }
 
 
-type alias Msg =
-    Never
+type Msg
+    = ToggleExpression (List Int)
 
 
 interpret : Expression -> Svg msg
@@ -112,7 +112,25 @@ init flags =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    never msg
+    case msg of
+        ToggleExpression path ->
+            ( { model
+                | expression =
+                    indexedCata (toggleExpression path) [] model.expression
+              }
+            , Cmd.none
+            )
+
+
+toggleExpression : List Int -> List Int -> ExpressionF Expression -> Expression
+toggleExpression togglePath currentPath constructor =
+    case constructor of
+        Moved active t0 t1 x t2 y t3 e t4 ->
+            Moved (xor active (togglePath == currentPath)) t0 t1 x t2 y t3 e t4
+                |> Expression
+
+        _ ->
+            Expression constructor
 
 
 
@@ -162,16 +180,16 @@ reverseExpressionList list =
 
 viewExpression : Expression -> List (Html Msg)
 viewExpression =
-    cata viewExpressionAlg
+    indexedCata viewExpressionAlg []
 
 
-viewExpressionAlg : ExpressionF (List (Html Msg)) -> List (Html Msg)
-viewExpressionAlg expression =
+viewExpressionAlg : List Int -> ExpressionF (List (Html Msg)) -> List (Html Msg)
+viewExpressionAlg path expression =
     case expression of
         Superimposed t0 t1 list t2 ->
             List.concat
                 [ [ text t0
-                  , viewFunctionName True "superimposed"
+                  , viewFunctionName path True "superimposed"
                   , text t1
                   ]
                 , list
@@ -183,7 +201,7 @@ viewExpressionAlg expression =
         Moved active t0 t1 x t2 y t3 e t4 ->
             List.concat
                 [ [ viewOther active t0
-                  , viewFunctionName active "moved"
+                  , viewFunctionName path active "moved"
                   , text t1
                   , viewIntLiteral active x
                   , text t2
@@ -197,7 +215,7 @@ viewExpressionAlg expression =
         Filled t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ text t0
-                  , viewFunctionName True "filled"
+                  , viewFunctionName path True "filled"
                   , text t1
                   , viewColorLiteral True col
                   , text t2
@@ -209,7 +227,7 @@ viewExpressionAlg expression =
         Outlined t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ text t0
-                  , viewFunctionName True "outlined"
+                  , viewFunctionName path True "outlined"
                   , text t1
                   , viewColorLiteral True col
                   , text t2
@@ -220,7 +238,7 @@ viewExpressionAlg expression =
 
         Circle t0 t1 r t2 ->
             [ text t0
-            , viewFunctionName True "circle"
+            , viewFunctionName path True "circle"
             , text t1
             , viewIntLiteral True r
             , text t2
@@ -228,7 +246,7 @@ viewExpressionAlg expression =
 
         Rectangle t0 t1 w t2 h t3 ->
             [ text t0
-            , viewFunctionName True "rectangle"
+            , viewFunctionName path True "rectangle"
             , text t1
             , viewIntLiteral True w
             , text t2
@@ -237,15 +255,16 @@ viewExpressionAlg expression =
             ]
 
 
-viewFunctionName : Bool -> String -> Html Msg
-viewFunctionName active name =
+viewFunctionName : List Int -> Bool -> String -> Html Msg
+viewFunctionName path active name =
     span
-        (if active then
-            [ class "hover:bg-gruv-gray-3 cursor-pointer" ]
+        [ if active then
+            class "hover:bg-gruv-gray-3 cursor-pointer"
 
-         else
-            [ class "hover:bg-gruv-gray-3 cursor-pointer text-gruv-gray-6" ]
-        )
+          else
+            class "hover:bg-gruv-gray-3 cursor-pointer text-gruv-gray-6"
+        , Events.onClick (ToggleExpression path)
+        ]
         [ text name ]
 
 

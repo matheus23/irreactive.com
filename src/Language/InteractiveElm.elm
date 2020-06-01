@@ -37,6 +37,10 @@ type alias ListElement a =
     { prefix : String, expression : a }
 
 
+
+-- RECURSION SCHEME STUFF
+
+
 mapE : (a -> b) -> ExpressionF a -> ExpressionF b
 mapE f constructor =
     case constructor of
@@ -59,6 +63,28 @@ mapE f constructor =
             Rectangle t0 t1 w t2 h t3
 
 
+indexedMap : (Int -> a -> b) -> ExpressionF a -> ExpressionF b
+indexedMap f constructor =
+    case constructor of
+        Superimposed t0 t1 expressionList t3 ->
+            Superimposed t0 t1 (indexedMapExpressionList f expressionList) t3
+
+        Moved b t0 t1 x t2 y t3 e t4 ->
+            Moved b t0 t1 x t2 y t3 (f 0 e) t4
+
+        Filled t0 t1 col t2 shape t3 ->
+            Filled t0 t1 col t2 (f 0 shape) t3
+
+        Outlined t0 t1 col t2 shape t3 ->
+            Outlined t0 t1 col t2 (f 0 shape) t3
+
+        Circle t0 t1 r t2 ->
+            Circle t0 t1 r t2
+
+        Rectangle t0 t1 w t2 h t3 ->
+            Rectangle t0 t1 w t2 h t3
+
+
 mapExpressionList : (a -> b) -> ExpressionList a -> ExpressionList b
 mapExpressionList f { elements, tail } =
     { elements =
@@ -73,9 +99,36 @@ mapExpressionList f { elements, tail } =
     }
 
 
+indexedMapExpressionList : (Int -> a -> b) -> ExpressionList a -> ExpressionList b
+indexedMapExpressionList f { elements, tail } =
+    { elements =
+        List.indexedMap
+            (\index { prefix, expression } ->
+                { prefix = prefix
+                , expression = f index expression
+                }
+            )
+            elements
+    , tail = tail
+    }
+
+
 cata : (ExpressionF a -> a) -> Expression -> a
 cata algebra (Expression expression) =
-    algebra (mapE (cata algebra) expression)
+    expression
+        |> mapE (cata algebra)
+        |> algebra
+
+
+indexedCata : (List Int -> ExpressionF a -> a) -> List Int -> Expression -> a
+indexedCata algebra pathSoFar (Expression expression) =
+    expression
+        |> indexedMap (\index -> indexedCata algebra (index :: pathSoFar))
+        |> algebra pathSoFar
+
+
+
+--
 
 
 prefixExpressionWith : String -> ExpressionF a -> ExpressionF a
