@@ -32,25 +32,31 @@ type alias Msg =
 
 
 interpret : Expression -> Svg msg
-interpret expression =
+interpret =
+    cata interpretAlg
+
+
+interpretAlg : ExpressionF (Svg msg) -> Svg msg
+interpretAlg expression =
     case expression of
         Superimposed _ _ expressions _ ->
             expressions.elements
-                |> List.map (interpret << .expression)
+                |> List.map .expression
                 |> List.reverse
                 |> Svg.g []
 
-        Moved _ _ x _ y _ e _ ->
-            Svg.g
-                [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
-                -- [ SvgPx.x (toFloat x)
-                -- , SvgPx.y (toFloat y)
-                -- ]
-                [ interpret e ]
+        Moved active _ _ x _ y _ e _ ->
+            if active then
+                Svg.g
+                    [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
+                    [ e ]
+
+            else
+                e
 
         Filled _ _ color _ e _ ->
             Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
-                [ interpret e ]
+                [ e ]
 
         Outlined _ _ color _ e _ ->
             Svg.g
@@ -58,7 +64,7 @@ interpret expression =
                 , SvgPx.strokeWidth 8
                 , SvgA.fill Svg.PaintNone
                 ]
-                [ interpret e ]
+                [ e ]
 
         Circle _ _ r _ ->
             Svg.circle
@@ -92,8 +98,9 @@ init flags =
     ( { expression =
             flags.code
                 |> parse
-                -- An error should never happen.
-                |> Result.unpack (Superimposed "" " " { elements = [], tail = "[]\n" }) identity
+                -- An error should never happen. This is validation-checked by MarkdownDocument.elm
+                -- Should parsing only happen once in the renderer and the value be transferred directly?
+                |> Result.unpack (Expression << Superimposed "" " " { elements = [], tail = "[]\n" }) identity
       }
     , Cmd.none
     )
@@ -139,7 +146,7 @@ view model =
         ]
 
 
-reverseExpressionList : ExpressionList -> ExpressionList
+reverseExpressionList : ExpressionList a -> ExpressionList a
 reverseExpressionList list =
     let
         prefixes =
@@ -154,12 +161,17 @@ reverseExpressionList list =
 
 
 viewExpression : Expression -> List (Html Msg)
-viewExpression expression =
+viewExpression =
+    cata viewExpressionAlg
+
+
+viewExpressionAlg : ExpressionF (List (Html Msg)) -> List (Html Msg)
+viewExpressionAlg expression =
     case expression of
         Superimposed t0 t1 list t2 ->
             List.concat
                 [ [ text t0
-                  , viewFunctionName "superimposed"
+                  , viewFunctionName True "superimposed"
                   , text t1
                   ]
                 , list
@@ -168,87 +180,120 @@ viewExpression expression =
                 , [ text t2 ]
                 ]
 
-        Moved t0 t1 x t2 y t3 e t4 ->
+        Moved active t0 t1 x t2 y t3 e t4 ->
             List.concat
-                [ [ text t0
-                  , viewFunctionName "moved"
+                [ [ viewOther active t0
+                  , viewFunctionName active "moved"
                   , text t1
-                  , viewIntLiteral x
+                  , viewIntLiteral active x
                   , text t2
-                  , viewIntLiteral y
+                  , viewIntLiteral active y
                   , text t3
                   ]
-                , viewExpression e
-                , [ text t4 ]
+                , e
+                , [ viewOther active t4 ]
                 ]
 
         Filled t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ text t0
-                  , viewFunctionName "filled"
+                  , viewFunctionName True "filled"
                   , text t1
-                  , viewColorLiteral col
+                  , viewColorLiteral True col
                   , text t2
                   ]
-                , viewExpression shape
+                , shape
                 , [ text t3 ]
                 ]
 
         Outlined t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ text t0
-                  , viewFunctionName "outlined"
+                  , viewFunctionName True "outlined"
                   , text t1
-                  , viewColorLiteral col
+                  , viewColorLiteral True col
                   , text t2
                   ]
-                , viewExpression shape
+                , shape
                 , [ text t3 ]
                 ]
 
         Circle t0 t1 r t2 ->
             [ text t0
-            , viewFunctionName "circle"
+            , viewFunctionName True "circle"
             , text t1
-            , viewIntLiteral r
+            , viewIntLiteral True r
             , text t2
             ]
 
         Rectangle t0 t1 w t2 h t3 ->
             [ text t0
-            , viewFunctionName "rectangle"
+            , viewFunctionName True "rectangle"
             , text t1
-            , viewIntLiteral w
+            , viewIntLiteral True w
             , text t2
-            , viewIntLiteral h
+            , viewIntLiteral True h
             , text t3
             ]
 
 
-viewFunctionName : String -> Html Msg
-viewFunctionName name =
-    span [ class "hover:bg-gruv-gray-3 cursor-pointer" ] [ text name ]
+viewFunctionName : Bool -> String -> Html Msg
+viewFunctionName active name =
+    span
+        (if active then
+            [ class "hover:bg-gruv-gray-3 cursor-pointer" ]
+
+         else
+            [ class "hover:bg-gruv-gray-3 cursor-pointer text-gruv-gray-6" ]
+        )
+        [ text name ]
 
 
-viewIntLiteral : Int -> Html Msg
-viewIntLiteral i =
-    span [ class "text-gruv-blue-l" ] [ text (String.fromInt i) ]
+viewOther : Bool -> String -> Html msg
+viewOther active content =
+    span
+        (if active then
+            []
+
+         else
+            [ class "text-gruv-gray-6" ]
+        )
+        [ text content ]
 
 
-viewColorLiteral : Common.Color -> Html Msg
-viewColorLiteral col =
-    span [ class "text-gruv-green-l" ] [ text ("\"" ++ Common.colorName col ++ "\"") ]
+viewIntLiteral : Bool -> Int -> Html Msg
+viewIntLiteral active i =
+    span
+        (if active then
+            [ class "text-gruv-blue-l" ]
+
+         else
+            [ class "text-gruv-gray-6" ]
+        )
+        [ text (String.fromInt i) ]
 
 
-viewExpressionList : ExpressionList -> List (Html Msg)
+viewColorLiteral : Bool -> Common.Color -> Html Msg
+viewColorLiteral active col =
+    span
+        (if active then
+            [ class "text-gruv-green-l" ]
+
+         else
+            [ class "text-gruv-gray-6" ]
+        )
+        [ text ("\"" ++ Common.colorName col ++ "\"") ]
+
+
+viewExpressionList : ExpressionList (List (Html Msg)) -> List (Html Msg)
 viewExpressionList { elements, tail } =
     List.concatMap viewListItem elements
         ++ [ text tail ]
 
 
-viewListItem : { prefix : String, expression : Expression } -> List (Html Msg)
+viewListItem : { prefix : String, expression : List (Html Msg) } -> List (Html Msg)
 viewListItem { prefix, expression } =
-    text prefix :: viewExpression expression
+    text prefix :: expression
 
 
 

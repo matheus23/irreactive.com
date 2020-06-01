@@ -15,80 +15,77 @@ languageId =
 
 
 type Expression
-    = Superimposed String String ExpressionList String
-    | Moved String String Int String Int String Expression String
-    | Filled String String Common.Color String Expression String
-    | Outlined String String Common.Color String Expression String
+    = Expression (ExpressionF Expression)
+
+
+type ExpressionF a
+    = Superimposed String String (ExpressionList a) String
+    | Moved Bool String String Int String Int String a String
+    | Filled String String Common.Color String a String
+    | Outlined String String Common.Color String a String
     | Circle String String Int String
     | Rectangle String String Int String Int String
 
 
-type alias ExpressionList =
-    { elements : List ListElement
+type alias ExpressionList a =
+    { elements : List (ListElement a)
     , tail : String
     }
 
 
-type alias ListElement =
-    { prefix : String, expression : Expression }
+type alias ListElement a =
+    { prefix : String, expression : a }
 
 
-example =
-    Superimposed ""
-        "\n    "
-        elemList
-        ""
+mapE : (a -> b) -> ExpressionF a -> ExpressionF b
+mapE f constructor =
+    case constructor of
+        Superimposed t0 t1 expressionList t3 ->
+            Superimposed t0 t1 (mapExpressionList f expressionList) t3
+
+        Moved b t0 t1 x t2 y t3 e t4 ->
+            Moved b t0 t1 x t2 y t3 (f e) t4
+
+        Filled t0 t1 col t2 shape t3 ->
+            Filled t0 t1 col t2 (f shape) t3
+
+        Outlined t0 t1 col t2 shape t3 ->
+            Outlined t0 t1 col t2 (f shape) t3
+
+        Circle t0 t1 r t2 ->
+            Circle t0 t1 r t2
+
+        Rectangle t0 t1 w t2 h t3 ->
+            Rectangle t0 t1 w t2 h t3
 
 
-elemList =
+mapExpressionList : (a -> b) -> ExpressionList a -> ExpressionList b
+mapExpressionList f { elements, tail } =
     { elements =
-        [ { prefix = "[ "
-          , expression =
-                Moved ""
-                    " "
-                    200
-                    " "
-                    100
-                    "\n        "
-                    (Filled "("
-                        " "
-                        Common.Blue
-                        " "
-                        (Rectangle "(" " " 50 " " 30 ")")
-                        ")"
-                    )
-                    ""
-          }
-        , { prefix = "\n    , "
-          , expression =
-                Moved ""
-                    " "
-                    100
-                    " "
-                    100
-                    "\n        "
-                    (Outlined "("
-                        " "
-                        Common.Red
-                        " "
-                        (Circle "(" " " 20 ")")
-                        ")"
-                    )
-                    ""
-          }
-        ]
-    , tail = "\n    ]"
+        List.map
+            (\{ prefix, expression } ->
+                { prefix = prefix
+                , expression = f expression
+                }
+            )
+            elements
+    , tail = tail
     }
 
 
-prefixExpressionWith : String -> Expression -> Expression
+cata : (ExpressionF a -> a) -> Expression -> a
+cata algebra (Expression expression) =
+    algebra (mapE (cata algebra) expression)
+
+
+prefixExpressionWith : String -> ExpressionF a -> ExpressionF a
 prefixExpressionWith str expression =
     case expression of
         Superimposed t0 t1 expressionList t3 ->
             Superimposed (str ++ t0) t1 expressionList t3
 
-        Moved t0 t1 x t2 y t3 e t4 ->
-            Moved (str ++ t0) t1 x t2 y t3 e t4
+        Moved b t0 t1 x t2 y t3 e t4 ->
+            Moved b (str ++ t0) t1 x t2 y t3 e t4
 
         Filled t0 t1 col t2 shape t3 ->
             Filled (str ++ t0) t1 col t2 shape t3
@@ -129,7 +126,7 @@ parseExpression parens =
                     |= parseExpressionList
                     |> handleParens parens
                     |> inContext "a 'superimposed' function call"
-                , succeed (Moved "")
+                , succeed (Moved True "")
                     |. token (Token "moved" "Expected 'moved' function call")
                     |= whitespace
                     |= Common.parseInt
@@ -174,13 +171,14 @@ parseExpression parens =
                 ]
 
 
-handleParens : ParenStack -> Common.Parser (String -> Expression) -> Common.Parser Expression
+handleParens : ParenStack -> Common.Parser (String -> ExpressionF Expression) -> Common.Parser Expression
 handleParens parens parser =
     parser
         |= parseCloseParens parens
         |> map
             (\expression ->
                 prefixExpressionWith (String.concat (List.reverse parens)) expression
+                    |> Expression
             )
 
 
@@ -198,19 +196,19 @@ parseCloseParens stack =
                         |= parseCloseParens remaining
 
 
-parseExpressionList : Common.Parser ExpressionList
+parseExpressionList : Common.Parser (ExpressionList Expression)
 parseExpressionList =
     loop { revElements = [], index = 1 } parseElementsHelp
         |> inContext "a list"
 
 
 type alias ListState =
-    { revElements : List ListElement
+    { revElements : List (ListElement Expression)
     , index : Int
     }
 
 
-parseElementsHelp : ListState -> Common.Parser (Step ListState ExpressionList)
+parseElementsHelp : ListState -> Common.Parser (Step ListState (ExpressionList Expression))
 parseElementsHelp { revElements, index } =
     oneOf
         [ backtrackable
@@ -234,7 +232,7 @@ parseElementsHelp { revElements, index } =
         ]
 
 
-parseElement : Int -> Common.Parser ListElement
+parseElement : Int -> Common.Parser (ListElement Expression)
 parseElement index =
     succeed ListElement
         |= (if index == 1 then
