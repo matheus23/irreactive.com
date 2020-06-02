@@ -3,6 +3,7 @@ module MarkdownDocument exposing (..)
 import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Json.Decode as Decode exposing (Decoder)
 import Markdown.Block exposing (ListItem(..))
 import Markdown.Html
 import Markdown.Parser as Markdown
@@ -16,17 +17,15 @@ import String.Extra as String
 import View
 
 
-deadEndsToString deadEnds =
-    deadEnds
-        |> List.map Markdown.deadEndToString
-        |> String.join "\n"
+type alias View =
+    List Int -> Model -> Html Msg
 
 
-
--- TODO: Do link checking at some point via StaticHttp.Request, but do this as a
--- pass before rendering, and keep rendering having a (Model -> Html Msg) type
-
-
+document :
+    { extension : String
+    , metadata : Decoder Metadata
+    , body : String -> Result String (Model -> List (Html Msg))
+    }
 document =
     { extension = "md"
     , metadata = Metadata.decoder
@@ -34,7 +33,15 @@ document =
         Markdown.parse
             >> Result.mapError deadEndsToString
             >> Result.andThen (Markdown.render customHtmlRenderer)
+            >> Result.map finalizeView
     }
+
+
+finalizeView : List View -> Model -> List (Html Msg)
+finalizeView content model =
+    content
+        |> List.indexedMap
+            (\index view -> view [ index ] model)
 
 
 applyModel : m -> List (m -> a) -> List a
@@ -42,7 +49,7 @@ applyModel m =
     List.map ((|>) m)
 
 
-customHtmlRenderer : Markdown.Renderer (Model -> Html Msg)
+customHtmlRenderer : Markdown.Renderer View
 customHtmlRenderer =
     Scaffolded.toRenderer
         { renderHtml =
@@ -60,11 +67,16 @@ customHtmlRenderer =
                 , liftRenderer infoElement
                 , liftRenderer marginParagraph
                 ]
-        , renderMarkdown =
-            \block env ->
-                Scaffolded.foldFunction block env
-                    |> View.markdown []
+        , renderMarkdown = reduceMarkdown
         }
+
+
+reduceMarkdown : Scaffolded.Block View -> View
+reduceMarkdown block path model =
+    Scaffolded.foldFunction
+        (Scaffolded.foldFunction block path)
+        model
+        |> View.markdown []
 
 
 removeElement : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
@@ -84,9 +96,19 @@ marginParagraph =
     Markdown.Html.tag "in-margin" (View.marginParagraph [])
 
 
-liftRenderer : Markdown.Html.Renderer (List a -> a) -> Markdown.Html.Renderer (List (env -> a) -> env -> a)
+liftRenderer :
+    Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
+    -> Markdown.Html.Renderer (List View -> View)
 liftRenderer =
-    Markdown.Html.map (\render children model -> render (applyModel model children))
+    Markdown.Html.map
+        (\render children path model ->
+            children
+                |> List.indexedMap
+                    (\index view ->
+                        view (index :: path) model
+                    )
+                |> render
+        )
 
 
 dummy tagName =
@@ -97,3 +119,9 @@ dummy tagName =
         |> Markdown.Html.withOptionalAttribute "src"
         |> Markdown.Html.withOptionalAttribute "alt"
         |> Markdown.Html.withOptionalAttribute "id"
+
+
+deadEndsToString deadEnds =
+    deadEnds
+        |> List.map Markdown.deadEndToString
+        |> String.join "\n"

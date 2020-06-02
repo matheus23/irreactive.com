@@ -34,12 +34,7 @@ manifest =
 
 
 type alias PageView =
-    List (Model -> Html Msg)
-
-
-viewPageView : Model -> PageView -> List (Html Msg)
-viewPageView model =
-    List.map ((|>) model)
+    Model -> List (Html Msg)
 
 
 main : Pages.Platform.Program Model Msg Metadata PageView
@@ -77,7 +72,7 @@ pageView siteMetadata page content model =
                 View.body []
                     [ View.header page.path
                     , View.accentLine
-                    , View.document Html.article "text-gruv-gray-1" (viewPageView model content)
+                    , View.document Html.article "text-gruv-gray-1" (content model)
                     , viewFooter model
                     ]
             }
@@ -93,7 +88,7 @@ pageView siteMetadata page content model =
                         (View.decorateArticle
                             { path = page.path
                             , metadata = metadata
-                            , content = viewPageView model content
+                            , content = content model
                             }
                         )
                     , viewFooter model
