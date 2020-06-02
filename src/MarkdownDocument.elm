@@ -3,8 +3,6 @@ module MarkdownDocument exposing (..)
 import App exposing (..)
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Language.InteractiveElm as InteractiveElm
-import Language.InteractiveJs as InteractiveJs
 import Markdown.Block exposing (ListItem(..))
 import Markdown.Html
 import Markdown.Parser as Markdown
@@ -35,61 +33,8 @@ document =
     , body =
         Markdown.parse
             >> Result.mapError deadEndsToString
-            >> Result.andThen checkCodeSnippets
             >> Result.andThen (Markdown.render customHtmlRenderer)
     }
-
-
-type CodeSnippet
-    = JsInteractive String
-    | ElmInteractive String
-
-
-{-| Extracts "interactive" snippets
--}
-extractCodeSnippets : List Markdown.Block.Block -> List CodeSnippet
-extractCodeSnippets =
-    List.concatMap
-        (\block ->
-            case block of
-                Markdown.Block.CodeBlock info ->
-                    case info.language of
-                        Just "js interactive" ->
-                            [ JsInteractive info.body ]
-
-                        Just "elm interactive" ->
-                            [ ElmInteractive info.body ]
-
-                        _ ->
-                            []
-
-                Markdown.Block.HtmlBlock (Markdown.Block.HtmlElement _ _ children) ->
-                    extractCodeSnippets children
-
-                _ ->
-                    []
-        )
-
-
-checkCodeSnippets : List Markdown.Block.Block -> Result String (List Markdown.Block.Block)
-checkCodeSnippets blocks =
-    extractCodeSnippets blocks
-        |> Result.combineMap checkCodeSnippet
-        |> Result.map (always blocks)
-
-
-checkCodeSnippet : CodeSnippet -> Result String ()
-checkCodeSnippet snippet =
-    let
-        discard =
-            Result.map (\_ -> ())
-    in
-    case snippet of
-        JsInteractive str ->
-            discard (InteractiveJs.parse str)
-
-        ElmInteractive str ->
-            discard (InteractiveElm.parse str)
 
 
 applyModel : m -> List (m -> a) -> List a
@@ -97,7 +42,7 @@ applyModel m =
     List.map ((|>) m)
 
 
-customHtmlRenderer : Markdown.Renderer (Html Msg)
+customHtmlRenderer : Markdown.Renderer (Model -> Html Msg)
 customHtmlRenderer =
     Scaffolded.toRenderer
         { renderHtml =
@@ -107,15 +52,18 @@ customHtmlRenderer =
                   -- , carousel
                   -- , markdownEl
                   -- TODO Implement carousel, etc. with custom elements
-                  dummy "imgcaptioned"
-                , dummy "videocaptioned"
-                , dummy "carousel"
-                , dummy "markdown"
-                , removeElement
-                , infoElement
-                , marginParagraph
+                  liftRenderer (dummy "imgcaptioned")
+                , liftRenderer (dummy "videocaptioned")
+                , liftRenderer (dummy "carousel")
+                , liftRenderer (dummy "markdown")
+                , liftRenderer removeElement
+                , liftRenderer infoElement
+                , liftRenderer marginParagraph
                 ]
-        , renderMarkdown = View.markdown []
+        , renderMarkdown =
+            \block env ->
+                Scaffolded.foldFunction block env
+                    |> View.markdown []
         }
 
 
@@ -134,6 +82,11 @@ infoElement =
 marginParagraph : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
 marginParagraph =
     Markdown.Html.tag "in-margin" (View.marginParagraph [])
+
+
+liftRenderer : Markdown.Html.Renderer (List a -> a) -> Markdown.Html.Renderer (List (env -> a) -> env -> a)
+liftRenderer =
+    Markdown.Html.map (\render children model -> render (applyModel model children))
 
 
 dummy tagName =

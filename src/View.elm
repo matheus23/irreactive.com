@@ -407,17 +407,14 @@ markdown attributes block =
                 )
 
         Scaffolded.CodeBlock info ->
-            node "custom-code"
-                (info.language
-                    |> Maybe.map
-                        (\lang ->
-                            [ attribute "language" lang
-                            , property "customCode" (Encode.string info.body)
-                            ]
-                        )
-                    |> Maybe.withDefault []
-                )
-                [ text info.body ]
+            pre
+                [ classes
+                    [ "mt-4 py-6 px-8"
+                    , "overflow-y-auto"
+                    , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                    ]
+                ]
+                [ code [] [ text info.body ] ]
 
         Scaffolded.HardLineBreak ->
             br attributes []
@@ -426,7 +423,7 @@ markdown attributes block =
             hairline [ "mt-6 mb-3" ]
 
         _ ->
-            Scaffolded.foldHtml attributes block
+            Scaffolded.reduceHtml attributes block
 
 
 link :
