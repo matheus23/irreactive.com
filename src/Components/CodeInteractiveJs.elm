@@ -1,6 +1,5 @@
-module Components.CodeInteractiveJs exposing (main)
+module Components.CodeInteractiveJs exposing (..)
 
-import Browser
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
@@ -14,12 +13,6 @@ import TypedSvg.Attributes as SvgA
 import TypedSvg.Attributes.InPx as SvgPx
 import TypedSvg.Core as Svg
 import TypedSvg.Types as Svg
-
-
-type alias Flags =
-    { language : Maybe String
-    , code : String
-    }
 
 
 type alias Model =
@@ -158,36 +151,34 @@ interpret statements =
 -- INIT
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    ( flags.code
+init : String -> Result String Model
+init code =
+    code
         |> parse
-        |> Result.withDefault []
-        |> List.map (\statement -> { enabled = True, statement = statement })
-    , Cmd.none
-    )
+        |> Result.map
+            (List.map
+                (\statement -> { enabled = True, statement = statement })
+            )
 
 
 
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg statements =
     case msg of
         ToggleLine lineIndex ->
-            ( List.updateAt lineIndex
+            List.updateAt lineIndex
                 (\{ enabled, statement } ->
                     { enabled = not enabled
                     , statement = statement
                     }
                 )
                 statements
-            , Cmd.none
-            )
 
         CycleColor lineIndex ->
-            ( List.updateAt lineIndex
+            List.updateAt lineIndex
                 (\{ enabled, statement } ->
                     { enabled = enabled
                     , statement =
@@ -200,8 +191,6 @@ update msg statements =
                     }
                 )
                 statements
-            , Cmd.none
-            )
 
 
 
@@ -375,17 +364,3 @@ linearGradient =
             ]
             []
         ]
-
-
-
--- MAIN
-
-
-main : Program Flags Model Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = \_ -> Sub.none
-        }

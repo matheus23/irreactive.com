@@ -1,6 +1,5 @@
-module Components.CodeInteractiveElm exposing (main)
+module Components.CodeInteractiveElm exposing (..)
 
-import Browser
 import Html exposing (..)
 import Html.Attributes exposing (attribute, class)
 import Html.Events as Events
@@ -15,12 +14,6 @@ import TypedSvg.Attributes as SvgA
 import TypedSvg.Attributes.InPx as SvgPx
 import TypedSvg.Core as Svg
 import TypedSvg.Types as Svg
-
-
-type alias Flags =
-    { language : Maybe String
-    , code : String
-    }
 
 
 type alias Model =
@@ -93,33 +86,26 @@ interpretAlg expression =
 -- INIT
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    ( { expression =
-            flags.code
-                |> parse
-                -- An error should never happen. This is validation-checked by MarkdownDocument.elm
-                -- Should parsing only happen once in the renderer and the value be transferred directly?
-                |> Result.unpack (Expression << Superimposed "" " " { elements = [], tail = "[]\n" }) identity
-      }
-    , Cmd.none
-    )
+init : String -> Result String Model
+init code =
+    code
+        |> parse
+        |> Result.map
+            (\result -> { expression = result })
 
 
 
 -- UPDATE
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         ToggleExpression path ->
-            ( { model
+            { model
                 | expression =
                     indexedCata (toggleExpression path) [] model.expression
-              }
-            , Cmd.none
-            )
+            }
 
 
 toggleExpression : List Int -> List Int -> ExpressionF Expression -> Expression
@@ -313,17 +299,3 @@ viewExpressionList { elements, tail } =
 viewListItem : { prefix : String, expression : List (Html Msg) } -> List (Html Msg)
 viewListItem { prefix, expression } =
     text prefix :: expression
-
-
-
--- MAIN
-
-
-main : Program Flags Model Msg
-main =
-    Browser.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = \_ -> Sub.none
-        }

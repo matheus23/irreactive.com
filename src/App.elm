@@ -1,5 +1,7 @@
 module App exposing (..)
 
+import Components.CodeInteractiveElm as CodeInteractiveElm
+import Components.CodeInteractiveJs as CodeInteractiveJs
 import Dict exposing (Dict)
 import Http
 import MarkdownComponents.Carousel as Carousel
@@ -41,6 +43,8 @@ type alias Model =
     { subscriptionEmail : String
     , emailStatus : SubscriptionStatus
     , carousels : Dict String Carousel.Model
+    , interactiveJs : Dict String CodeInteractiveJs.Model
+    , interactiveElm : Dict String CodeInteractiveElm.Model
     }
 
 
@@ -58,6 +62,8 @@ init =
     ( { subscriptionEmail = ""
       , emailStatus = NotSubmittedYet
       , carousels = Dict.empty
+      , interactiveJs = Dict.empty
+      , interactiveElm = Dict.empty
       }
     , Cmd.none
     )
@@ -69,6 +75,8 @@ type Msg
     | SubscribeEmailAddressChange String
     | SubscriptionEmailSubmitted (Result Http.Error ())
     | CarouselMsg String Carousel.Msg
+    | InteractiveJsMsg String CodeInteractiveJs.Msg
+    | InteractiveElmMsg String CodeInteractiveElm.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -149,6 +157,35 @@ update msg model =
             ( { model | carousels = carouselsUpdated }
             , Cmd.map (CarouselMsg carouselId) cmds
             )
+
+        InteractiveJsMsg elementId subMsg ->
+            let
+                interactiveJsUpdated =
+                    Dict.update elementId
+                        (Maybe.map (CodeInteractiveJs.update subMsg))
+                        model.interactiveJs
+            in
+            ( { model | interactiveJs = interactiveJsUpdated }
+            , Cmd.none
+            )
+
+        InteractiveElmMsg elementId subMsg ->
+            let
+                interactiveElmUpdated =
+                    Dict.update elementId
+                        (Maybe.map (CodeInteractiveElm.update subMsg))
+                        model.interactiveElm
+            in
+            ( { model | interactiveElm = interactiveElmUpdated }
+            , Cmd.none
+            )
+
+
+pathToId : List Int -> String
+pathToId path =
+    path
+        |> List.map String.fromInt
+        |> String.join ","
 
 
 subscriptions : Model -> Sub Msg

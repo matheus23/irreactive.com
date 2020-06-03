@@ -1,6 +1,9 @@
 module MarkdownDocument exposing (..)
 
 import App exposing (..)
+import Components.CodeHighlighted as CodeHighlighted
+import Components.CodeInteractiveElm as CodeInteractiveElm
+import Components.CodeInteractiveJs as CodeInteractiveJs
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Json.Decode as Decode exposing (Decoder)
@@ -18,7 +21,7 @@ import View
 
 
 type alias View =
-    List Int -> Model -> Html Msg
+    List Int -> Result String (Model -> Html Msg)
 
 
 document :
@@ -33,15 +36,16 @@ document =
         Markdown.parse
             >> Result.mapError deadEndsToString
             >> Result.andThen (Markdown.render customHtmlRenderer)
-            >> Result.map finalizeView
+            >> Result.andThen finalizeView
     }
 
 
-finalizeView : List View -> Model -> List (Html Msg)
-finalizeView content model =
+finalizeView : List View -> Result String (Model -> List (Html Msg))
+finalizeView content =
     content
-        |> List.indexedMap
-            (\index view -> view [ index ] model)
+        |> List.indexedMap (\index view -> view [ index ])
+        |> Result.combine
+        |> Result.map (\views model -> applyModel model views)
 
 
 applyModel : m -> List (m -> a) -> List a
@@ -72,11 +76,44 @@ customHtmlRenderer =
 
 
 reduceMarkdown : Scaffolded.Block View -> View
-reduceMarkdown block path model =
-    Scaffolded.foldFunction
-        (Scaffolded.foldFunction block path)
-        model
-        |> View.markdown []
+reduceMarkdown block path =
+    case block of
+        Scaffolded.CodeBlock code ->
+            case code.language of
+                Just "js interactive" ->
+                    CodeInteractiveJs.init code.body
+                        |> Result.map
+                            (\init model ->
+                                CodeInteractiveJs.view init
+                                    |> Html.map (InteractiveJsMsg (pathToId path))
+                            )
+
+                Just "elm interactive" ->
+                    CodeInteractiveElm.init code.body
+                        |> Result.map
+                            (\init model ->
+                                CodeInteractiveElm.view init
+                                    |> Html.map (InteractiveElmMsg (pathToId path))
+                            )
+
+                _ ->
+                    Ok <| \_ -> CodeHighlighted.view code
+
+        _ ->
+            block
+                |> foldFunction2 path
+                |> Scaffolded.foldResults
+                |> Result.map
+                    (\resultBlock model ->
+                        resultBlock
+                            |> foldFunction2 model
+                            |> View.markdown []
+                    )
+
+
+foldFunction2 : env -> Scaffolded.Block (env -> view) -> Scaffolded.Block view
+foldFunction2 environment block =
+    Scaffolded.foldFunction block environment
 
 
 removeElement : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
@@ -101,13 +138,15 @@ liftRenderer :
     -> Markdown.Html.Renderer (List View -> View)
 liftRenderer =
     Markdown.Html.map
-        (\render children path model ->
+        (\render children path ->
             children
-                |> List.indexedMap
-                    (\index view ->
-                        view (index :: path) model
+                |> List.indexedMap (\index view -> view (index :: path))
+                |> Result.combine
+                |> Result.map
+                    (\views model ->
+                        applyModel model views
+                            |> render
                     )
-                |> render
         )
 
 
