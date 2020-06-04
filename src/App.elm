@@ -75,8 +75,8 @@ type Msg
     | SubscribeEmailAddressChange String
     | SubscriptionEmailSubmitted (Result Http.Error ())
     | CarouselMsg String Carousel.Msg
-    | InteractiveJsMsg String CodeInteractiveJs.Msg
-    | InteractiveElmMsg String CodeInteractiveElm.Msg
+    | InteractiveJsMsg String CodeInteractiveJs.Model CodeInteractiveJs.Msg
+    | InteractiveElmMsg String CodeInteractiveElm.Model CodeInteractiveElm.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,22 +158,32 @@ update msg model =
             , Cmd.map (CarouselMsg carouselId) cmds
             )
 
-        InteractiveJsMsg elementId subMsg ->
+        InteractiveJsMsg elementId subInit subMsg ->
             let
                 interactiveJsUpdated =
                     Dict.update elementId
-                        (Maybe.map (CodeInteractiveJs.update subMsg))
+                        (\subModel ->
+                            subModel
+                                |> Maybe.withDefault subInit
+                                |> CodeInteractiveJs.update subMsg
+                                |> Just
+                        )
                         model.interactiveJs
             in
             ( { model | interactiveJs = interactiveJsUpdated }
             , Cmd.none
             )
 
-        InteractiveElmMsg elementId subMsg ->
+        InteractiveElmMsg elementId subInit subMsg ->
             let
                 interactiveElmUpdated =
                     Dict.update elementId
-                        (Maybe.map (CodeInteractiveElm.update subMsg))
+                        (\subModel ->
+                            subModel
+                                |> Maybe.withDefault subInit
+                                |> CodeInteractiveElm.update subMsg
+                                |> Just
+                        )
                         model.interactiveElm
             in
             ( { model | interactiveElm = interactiveElmUpdated }

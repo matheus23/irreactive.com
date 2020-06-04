@@ -4,6 +4,7 @@ import App exposing (..)
 import Components.CodeHighlighted as CodeHighlighted
 import Components.CodeInteractiveElm as CodeInteractiveElm
 import Components.CodeInteractiveJs as CodeInteractiveJs
+import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Json.Decode as Decode exposing (Decoder)
@@ -84,16 +85,22 @@ reduceMarkdown block path =
                     CodeInteractiveJs.init code.body
                         |> Result.map
                             (\init model ->
-                                CodeInteractiveJs.view init
-                                    |> Html.map (InteractiveJsMsg (pathToId path))
+                                model.interactiveJs
+                                    |> Dict.get (pathToId path)
+                                    |> Maybe.withDefault init
+                                    |> CodeInteractiveJs.view
+                                    |> Html.map (InteractiveJsMsg (pathToId path) init)
                             )
 
                 Just "elm interactive" ->
                     CodeInteractiveElm.init code.body
                         |> Result.map
                             (\init model ->
-                                CodeInteractiveElm.view init
-                                    |> Html.map (InteractiveElmMsg (pathToId path))
+                                model.interactiveElm
+                                    |> Dict.get (pathToId path)
+                                    |> Maybe.withDefault init
+                                    |> CodeInteractiveElm.view
+                                    |> Html.map (InteractiveElmMsg (pathToId path) init)
                             )
 
                 _ ->
