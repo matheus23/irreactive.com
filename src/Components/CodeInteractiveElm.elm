@@ -32,11 +32,15 @@ interpret =
 interpretAlg : ExpressionF (Svg msg) -> Svg msg
 interpretAlg expression =
     case expression of
-        Superimposed _ _ expressions _ ->
-            expressions.elements
-                |> List.map .expression
-                |> List.reverse
-                |> Svg.g []
+        Superimposed active _ _ expressions _ ->
+            if active then
+                expressions.elements
+                    |> List.map .expression
+                    |> List.reverse
+                    |> Svg.g []
+
+            else
+                Svg.g [] []
 
         Moved active _ _ x _ y _ e _ ->
             if active then
@@ -110,13 +114,20 @@ update msg model =
 
 toggleExpression : List Int -> List Int -> ExpressionF Expression -> Expression
 toggleExpression togglePath currentPath constructor =
-    case constructor of
-        Moved active t0 t1 x t2 y t3 e t4 ->
-            Moved (xor active (togglePath == currentPath)) t0 t1 x t2 y t3 e t4
-                |> Expression
+    let
+        toggleActive active =
+            xor active (togglePath == currentPath)
+    in
+    Expression <|
+        case constructor of
+            Superimposed active t0 t1 list t2 ->
+                Superimposed (toggleActive active) t0 t1 list t2
 
-        _ ->
-            Expression constructor
+            Moved active t0 t1 x t2 y t3 e t4 ->
+                Moved (toggleActive active) t0 t1 x t2 y t3 e t4
+
+            _ ->
+                constructor
 
 
 
@@ -165,79 +176,79 @@ reverseExpressionList list =
 
 
 viewExpression : Expression -> List (Html Msg)
-viewExpression =
-    indexedCata viewExpressionAlg []
+viewExpression expression =
+    indexedCata viewExpressionAlg [] expression True
 
 
-viewExpressionAlg : List Int -> ExpressionF (List (Html Msg)) -> List (Html Msg)
-viewExpressionAlg path expression =
+viewExpressionAlg : List Int -> ExpressionF (Bool -> List (Html Msg)) -> Bool -> List (Html Msg)
+viewExpressionAlg path expression parentActive =
     case expression of
-        Superimposed t0 t1 list t2 ->
+        Superimposed active t0 t1 list t2 ->
             List.concat
-                [ [ text t0
-                  , viewFunctionName path True "superimposed"
+                [ [ viewOther (active && parentActive) t0
+                  , viewFunctionName path (active && parentActive) "superimposed"
                   , text t1
                   ]
                 , list
                     -- |> reverseExpressionList
-                    |> viewExpressionList
-                , [ text t2 ]
+                    |> viewExpressionList (active && parentActive)
+                , [ viewOther (active && parentActive) t2 ]
                 ]
 
         Moved active t0 t1 x t2 y t3 e t4 ->
             List.concat
-                [ [ viewOther active t0
-                  , viewFunctionName path active "moved"
+                [ [ viewOther (active && parentActive) t0
+                  , viewFunctionName path (active && parentActive) "moved"
                   , text t1
-                  , viewIntLiteral active x
+                  , viewIntLiteral (active && parentActive) x
                   , text t2
-                  , viewIntLiteral active y
+                  , viewIntLiteral (active && parentActive) y
                   , text t3
                   ]
-                , e
-                , [ viewOther active t4 ]
+                , e parentActive
+                , [ viewOther (active && parentActive) t4 ]
                 ]
 
         Filled t0 t1 col t2 shape t3 ->
             List.concat
-                [ [ text t0
-                  , viewFunctionName path True "filled"
+                [ [ viewOther parentActive t0
+                  , viewFunctionName path parentActive "filled"
                   , text t1
-                  , viewColorLiteral True col
+                  , viewColorLiteral parentActive col
                   , text t2
                   ]
-                , shape
-                , [ text t3 ]
+                , shape parentActive
+                , [ viewOther parentActive t3 ]
                 ]
 
         Outlined t0 t1 col t2 shape t3 ->
             List.concat
-                [ [ text t0
-                  , viewFunctionName path True "outlined"
+                [ [ viewOther parentActive t0
+                  , viewFunctionName path parentActive "outlined"
                   , text t1
-                  , viewColorLiteral True col
+                  , viewColorLiteral parentActive col
                   , text t2
                   ]
-                , shape
-                , [ text t3 ]
+                , shape parentActive
+                , [ viewOther parentActive t3 ]
                 ]
 
         Circle t0 t1 r t2 ->
-            [ text t0
-            , viewFunctionName path True "circle"
+            [ viewOther parentActive t0
+            , viewFunctionName path parentActive "circle"
             , text t1
-            , viewIntLiteral True r
-            , text t2
+            , viewIntLiteral parentActive r
+            , viewOther parentActive t2
             ]
 
         Rectangle t0 t1 w t2 h t3 ->
-            [ text t0
-            , viewFunctionName path True "rectangle"
+            [ viewOther parentActive t0
+            , viewFunctionName path parentActive "rectangle"
             , text t1
-            , viewIntLiteral True w
+            , viewIntLiteral parentActive w
             , text t2
-            , viewIntLiteral True h
-            , text t3
+            , viewIntLiteral parentActive h
+            , viewOther parentActive t3
             ]
 
 
@@ -290,12 +301,12 @@ viewColorLiteral active col =
         [ text ("\"" ++ Common.colorName col ++ "\"") ]
 
 
-viewExpressionList : ExpressionList (List (Html Msg)) -> List (Html Msg)
-viewExpressionList { elements, tail } =
-    List.concatMap viewListItem elements
-        ++ [ text tail ]
+viewExpressionList : Bool -> ExpressionList (Bool -> List (Html Msg)) -> List (Html Msg)
+viewExpressionList active { elements, tail } =
+    List.concatMap (viewListItem active) elements
+        ++ [ viewOther active tail ]
 
 
-viewListItem : { prefix : String, expression : List (Html Msg) } -> List (Html Msg)
-viewListItem { prefix, expression } =
-    text prefix :: expression
+viewListItem : Bool -> { prefix : String, expression : Bool -> List (Html Msg) } -> List (Html Msg)
+viewListItem active { prefix, expression } =
+    viewOther active prefix :: expression active

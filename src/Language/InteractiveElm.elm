@@ -19,7 +19,7 @@ type Expression
 
 
 type ExpressionF a
-    = Superimposed String String (ExpressionList a) String
+    = Superimposed Bool String String (ExpressionList a) String
     | Moved Bool String String Int String Int String a String
     | Filled String String Common.Color String a String
     | Outlined String String Common.Color String a String
@@ -44,11 +44,11 @@ type alias ListElement a =
 mapE : (a -> b) -> ExpressionF a -> ExpressionF b
 mapE f constructor =
     case constructor of
-        Superimposed t0 t1 expressionList t3 ->
-            Superimposed t0 t1 (mapExpressionList f expressionList) t3
+        Superimposed a t0 t1 expressionList t3 ->
+            Superimposed a t0 t1 (mapExpressionList f expressionList) t3
 
-        Moved b t0 t1 x t2 y t3 e t4 ->
-            Moved b t0 t1 x t2 y t3 (f e) t4
+        Moved a t0 t1 x t2 y t3 e t4 ->
+            Moved a t0 t1 x t2 y t3 (f e) t4
 
         Filled t0 t1 col t2 shape t3 ->
             Filled t0 t1 col t2 (f shape) t3
@@ -66,11 +66,11 @@ mapE f constructor =
 indexedMap : (Int -> a -> b) -> ExpressionF a -> ExpressionF b
 indexedMap f constructor =
     case constructor of
-        Superimposed t0 t1 expressionList t3 ->
-            Superimposed t0 t1 (indexedMapExpressionList f expressionList) t3
+        Superimposed a t0 t1 expressionList t3 ->
+            Superimposed a t0 t1 (indexedMapExpressionList f expressionList) t3
 
-        Moved b t0 t1 x t2 y t3 e t4 ->
-            Moved b t0 t1 x t2 y t3 (f 0 e) t4
+        Moved a t0 t1 x t2 y t3 e t4 ->
+            Moved a t0 t1 x t2 y t3 (f 0 e) t4
 
         Filled t0 t1 col t2 shape t3 ->
             Filled t0 t1 col t2 (f 0 shape) t3
@@ -134,11 +134,11 @@ indexedCata algebra pathSoFar (Expression expression) =
 prefixExpressionWith : String -> ExpressionF a -> ExpressionF a
 prefixExpressionWith str expression =
     case expression of
-        Superimposed t0 t1 expressionList t3 ->
-            Superimposed (str ++ t0) t1 expressionList t3
+        Superimposed a t0 t1 expressionList t3 ->
+            Superimposed a (str ++ t0) t1 expressionList t3
 
-        Moved b t0 t1 x t2 y t3 e t4 ->
-            Moved b (str ++ t0) t1 x t2 y t3 e t4
+        Moved a t0 t1 x t2 y t3 e t4 ->
+            Moved a (str ++ t0) t1 x t2 y t3 e t4
 
         Filled t0 t1 col t2 shape t3 ->
             Filled (str ++ t0) t1 col t2 shape t3
@@ -173,7 +173,7 @@ parseExpression parens =
     lazy <|
         \_ ->
             oneOf
-                [ succeed (Superimposed "")
+                [ succeed (Superimposed True "")
                     |. token (Token "superimposed" "Expected 'superimposed' function call")
                     |= whitespace
                     |= parseExpressionList
