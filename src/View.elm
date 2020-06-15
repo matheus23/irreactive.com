@@ -32,7 +32,7 @@ document html textColor children =
         ]
         [ html
             [ classes
-                [ "max-w-desktop desktop:mx-auto desktop:px-0"
+                [ "max-w-desktop w-full desktop:mx-auto desktop:px-0"
                 , "flex flex-col"
                 , "h-full mb-12"
                 ]
@@ -111,7 +111,7 @@ header currentPath =
                 []
             ]
         , div
-            [ class "flex-shrink-0 hidden desktop:flex flex-col h-fill"
+            [ class "flex-shrink-0 hidden desktop:flex flex-col"
 
             -- This item should be just as wide as the right page margin on desktop
             , style "width" "calc((100vw - 600px) / 2)"
@@ -183,7 +183,7 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
             , method "POST"
             , attribute "data-netlify" "true"
             , Events.onSubmit onSubmit
-            , class "container desktop:mx-auto py-6 px-3"
+            , class "max-w-desktop w-full desktop:mx-auto py-6 px-3"
             ]
             [ p []
                 [ label [ for "email", class "font-code text-gruv-gray-11" ]
