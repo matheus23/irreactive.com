@@ -111,7 +111,7 @@ Other than that, it's not a _real_ programming language. My code examples should
 </info>
 </in-margin>
 
-Expression-based APIs look quite a bit different. The real-world analogy that the imperative API is modeled after is someone with a pencil that's instructed what to do:
+The real-world analogy that the imperative API is modeled after is someone with a pencil that's instructed what to do:
 * "Move your pencil to 100, 100."
 * "Use the red pencil."
 * "Sketch a circle with radius 20."
@@ -121,7 +121,7 @@ Expression-based APIs look quite a bit different. The real-world analogy that th
 * "Sketch a rectangle with width 50 and height 30."
 * "Fill in your sketch."
 
-In the words of analogies, the expression-based API works more like a higher-level explanation of a picture:
+The analogy of the expression-based API works more like a higher-level explanation of a picture:
 
 "The picture consists of two objects on top of each other:
 * At 200, 100, a blue filled rectangle with width 50 and height 30 and
