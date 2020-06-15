@@ -220,7 +220,7 @@ parseExpression parens =
                     |> handleParens parens
                     |> inContext "a 'rectangle' function call"
                 , tokenAndWhitespace "("
-                    |> andThen (\paren -> parseExpression (paren :: parens))
+                    |> andThen (\par -> parseExpression (par :: parens))
                 ]
 
 

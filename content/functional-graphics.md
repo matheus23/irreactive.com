@@ -15,14 +15,14 @@
 * [X] Side effects are hard to predict
   * [X] Because they're non-local: they effect the current state and any other that's coming
   * [X] Because they can't (are usually not) typed: Removing a statement is always a valid operation. Existence of statements and statement conditions are not supported.
-* [ ] Declarative APIs are not like that
-  * [ ] Nested -> Wrapping effects wrapped elements
+* [X] Declarative APIs are not like that
+  * [X] Nested -> Wrapping effects wrapped elements
 * [ ] Typed APIs are not like that
   * [ ] You can change the 'type' of what you're wrapping when you wrap it. Thus requiring things to be pluggable like LEGO or else they result in a type error. -> No more 'I don't know what color I should fill'.
-* [ ] The interaction between declarative code and static type checking is why they're such a good fit (in functional code vs imperative code): When everything is just a statement, types don't help you much.
-* [ ] If you leave something out, you lose something:
-  * [ ] See the non-statically typed DOM. Wrapping? YES. But if you wrap something that's just incompatible with its children, it doesn't have any effect.
-  * [ ] See the 'statically typed' example from the beginning: You don't have wrapping? Types don't help you much.
+* [X] The interaction between declarative code and static type checking is why they're such a good fit (in functional code vs imperative code): When everything is just a statement, types don't help you much.
+* [X] If you leave something out, you lose something:
+  * [X] See the non-statically typed DOM. Wrapping? YES. But if you wrap something that's just incompatible with its children, it doesn't have any effect.
+  * [?] See the 'statically typed' example from the beginning: You don't have wrapping? Types don't help you much.
 * [ ] Where could this go? Can we go further?
   * [ ] Can we build upon this awesome combination? Types + declarative? What about flexible layouts? What about interaction? I want to explore this. Future: An alternative to the virtual DOM.
 
@@ -137,6 +137,98 @@ superimposed
         (outlined "red" (circle 20))
     ]
 ```
+
+Again, this is an interactive code example. You can click on things to toggle them on or off. What you'll notice is:
+
+* If you disable a `moved` call, whatever was wrapped with that `moved` is at another position.
+* If you change a color, whatever was wrapped with that `filled` or `outlined` call has another color.
+* If you remove an element from the list of elements in `superimposed`, it'll disappear from the image.
+
+What's different to before is that no other elements on the screen were affected by these changes. Every change has local effects.
+
+<remove reason="This is another digression into 'why imperative sucks', and I want to keep this focused on 'how to do declarative well, what whats nice about it'">
+So you might not be conviced yet, so we'll go back again to the imperative API. The biggest problems become more apparent when you introduce encapsulation.
+
+```js
+function myCircle() {
+  moveTo(100, 100);
+  setColor("red");
+  circle(20);
+  stroke();
+}
+
+function myRectangle() {
+  moveTo(200, 100);
+  setColor("blue");
+  rectangle(50, 30);
+  fill();
+}
+
+myCircle();
+myRectangle();
+```
+
+We now encapsulated our two objects in the scene into two functions: `myCircle` and `myRectangle`. If we disable the call to `myCircle` or `myRectangle`, then the respective objects disappear from our scene. Great!
+
+However, what if we made a mistake within a call to `myRectangle`? This might allow side-effects to enter from `myCircle` and change `myRectangle`s result on screen.
+
+Imagine this in a bigger code base. There are no direct links between `myRectangle` and `myCircle`, but indirectly they can influence each other, just because one is called after the other at some point.
+
+Encapsulation means that something lives inside its own capsule. It's independent of the outside. But that's not neccessarily true for `myRectangle`.
+
+I feel like now it's safe to say, that the original, imperative API doesn't allow easy encapsulation.
+
+Now, it _is possible_ to create a better API in an imperative programming language. But my points are different ones:
+
+* There are many imperative APIs with side effects in imperative programming languages. Eliminating some of these APIs is an improvement, but not sufficient.
+* There 
+</remove>
+
+<remove reason="this post should not be about 'to imperative or not to imperative'">
+# This is a metaphor
+
+Better or worse graphics APIs don't matter _that much_. I think the point of this blog post generalizes.
+
+The imperative examples have *side effects*. Whatever these might be, if you measure them by affecting the final state, or by what you see on the screen doesn't really matter. I hope by giving a concrete example, you can generalize to the full picture (no pun intended).
+</remove>
+
+# Types and Declarative APIs
+
+Another thing that's great about this style of API is that we encapsulate logical entities into values. In our API's these values have certain *types*. So for example, a `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`.
+
+Our API here can guide us plugging our things together:
+
+```elm
+-- read ':' as 'has type'
+rectangle 50 30 : Stencil
+circle 20       : Stencil
+-- '->' is the function arrow.
+-- read it as 'from X to Y'
+filled "blue"  : Stencil -> Picture
+outlined "red" : Stencil -> Picture
+moved 100 100  : Picture -> Picture
+```
+
+In the end we force our expression-based code examples to have type `Picture`, so we never accidentally try to render a `rectangle 50 30` without choosing a color first.
+
+I think this is a crucial piece to the successful-declarative-APIs-puzzle. For example:
+Html and Css is are declarative, but not typed. The declarative-ness is awesome: You can take some html and it's associated styling and plug it somewhere else!
+But it might not be styled as you expected, because you need the wrapping element to have a certain property like `display: flex` or `grid-template-columns: [...]`.
+
+Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scrating-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
+
+# Going further
+
+I've been experimenting more and more with this kind of declarative graphics API. I want to take it further:
+
+* What about responsive pictures? Layout?
+* What about interaction? Clicking things, click regions, focus? State?
+* What about animation?
+
+There is still much to (dis)cover. If you want to jump into the rabbit hole of what's been discovered already, see some of these awesome resources:
+
+* [Phil Freeman's blog](https://blog.functorial.com/) about state management in purely functional graphical applications
+* The Paper [Monoids: Themes and Variations](https://repository.upenn.edu/cgi/viewcontent.cgi?article=1773&context=cis_papers) with some answers to the questions above (and something my future posts are going to be based upon).
 
 <!-- 
 ---

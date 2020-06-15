@@ -152,6 +152,7 @@ view model =
             [ classes
                 [ "py-6 px-8"
                 , "overflow-y-auto"
+                , "select-none"
                 , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
                 ]
             ]
