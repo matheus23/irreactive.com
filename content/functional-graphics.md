@@ -196,6 +196,10 @@ The imperative examples have *side effects*. Whatever these might be, if you mea
 
 Another thing that's great about this style of API is that we encapsulate logical entities into values. In our API's these values have certain *types*. So for example, a `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`.
 
+<VideoCaptioned id="expression-block-shapes" src="/images/content/expression-block-shapes.webm" alt="Expression Block Shapes Transformation">
+How the code and a LEGO Brick version of it correspond.
+</VideoCaptioned>
+
 Our API here can guide us plugging our things together:
 
 ```elm

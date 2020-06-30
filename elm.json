@@ -9,7 +9,7 @@
         "direct": {
             "avh4/elm-color": "1.0.0",
             "dillonkearns/elm-markdown": "4.0.2",
-            "dillonkearns/elm-pages": "5.0.1",
+            "dillonkearns/elm-pages": "5.0.2",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
             "elm/html": "1.0.0",
@@ -25,16 +25,16 @@
             "elm-community/result-extra": "2.4.0",
             "elm-community/string-extra": "4.0.1",
             "elm-community/typed-svg": "6.0.0",
-            "justinmimbs/date": "3.2.0",
+            "justinmimbs/date": "3.2.1",
             "lukewestby/elm-string-interpolate": "1.0.4",
             "matheus23/elm-markdown-transforms": "2.0.0",
             "mdgriffith/elm-markup": "3.0.1",
-            "mdgriffith/elm-ui": "1.1.5",
+            "mdgriffith/elm-ui": "1.1.7",
             "mgold/elm-nonempty-list": "4.1.0",
             "noahzgordon/elm-color-extra": "1.0.2",
             "pablohirafuji/elm-syntax-highlight": "3.3.0",
             "rtfeldman/elm-hex": "1.0.0",
-            "turboMaCk/non-empty-list-alias": "1.0.1"
+            "turboMaCk/non-empty-list-alias": "1.1.0"
         },
         "indirect": {
             "elm/bytes": "1.0.8",

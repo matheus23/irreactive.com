@@ -49,28 +49,18 @@ finalizeView content =
         |> Result.map (\views model -> applyModel model views)
 
 
-applyModel : m -> List (m -> a) -> List a
-applyModel m =
-    List.map ((|>) m)
-
-
 customHtmlRenderer : Markdown.Renderer View
 customHtmlRenderer =
     Scaffolded.toRenderer
         { renderHtml =
             Markdown.Html.oneOf
-                [ -- anythingCaptioned "img" []
-                  -- , anythingCaptioned "video" [ Attr.controls True ]
-                  -- , carousel
-                  -- , markdownEl
-                  -- TODO Implement carousel, etc. with custom elements
-                  liftRenderer (dummy "imgcaptioned")
-                , liftRenderer (dummy "videocaptioned")
-                , liftRenderer (dummy "carousel")
-                , liftRenderer (dummy "markdown")
-                , liftRenderer removeElement
-                , liftRenderer infoElement
-                , liftRenderer marginParagraph
+                [ liftRendererPlain (anythingCaptioned "video" [ Attr.controls True ])
+                , liftRendererPlain (anythingCaptioned "img" [])
+                , liftRendererPlain markdownEl
+                , liftRendererPlain removeElement
+                , liftRendererPlain infoElement
+                , liftRendererPlain marginParagraph
+                , liftRendererWithModel carousel
                 ]
         , renderMarkdown = reduceMarkdown
         }
@@ -118,9 +108,8 @@ reduceMarkdown block path =
                     )
 
 
-foldFunction2 : env -> Scaffolded.Block (env -> view) -> Scaffolded.Block view
-foldFunction2 environment block =
-    Scaffolded.foldFunction block environment
+
+-- PLAIN ELEMENTS
 
 
 removeElement : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
@@ -140,10 +129,53 @@ marginParagraph =
     Markdown.Html.tag "in-margin" (View.marginParagraph [])
 
 
-liftRenderer :
+markdownEl : Markdown.Html.Renderer (List (Html msg) -> Html msg)
+markdownEl =
+    Markdown.Html.tag "markdown"
+        (\idAttrs children ->
+            Html.div (Attr.class "markdown" :: idAttrs) children
+        )
+        |> withOptionalIdTag
+
+
+anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (Html msg) -> Html msg)
+anythingCaptioned tagName attributes =
+    Markdown.Html.tag (tagName ++ "captioned")
+        (\src alt idAttrs children ->
+            View.figureWithCaption idAttrs
+                { figure = Html.node tagName (Attr.src src :: Attr.alt alt :: attributes) []
+                , caption = children
+                }
+        )
+        |> Markdown.Html.withAttribute "src"
+        |> Markdown.Html.withAttribute "alt"
+        |> withOptionalIdTag
+
+
+
+-- ELEMENTS WITH MODEL
+
+
+carousel : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
+carousel =
+    Markdown.Html.tag "carousel"
+        (\identifier children model ->
+            Carousel.view (CarouselMsg identifier)
+                identifier
+                (MarkdownComponents.init Carousel.init identifier model.carousels)
+                (applyModel model children)
+        )
+        |> Markdown.Html.withAttribute "id"
+
+
+
+-- ELEMENT LIFTING
+
+
+liftRendererPlain :
     Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
     -> Markdown.Html.Renderer (List View -> View)
-liftRenderer =
+liftRendererPlain =
     Markdown.Html.map
         (\render children path ->
             children
@@ -157,17 +189,49 @@ liftRenderer =
         )
 
 
-dummy tagName =
-    Markdown.Html.tag tagName
-        (\_ _ _ children ->
-            Html.div [] children
+liftRendererWithModel :
+    Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
+    -> Markdown.Html.Renderer (List View -> View)
+liftRendererWithModel =
+    Markdown.Html.map
+        (\render children path ->
+            children
+                |> List.indexedMap (\index view -> view (index :: path))
+                |> Result.combine
+                |> Result.map render
         )
-        |> Markdown.Html.withOptionalAttribute "src"
-        |> Markdown.Html.withOptionalAttribute "alt"
+
+
+withOptionalIdTag : Markdown.Html.Renderer (List (Html.Attribute msg) -> view) -> Markdown.Html.Renderer view
+withOptionalIdTag rend =
+    rend
+        |> Markdown.Html.map
+            (\continue maybeId ->
+                case maybeId of
+                    Just id ->
+                        continue [ Attr.id id ]
+
+                    Nothing ->
+                        continue []
+            )
         |> Markdown.Html.withOptionalAttribute "id"
+
+
+
+-- UTILS
 
 
 deadEndsToString deadEnds =
     deadEnds
         |> List.map Markdown.deadEndToString
         |> String.join "\n"
+
+
+applyModel : m -> List (m -> a) -> List a
+applyModel m =
+    List.map ((|>) m)
+
+
+foldFunction2 : env -> Scaffolded.Block (env -> view) -> Scaffolded.Block view
+foldFunction2 environment block =
+    Scaffolded.foldFunction block environment

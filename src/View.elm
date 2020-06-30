@@ -3,7 +3,7 @@ module View exposing (..)
 import App exposing (githubRepo, siteName)
 import Date exposing (Date)
 import Html exposing (..)
-import Html.Attributes exposing (alt, attribute, checked, class, disabled, for, height, href, id, method, name, placeholder, property, src, start, style, title, type_, value, width)
+import Html.Attributes exposing (alt, attribute, checked, class, controls, disabled, for, height, href, id, method, name, placeholder, property, src, start, style, title, type_, value, width)
 import Html.Events as Events
 import Json.Encode as Encode
 import Markdown.Block as Markdown
@@ -333,28 +333,37 @@ markdown attributes block =
             link attributes info
 
         Scaffolded.Image imageInfo ->
-            let
-                addTitle attrs =
-                    imageInfo.title
-                        |> Maybe.map (\t -> title t :: attrs)
-                        |> Maybe.withDefault attrs
+            if imageInfo.src |> String.endsWith ".webm" then
+                video
+                    [ src imageInfo.src
+                    , alt imageInfo.alt
+                    , controls True
+                    ]
+                    []
 
-                addSizeProps attrs =
-                    if imageInfo.src == ImagePath.toString images.me then
-                        class "rounded-lg my-6 mx-auto"
-                            :: width 200
-                            :: height 200
-                            :: attrs
+            else
+                let
+                    addTitle attrs =
+                        imageInfo.title
+                            |> Maybe.map (\t -> title t :: attrs)
+                            |> Maybe.withDefault attrs
 
-                    else
-                        attrs
-            in
-            img
-                (src imageInfo.src
-                    :: alt imageInfo.alt
-                    :: addSizeProps (addTitle attributes)
-                )
-                []
+                    addSizeProps attrs =
+                        if imageInfo.src == ImagePath.toString images.me then
+                            class "rounded-lg my-6 mx-auto"
+                                :: width 200
+                                :: height 200
+                                :: attrs
+
+                        else
+                            attrs
+                in
+                img
+                    (src imageInfo.src
+                        :: alt imageInfo.alt
+                        :: addSizeProps (addTitle attributes)
+                    )
+                    []
 
         Scaffolded.UnorderedList { items } ->
             ul
@@ -521,6 +530,14 @@ marginParagraph attributes children =
                 :: attributes
             )
             children
+        ]
+
+
+figureWithCaption : List (Attribute msg) -> { figure : Html msg, caption : List (Html msg) } -> Html msg
+figureWithCaption attributes content =
+    Html.figure (class "mt-4 py-6" :: attributes)
+        [ content.figure
+        , figcaption [ class "text-gruv-gray-4 text-s text-center" ] content.caption
         ]
 
 
