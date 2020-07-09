@@ -194,10 +194,19 @@ The imperative examples have *side effects*. Whatever these might be, if you mea
 
 # Types and Declarative APIs
 
-Another thing that's great about this style of API is that we encapsulate logical entities into values. In our API's these values have certain *types*. So for example, a `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`.
+You might have noticed, that removing 'filled' will trigger a type error. Types are what take declarative APIs to another level.
 
-<VideoCaptioned id="expression-block-shapes" src="/images/content/expression-block-shapes.webm" alt="Expression Block Shapes Transformation">
-How the code and a LEGO Brick version of it correspond.
+The reason we get a type error in some cases is that we plugged two expressions together, which don't fit to each other.
+
+So for example, a `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`.
+
+<VideoCaptioned
+  id="expression-block-shapes"
+  src="/images/content/expression-block-shapes.webm"
+  alt="Expression Block Shapes Transformation"
+  loop=""
+>
+How code and its LEGO Brick version correspond.
 </VideoCaptioned>
 
 Our API here can guide us plugging our things together:
@@ -223,7 +232,7 @@ Types can allow you to be explicit about these kinds of wrapper- to wrapped elem
 
 # Going further
 
-I've been experimenting more and more with this kind of declarative graphics API. I want to take it further:
+The points in this blog post go beyond just 'graphics APIs'. Expression-based programming with types can be applied to many more areas. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs, so I want to take this principle further:
 
 * What about responsive pictures? Layout?
 * What about interaction? Clicking things, click regions, focus? State?

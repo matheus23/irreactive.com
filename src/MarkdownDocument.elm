@@ -15,6 +15,7 @@ import Markdown.Renderer as Markdown
 import Markdown.Scaffolded as Scaffolded
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
+import Maybe.Extra as Maybe
 import Metadata exposing (Metadata)
 import Result.Extra as Result
 import String.Extra as String
@@ -135,21 +136,32 @@ markdownEl =
         (\idAttrs children ->
             Html.div (Attr.class "markdown" :: idAttrs) children
         )
-        |> withOptionalIdTag
+        |> withOptionalIdAttribute
 
 
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (Html msg) -> Html msg)
 anythingCaptioned tagName attributes =
     Markdown.Html.tag (tagName ++ "captioned")
-        (\src alt idAttrs children ->
+        (\src alt shouldLoop idAttrs children ->
             View.figureWithCaption idAttrs
-                { figure = Html.node tagName (Attr.src src :: Attr.alt alt :: attributes) []
+                { figure =
+                    Html.node tagName
+                        ((Attr.src src :: Attr.alt alt :: attributes)
+                            ++ (if shouldLoop then
+                                    [ Attr.loop True ]
+
+                                else
+                                    []
+                               )
+                        )
+                        []
                 , caption = children
                 }
         )
         |> Markdown.Html.withAttribute "src"
         |> Markdown.Html.withAttribute "alt"
-        |> withOptionalIdTag
+        |> withBooleanAttribute "loop"
+        |> withOptionalIdAttribute
 
 
 
@@ -202,8 +214,8 @@ liftRendererWithModel =
         )
 
 
-withOptionalIdTag : Markdown.Html.Renderer (List (Html.Attribute msg) -> view) -> Markdown.Html.Renderer view
-withOptionalIdTag rend =
+withOptionalIdAttribute : Markdown.Html.Renderer (List (Html.Attribute msg) -> view) -> Markdown.Html.Renderer view
+withOptionalIdAttribute rend =
     rend
         |> Markdown.Html.map
             (\continue maybeId ->
@@ -215,6 +227,16 @@ withOptionalIdTag rend =
                         continue []
             )
         |> Markdown.Html.withOptionalAttribute "id"
+
+
+withBooleanAttribute : String -> Markdown.Html.Renderer (Bool -> view) -> Markdown.Html.Renderer view
+withBooleanAttribute attributeName rend =
+    rend
+        |> Markdown.Html.map
+            (\continue maybeAttribute ->
+                Maybe.isJust maybeAttribute |> continue
+            )
+        |> Markdown.Html.withOptionalAttribute attributeName
 
 
 
