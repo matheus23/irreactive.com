@@ -9,7 +9,7 @@ import Html exposing (Html)
 import Html.Attributes as Attr
 import Json.Decode as Decode exposing (Decoder)
 import Markdown.Block exposing (ListItem(..))
-import Markdown.Html
+import Markdown.Html exposing (withOptionalAttribute)
 import Markdown.Parser as Markdown
 import Markdown.Renderer as Markdown
 import Markdown.Scaffolded as Scaffolded
@@ -142,25 +142,38 @@ markdownEl =
 anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (Html msg) -> Html msg)
 anythingCaptioned tagName attributes =
     Markdown.Html.tag (tagName ++ "captioned")
-        (\src alt shouldLoop idAttrs children ->
+        (\src alt shouldLoop maybeWidth idAttrs children ->
             View.figureWithCaption idAttrs
                 { figure =
-                    Html.node tagName
-                        ((Attr.src src :: Attr.alt alt :: attributes)
-                            ++ (if shouldLoop then
-                                    [ Attr.loop True ]
+                    \{ classes } ->
+                        Html.node tagName
+                            ((Attr.class classes
+                                :: Attr.src src
+                                :: Attr.alt alt
+                                :: attributes
+                             )
+                                ++ (if shouldLoop then
+                                        [ Attr.loop True ]
 
-                                else
-                                    []
-                               )
-                        )
-                        []
+                                    else
+                                        []
+                                   )
+                                ++ (case maybeWidth of
+                                        Just width ->
+                                            [ Attr.style "width" width ]
+
+                                        Nothing ->
+                                            []
+                                   )
+                            )
+                            []
                 , caption = children
                 }
         )
         |> Markdown.Html.withAttribute "src"
         |> Markdown.Html.withAttribute "alt"
         |> withBooleanAttribute "loop"
+        |> Markdown.Html.withOptionalAttribute "width"
         |> withOptionalIdAttribute
 
 

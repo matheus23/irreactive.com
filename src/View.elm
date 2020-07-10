@@ -533,10 +533,10 @@ marginParagraph attributes children =
         ]
 
 
-figureWithCaption : List (Attribute msg) -> { figure : Html msg, caption : List (Html msg) } -> Html msg
+figureWithCaption : List (Attribute msg) -> { figure : { classes : String } -> Html msg, caption : List (Html msg) } -> Html msg
 figureWithCaption attributes content =
     Html.figure (class "mt-4 py-6" :: attributes)
-        [ content.figure
+        [ content.figure { classes = "mx-auto" }
         , figcaption [ class "text-gruv-gray-4 text-s text-center" ] content.caption
         ]
 

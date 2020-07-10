@@ -49,8 +49,8 @@ The code part is interactive: You can click on lines to enable/disable them, go 
 Were you surprised by what happened when you turned off some lines? If you've worked with such an API before, this might not seem too bad. But imagine a beginner dipping their toes into computer graphics for the first time. What would they stumble upon?
 
 * No shapes appear unless there is a call to `fill` or `stroke`, even if there are calls to `circle` or `rectangle`.
-* What's the default color when there was no call to `setColor`? Let's hope it's not transparent.
-* Shapes are placed at the position of the last `moveTo` call, when there hasn't been a `moveTo` call in between. (Also: Where are shapes placed without a call to `moveTo`?)
+* What's the default color if there was no call to `setColor`? Let's hope it's not transparent.
+* Shapes are placed at the position of the last `moveTo` call, if there hasn't been a `moveTo` call in between.
 * What happens if you draw two shapes at the same position? Which one comes out at the top?
 
 The order and existence of statements plays a huge role in the outcome, but you can delete and re-order statements without getting an error.
@@ -140,7 +140,7 @@ superimposed
 
 Again, this is an interactive code example. You can click on things to toggle them on or off. What you'll notice is:
 
-* If you disable a `moved` call, whatever was wrapped with that `moved` is at another position.
+* If you disable a `moved`, whatever was wrapped with that `moved` is somewhere else.
 * If you change a color, whatever was wrapped with that `filled` or `outlined` call has another color.
 * If you remove an element from the list of elements in `superimposed`, it'll disappear from the image.
 
@@ -194,11 +194,9 @@ The imperative examples have *side effects*. Whatever these might be, if you mea
 
 # Types and Declarative APIs
 
-You might have noticed, that removing 'filled' will trigger a type error. Types are what take declarative APIs to another level.
+In the above interactive example it's possible to trigger a type error by removing a 'filled'. The ability to guide a user towards correct code using types is what takes declarative APIs to another level.
 
-The reason we get a type error in some cases is that we plugged two expressions together, which don't fit to each other.
-
-So for example, a `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`.
+The reason we get a type error in some cases is that we plugged two expressions together, which don't fit to each other. Let's embrace this metaphore of 'fitting together'. Let's imagine, every expression is like a LEGO brick. But unlike LEGO, they're kind of elastic and can be stretched and squeezed. Other than that, they only fit together when their 'connectors' fit into each other.
 
 <VideoCaptioned
   id="expression-block-shapes"
@@ -209,7 +207,54 @@ So for example, a `rectangle 50 30` has type `Stencil`, which can be thought of 
 How code and its LEGO Brick version correspond.
 </VideoCaptioned>
 
-Our API here can guide us plugging our things together:
+This might remind you of an educational programming platform called 'Scratch'. And indeed, it is quite similar, especially if you look at the individual blocks one by one:
+
+<ImgCaptioned
+  id="expression-blocks"
+  src="/images/content/expression-blocks.svg"
+  alt="All Expression Blocks one by one"
+  width="362px"
+>
+All different expression types imagined as LEGO bricks, one by one.
+</ImgCaptioned>
+
+And I think this trick is very effective at creating intuition for types, so I'm using it here. You can clearly see how a `circle` expression could not fit cleanly into a `moveTo` expression, but into an `outlined` expression.
+
+So, going back to our original example: If we remove 'filled', we plug `rectangle 50 30` into a `moveTo`, which can't handle that. `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`. But `moveTo` can't handle moving Stencils.
+
+<ImgCaptioned
+  id="expression-blocks-dont-fit"
+  src="/images/content/expression-blocks-dont-fit.svg"
+  alt="Expression Blocks that don't fit"
+  width="324px"
+>
+A type error in our analogy.
+</ImgCaptioned>
+
+Without type checking, we have to
+
+* throw an error ("exception") at runtime, when `moveTo` is faced with something it doesn't expect or
+* let `moveTo` ignore anything that's not a `Picture`, so act like the identity function in those cases.
+
+In the case of browsers - due to having to be as error-forgiving as possible - they went with the second option.
+
+* You can create HTML `tr` tags anywhere, even though they're ment to be used in `table` or `tbody`.
+* You can apply the CSS property `flex-grow` to any HTML element, whether it's a child of a `display: flex` (flexbox) element, or not.
+* You can apply the CSS property `position: sticky` on a `tr` tag, but it won't do anything.
+
+But if all the browser is doing is _nothing_, then you're left wondering why your code doesn't have any effect!
+
+The above list is by no means exhaustive. There's lots and lots of examples and exceptions about when certain elements, attributes or CSS styles work and it's hard to know about all edge cases.
+
+While Html and Css are declarative, they're not typed. The declarative-ness is awesome: You can take some HTML and its associated styling and plug it somewhere else!
+But it might not be styled as you expected, because you missed a property on a wrapping element.
+
+Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scrating-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
+
+# One more thing
+
+Usually, when we're writing functional programs, we don't use tools that are as visual as these LEGO- or Scratch-like blocks.
+But when you're used to reading type declarations, you'll see that the same information can be obtained:
 
 ```elm
 -- read ':' as 'has type'
@@ -222,13 +267,7 @@ outlined "red" : Stencil -> Picture
 moved 100 100  : Picture -> Picture
 ```
 
-In the end we force our expression-based code examples to have type `Picture`, so we never accidentally try to render a `rectangle 50 30` without choosing a color first.
-
-I think this is a crucial piece to the successful-declarative-APIs-puzzle. For example:
-Html and Css is are declarative, but not typed. The declarative-ness is awesome: You can take some html and it's associated styling and plug it somewhere else!
-But it might not be styled as you expected, because you need the wrapping element to have a certain property like `display: flex` or `grid-template-columns: [...]`.
-
-Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scrating-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
+Types are therefore not only a tool for preventing mistakes, but also a documentation tool for discovering the previously hidden 'rules of the declarative APIs game'.
 
 # Going further
 
