@@ -350,12 +350,14 @@ markdown attributes block =
                         else
                             attrs
                 in
-                img
-                    (src imageInfo.src
-                        :: alt imageInfo.alt
-                        :: addSizeProps (addTitle attributes)
-                    )
-                    []
+                a [ href imageInfo.src ]
+                    [ img
+                        (src imageInfo.src
+                            :: alt imageInfo.alt
+                            :: addSizeProps (addTitle attributes)
+                        )
+                        []
+                    ]
 
         Scaffolded.UnorderedList { items } ->
             ul

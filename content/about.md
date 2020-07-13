@@ -7,7 +7,7 @@ type: page
 
 Hi, I’m Philipp.
 
-I’m passionate about user interfaces and functional programming
+I’m passionate about user interfaces and functional programming.
 
 This blog is an attempt at sharing the research work I’m trying to create around graphics APIs, rethought from the bottom up in a purely functional way.
 
@@ -18,4 +18,4 @@ If you want to get notified about new blog posts, follow me on twitter or use th
 Wondering about the technology behind this blog? Read [the release post]!
 
 [@matheusdev23]: https://twitter.com/matheusdev23
-[the release post]: building-a-blog-with-elm-pages
+[the release post]: building-this-blog

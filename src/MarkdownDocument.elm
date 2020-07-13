@@ -55,8 +55,8 @@ customHtmlRenderer =
     Scaffolded.toRenderer
         { renderHtml =
             Markdown.Html.oneOf
-                [ liftRendererPlain (anythingCaptioned "video" [ Attr.controls True ])
-                , liftRendererPlain (anythingCaptioned "img" [])
+                [ liftRendererPlain imgCaptioned
+                , liftRendererPlain videoCaptioned
                 , liftRendererPlain markdownEl
                 , liftRendererPlain removeElement
                 , liftRendererPlain infoElement
@@ -139,19 +139,61 @@ markdownEl =
         |> withOptionalIdAttribute
 
 
-anythingCaptioned : String -> List (Html.Attribute msg) -> Markdown.Html.Renderer (List (Html msg) -> Html msg)
-anythingCaptioned tagName attributes =
-    Markdown.Html.tag (tagName ++ "captioned")
+imgCaptioned : Markdown.Html.Renderer (List (Html msg) -> Html msg)
+imgCaptioned =
+    Markdown.Html.tag "imgcaptioned"
+        (\src alt shouldLink maybeWidth idAttrs children ->
+            View.figureWithCaption idAttrs
+                { figure =
+                    \{ classes } ->
+                        let
+                            addLink =
+                                if shouldLink then
+                                    Html.a [ Attr.href src ]
+                                        << List.singleton
+
+                                else
+                                    identity
+                        in
+                        addLink
+                            (Html.img
+                                ([ Attr.class classes
+                                 , Attr.src src
+                                 , Attr.alt alt
+                                 ]
+                                    ++ (case maybeWidth of
+                                            Just width ->
+                                                [ Attr.style "width" width ]
+
+                                            Nothing ->
+                                                []
+                                       )
+                                )
+                                []
+                            )
+                , caption = children
+                }
+        )
+        |> Markdown.Html.withAttribute "src"
+        |> Markdown.Html.withAttribute "alt"
+        |> withBooleanAttribute "link"
+        |> Markdown.Html.withOptionalAttribute "width"
+        |> withOptionalIdAttribute
+
+
+videoCaptioned : Markdown.Html.Renderer (List (Html msg) -> Html msg)
+videoCaptioned =
+    Markdown.Html.tag "videocaptioned"
         (\src alt shouldLoop maybeWidth idAttrs children ->
             View.figureWithCaption idAttrs
                 { figure =
                     \{ classes } ->
-                        Html.node tagName
-                            ((Attr.class classes
-                                :: Attr.src src
-                                :: Attr.alt alt
-                                :: attributes
-                             )
+                        Html.video
+                            ([ Attr.class classes
+                             , Attr.src src
+                             , Attr.alt alt
+                             , Attr.controls True
+                             ]
                                 ++ (if shouldLoop then
                                         [ Attr.loop True ]
 
