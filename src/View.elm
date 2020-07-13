@@ -248,15 +248,7 @@ decorateArticle :
     -> List (Html msg)
 decorateArticle { path, metadata, content } =
     List.concat
-        [ [ img
-                [ class "desktop:mt-6"
-                , src (ImagePath.toString metadata.image)
-
-                -- TODO We don't want generic alt texts. How about defining the alt-text in the post?
-                , alt "Post cover photo"
-                ]
-                []
-          , date [ "mt-5 mb-3" ] metadata.published
+        [ [ date [ "mt-5 mb-3" ] metadata.published
           , h1 [ class "font-title text-4xl leading-tight text-gruv-orange-d text-center font-semibold" ]
                 [ text metadata.title ]
           ]
@@ -321,7 +313,7 @@ markdown attributes block =
             text content
 
         Scaffolded.CodeSpan content ->
-            code (class "text-gruv-orange-d text-base-sm" :: attributes) [ text content ]
+            code (class "text-gruv-orange-d text-base-sm whitespace-no-wrap" :: attributes) [ text content ]
 
         Scaffolded.Strong children ->
             strong attributes children
@@ -367,7 +359,7 @@ markdown attributes block =
 
         Scaffolded.UnorderedList { items } ->
             ul
-                (class "pl-8 pr-3 mt-6 mb-2 list-outside list-disc"
+                (class "pl-8 pr-3 mt-4 mb-2 list-outside list-disc"
                     :: attributes
                 )
                 (items
@@ -403,7 +395,7 @@ markdown attributes block =
 
         Scaffolded.OrderedList { startingIndex, items } ->
             ol
-                (class "pl-8 pr-3 mt-6 mb-2 list-outside list-decimal"
+                (class "pl-8 pr-3 mt-4 mb-2 list-outside list-decimal"
                     :: start startingIndex
                     :: attributes
                 )
