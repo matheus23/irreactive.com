@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "Improving Declarative APIs for Graphics with Types",
   "description": "Declarative APIs are the future. Types make them much easier and fun to work with. Read more to get an intuition for types in this usecase!",
-  "image": "/images/article-covers/functional-graphics.png",
+  "image": "images/article-covers/functional-graphics.jpg",
   "draft": false,
   "published": "2020-07-17",
 }

@@ -4,7 +4,7 @@
   "title": "Why you should care about User Interface Development",
   "description": "Or: My Motivation for Creating Human Computer Interfaces",
   "image": "images/article-covers/fittslist.png",
-  "draft": false,
+  "draft": true,
   "published": "2019-11-21",
 }
 ---
