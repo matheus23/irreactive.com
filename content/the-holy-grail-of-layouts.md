@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "The Holy Grail of Layouts",
   "description": "A draft. (TODO CHANGE THIS)",
-  "image": "images/article-covers/fittslist.png",
+  "image": "images/the-holy-grail-of-layouts/holy-grail-layout.png",
   "draft": true,
   "published": "2019-11-21",
 }

@@ -11,7 +11,7 @@
 
 Is it a meme that every tech person's blog gets a 'how it was built' introduction? Well, I don't really care. I haven't gotten sick of them, yet. I bet there's some pretty interesting one's I've read.
 
-# What this looks like
+# The looks
 
 First of all, I want to say that I've recently (about a year ago) gotten very interested in designing user interfaces before building them. Why do this? Well, when you're using design tools like Figma, Sketch, Adobe XD, Photoshop, etc. you can iterate *very quickly*. I personally work with Figma.
 
@@ -59,7 +59,7 @@ This blog's color palette is based (almost exclusively) on gruvbox, which is a p
 The 'gruvbox' color palette used for this blog. I've created a [figma community file](https://www.figma.com/community/file/840895380520234275), so you can use it in your figma designs, if you want to!
 </ImgCaptioned>
 
-# What happens behind the scenes
+# The works
 
 This site was built in elm. It's the language I enjoy writing code in most. An essential piece of the puzzle is [elm-pages](https://elm-pages.com/) by Dillon Kearns: It allows my website to be rendered on the server side into neat html pages, which are 'hydrated' once the client's javascript is loaded.
 

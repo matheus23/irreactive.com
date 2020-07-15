@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "Monoids - The Essence of Composition",
   "description": "A draft. (TODO CHANGE THIS)",
-  "image": "images/article-covers/fittslist.png",
+  "image": "images/article-covers/hello.jpg",
   "draft": true,
   "published": "2019-11-21",
 }

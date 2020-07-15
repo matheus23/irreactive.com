@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "Improving Declarative APIs for Graphics with Types",
   "description": "Declarative APIs are the future. Types make them much easier and fun to work with. Read more to get an intuition for types in this usecase!",
-  "image": "images/article-covers/functional-graphics.jpg",
+  "image": "images/declarative-apis/thumbnail.jpg",
   "draft": false,
   "published": "2020-07-17",
 }
@@ -119,7 +119,7 @@ The reason we get a type error in some cases is that we plugged two expressions 
 
 <VideoCaptioned
   id="expression-block-shapes"
-  src="/images/content/expression-block-shapes.webm"
+  src="/declarative-apis/expression-block-shapes.webm"
   alt="Expression Block Shapes Transformation"
   loop=""
 >

@@ -8,6 +8,7 @@
     "serve": "yarn build && http-server ./dist -a localhost -p 3000 -c-1",
     "build": "NODE_ENV=production yarn build:styles && elm-pages build",
     "docs": "yarn elm-doc-preview -p 8080",
+    "up-deps": "yarn upgrade --latest && elm-json upgrade --unsafe --yes",
     "build:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css",
     "watch:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css --watch"
   },
@@ -16,7 +17,7 @@
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^2.2.0",
     "cssnano": "^4.1.10",
-    "highlight.js": "^9.15.10",
+    "highlight.js": "^10.1.1",
     "node-sass": "^4.12.0",
     "sass": "^1.23.7",
     "sharp": "^0.25.2",
@@ -24,9 +25,10 @@
   },
   "devDependencies": {
     "elm": "0.19.1",
-    "elm-doc-preview": "3.0.4",
-    "elm-pages": "1.4.0",
-    "http-server": "0.11.1",
+    "elm-doc-preview": "5.0.3",
+    "elm-json": "^0.2.7",
+    "elm-pages": "1.4.2",
+    "http-server": "0.12.3",
     "postcss-cli": "^7.1.1"
   }
 }

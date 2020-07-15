@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "Markdown Styles",
   "description": "A test file with lots of different markdown features for testing styling.",
-  "image": "images/article-covers/typography.jpg",
+  "image": "images/markdown-styles/thumbnail.jpg",
   "draft": true,
   "published": "2020-05-14",
 }

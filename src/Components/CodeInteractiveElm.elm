@@ -1,7 +1,7 @@
 module Components.CodeInteractiveElm exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class)
+import Html.Attributes exposing (class)
 import Html.Events as Events
 import Json.Decode as Decode
 import Language.Common as Common
