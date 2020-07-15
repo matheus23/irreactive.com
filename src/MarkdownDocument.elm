@@ -149,7 +149,13 @@ imgCaptioned =
                         let
                             addLink =
                                 if shouldLink then
-                                    Html.a [ Attr.href src ]
+                                    Html.a
+                                        [ Attr.href src
+
+                                        -- TODO Don't open images in new tab, when fixed:
+                                        -- https://github.com/dillonkearns/elm-pages/issues/105
+                                        , Attr.target "_blank"
+                                        ]
                                         << List.singleton
 
                                 else
