@@ -51,11 +51,11 @@ interpretAlg expression =
             else
                 e
 
-        Filled _ _ color _ e _ ->
+        Filled active _ _ color _ e _ ->
             Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
                 [ e ]
 
-        Outlined _ _ color _ e _ ->
+        Outlined active _ _ color _ e _ ->
             Svg.g
                 [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
                 , SvgPx.strokeWidth 8
@@ -63,27 +63,119 @@ interpretAlg expression =
                 ]
                 [ e ]
 
-        Circle _ _ r _ ->
-            Svg.circle
-                [ SvgPx.r (toFloat r) ]
-                []
+        Circle active _ _ r _ ->
+            if active then
+                Svg.circle
+                    [ SvgPx.r (toFloat r) ]
+                    []
 
-        Rectangle _ _ wInt _ hInt _ ->
-            let
-                w =
-                    toFloat wInt
+            else
+                Svg.g [] []
 
-                h =
-                    toFloat hInt
-            in
-            Svg.rect
-                [ SvgPx.width w
-                , SvgPx.height h
-                , SvgPx.x (-w / 2)
-                , SvgPx.y (-h / 2)
-                , SvgA.transform [ Svg.Translate (w / 2) (h / 2) ]
+        Rectangle active _ _ wInt _ hInt _ ->
+            if active then
+                let
+                    w =
+                        toFloat wInt
+
+                    h =
+                        toFloat hInt
+                in
+                Svg.rect
+                    [ SvgPx.width w
+                    , SvgPx.height h
+                    , SvgPx.x (-w / 2)
+                    , SvgPx.y (-h / 2)
+                    , SvgA.transform [ Svg.Translate (w / 2) (h / 2) ]
+                    ]
+                    []
+
+            else
+                Svg.g [] []
+
+
+type Type
+    = Stencil
+    | Picture
+
+
+type Context
+    = Top
+    | InCallTo String Context
+
+
+type alias TypeError =
+    { expectedType : Type
+    , actualType : Type
+    , context : Context
+    }
+
+
+typeCheck : Expression -> List TypeError
+typeCheck expression =
+    cata typeCheckAlg expression Top Picture
+
+
+typeCheckAlg : ExpressionF (Context -> Type -> List TypeError) -> Context -> Type -> List TypeError
+typeCheckAlg constructor context expectedType =
+    let
+        checkType typeOfThis =
+            if typeOfThis /= expectedType then
+                [ { expectedType = expectedType
+                  , actualType = typeOfThis
+                  , context = context
+                  }
                 ]
+
+            else
                 []
+    in
+    case constructor of
+        Superimposed active _ _ expressionList _ ->
+            if active then
+                List.concatMap
+                    (\expectType ->
+                        expectType
+                            (InCallTo "list argument"
+                                (InCallTo "superimposed" context)
+                            )
+                            expectedType
+                    )
+                    (expressionListToList expressionList)
+                    ++ checkType Picture
+
+            else
+                []
+
+        Moved active _ _ x _ y _ e _ ->
+            if active then
+                e (InCallTo "moved" context) Picture
+                    ++ checkType Picture
+
+            else
+                e context expectedType
+
+        Filled active _ _ col _ shape _ ->
+            if active then
+                shape (InCallTo "filled" context) Stencil
+                    ++ checkType Picture
+
+            else
+                shape context expectedType
+
+        Outlined active _ _ col _ shape _ ->
+            if active then
+                shape (InCallTo "outlined" context) Stencil
+                    ++ checkType Picture
+
+            else
+                shape context expectedType
+
+        Circle _ _ _ r _ ->
+            checkType Stencil
+
+        Rectangle _ _ _ w _ h _ ->
+            checkType Stencil
 
 
 
@@ -118,16 +210,7 @@ toggleExpression togglePath currentPath constructor =
         toggleActive active =
             xor active (togglePath == currentPath)
     in
-    Expression <|
-        case constructor of
-            Superimposed active t0 t1 list t2 ->
-                Superimposed (toggleActive active) t0 t1 list t2
-
-            Moved active t0 t1 x t2 y t3 e t4 ->
-                Moved (toggleActive active) t0 t1 x t2 y t3 e t4
-
-            _ ->
-                constructor
+    Expression (mapActive toggleActive constructor)
 
 
 
@@ -142,12 +225,63 @@ classes list =
 view : Model -> Html Msg
 view model =
     div [ class "mt-4" ]
-        [ svg
-            [ attribute "class" "bg-gruv-gray-10"
-            , SvgA.width (Svg.Percent 100)
-            , SvgA.viewBox 0 0 500 200
-            ]
-            [ interpret model.expression ]
+        [ div [ class "bg-gruv-gray-10 relative" ]
+            (case typeCheck model.expression of
+                [] ->
+                    [ svg
+                        [ SvgA.width (Svg.Percent 100)
+                        , SvgA.viewBox 0 0 500 200
+                        ]
+                        [ interpret model.expression ]
+                    ]
+
+                errors ->
+                    [ svg
+                        [ SvgA.width (Svg.Percent 100)
+                        , SvgA.viewBox 0 0 500 200
+                        ]
+                        []
+                    , div
+                        [ classes
+                            [ "absolute w-full h-full top-0"
+                            , "bg-gruv-gray-0 opacity-50"
+                            , "text-gruv-gray-12 font-code"
+                            , "p-4 whitespace-pre"
+                            ]
+                        ]
+                        (let
+                            contextDescription context =
+                                case context of
+                                    Top ->
+                                        "at the top level of the expression"
+
+                                    InCallTo sth _ ->
+                                        "in a " ++ sth
+
+                            typeToString typ =
+                                case typ of
+                                    Picture ->
+                                        "Picture"
+
+                                    Stencil ->
+                                        "Stencil"
+
+                            renderError { expectedType, actualType, context } =
+                                [ text "Expected type: "
+                                , text (typeToString expectedType)
+                                , text "\n"
+                                , text "  Actual type: "
+                                , text (typeToString actualType)
+                                , text "\n"
+                                , text (contextDescription context)
+                                , text "\n\n"
+                                ]
+                         in
+                         text "The code has a type error:\n"
+                            :: List.concatMap renderError errors
+                        )
+                    ]
+            )
         , pre
             [ classes
                 [ "py-6 px-8"
@@ -210,47 +344,55 @@ viewExpressionAlg path expression parentActive =
                 , [ viewOther (active && parentActive) t4 ]
                 ]
 
-        Filled t0 t1 col t2 shape t3 ->
+        Filled active t0 t1 col t2 shape t3 ->
             List.concat
-                [ [ viewOther parentActive t0
-                  , viewFunctionName path parentActive "filled"
+                [ [ viewOther (active && parentActive) t0
+                  , viewFunctionName path (active && parentActive) "filled"
                   , text t1
-                  , viewColorLiteral parentActive col
+                  , viewColorLiteral (active && parentActive) col
                   , text t2
                   ]
                 , shape parentActive
-                , [ viewOther parentActive t3 ]
+                , [ viewOther (active && parentActive) t3 ]
                 ]
 
-        Outlined t0 t1 col t2 shape t3 ->
+        Outlined active t0 t1 col t2 shape t3 ->
             List.concat
-                [ [ viewOther parentActive t0
-                  , viewFunctionName path parentActive "outlined"
+                [ [ viewOther (active && parentActive) t0
+                  , viewFunctionName path (active && parentActive) "outlined"
                   , text t1
-                  , viewColorLiteral parentActive col
+                  , viewColorLiteral (active && parentActive) col
                   , text t2
                   ]
                 , shape parentActive
-                , [ viewOther parentActive t3 ]
+                , [ viewOther (active && parentActive) t3 ]
                 ]
 
-        Circle t0 t1 r t2 ->
-            [ viewOther parentActive t0
-            , viewFunctionName path parentActive "circle"
-            , text t1
-            , viewIntLiteral parentActive r
-            , viewOther parentActive t2
-            ]
+        Circle active t0 t1 r t2 ->
+            if active then
+                [ viewOther parentActive t0
+                , viewFunctionName path parentActive "circle"
+                , text t1
+                , viewIntLiteral parentActive r
+                , viewOther parentActive t2
+                ]
 
-        Rectangle t0 t1 w t2 h t3 ->
-            [ viewOther parentActive t0
-            , viewFunctionName path parentActive "rectangle"
-            , text t1
-            , viewIntLiteral parentActive w
-            , text t2
-            , viewIntLiteral parentActive h
-            , viewOther parentActive t3
-            ]
+            else
+                [ viewFunctionName path parentActive "emptyStencil" ]
+
+        Rectangle active t0 t1 w t2 h t3 ->
+            if active then
+                [ viewOther parentActive t0
+                , viewFunctionName path parentActive "rectangle"
+                , text t1
+                , viewIntLiteral parentActive w
+                , text t2
+                , viewIntLiteral parentActive h
+                , viewOther parentActive t3
+                ]
+
+            else
+                [ viewFunctionName path parentActive "emptyStencil" ]
 
 
 viewFunctionName : List Int -> Bool -> String -> Html Msg
