@@ -3,7 +3,7 @@ module View exposing (..)
 import App exposing (githubRepo, siteName)
 import Date exposing (Date)
 import Html exposing (..)
-import Html.Attributes exposing (alt, attribute, checked, class, controls, disabled, for, height, href, id, method, name, placeholder, property, src, start, style, title, type_, value, width)
+import Html.Attributes exposing (alt, attribute, checked, class, controls, disabled, for, height, href, id, method, name, placeholder, src, start, style, title, type_, value, width)
 import Html.Events as Events
 import Json.Encode as Encode
 import Markdown.Block as Markdown
