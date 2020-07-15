@@ -63,6 +63,9 @@ findHighlighter string =
         "js" ->
             Just SyntaxHighlight.javascript
 
+        "html" ->
+            Just SyntaxHighlight.xml
+
         _ ->
             Nothing
 
