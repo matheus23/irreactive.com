@@ -110,6 +110,8 @@ Again, this is an interactive code example. You can click on things to toggle th
 
 What's different to before is that no other elements on the screen were affected by these changes. Every change has local effects.
 
+The common term for _expression-based_ is _declarative_, but I find _expression-based_ just a little more descriptive. We'll stick with the shorter _declarative_ afterwards, though.
+
 
 # Types and Declarative APIs
 
