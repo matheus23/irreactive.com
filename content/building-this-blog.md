@@ -83,7 +83,9 @@ so you can use it in your figma designs, if you want to!
 This `ImgCaptioned` is then interpreted by my elm code:
 
 ```elm
-imgCaptioned : Markdown.Html.Renderer (List (Html msg) -> Html msg)
+imgCaptioned :
+    Markdown.Html.Renderer
+        (List (Html msg) -> Html msg)
 imgCaptioned =
     Markdown.Html.tag "imgcaptioned"
         (\src alt maybeWidth idAttrs children ->
