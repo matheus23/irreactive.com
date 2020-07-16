@@ -106,11 +106,13 @@ Again, this is an interactive code example. You can click on things to toggle th
 
 * If you disable a `moved`, whatever was wrapped with that `moved` is somewhere else.
 * If you change a color, whatever was wrapped with that `filled` or `outlined` call has another color.
-* If you remove an element from the list of elements in `superimposed`, it'll disappear from the image.
+* If you disable an element from the list of elements in `superimposed`, it'll disappear from the image.
 
 What's different to before is that no other elements on the screen were affected by these changes. Every change has local effects.
 
+<info title="Info: Terminology">
 The common term for _expression-based_ is _declarative_, but I find _expression-based_ just a little more descriptive. We'll stick with the shorter _declarative_ afterwards, though.
+</info>
 
 
 # Types and Declarative APIs
@@ -194,7 +196,7 @@ Types are therefore not only a tool for preventing mistakes, but also a document
 
 # Going further
 
-The points in this blog post go beyond just 'graphics APIs'. Expression-based programming with types can be applied widely. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs and especially user interface programming, so I want to take this principle further:
+The points in this blog post go beyond just _graphics_ APIs. Expression-based programming with types can be applied widely. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs and especially user interface programming, so I want to take this principle further:
 
 * What about responsive pictures? Layout? Tables? Grids?
 * What about interaction? Clicking things, click regions, focus? State?

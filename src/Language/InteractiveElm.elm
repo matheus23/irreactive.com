@@ -34,7 +34,10 @@ type alias ExpressionList a =
 
 
 type alias ListElement a =
-    { prefix : String, expression : a }
+    { prefix : String
+    , expression : a
+    , active : Bool
+    }
 
 
 
@@ -89,9 +92,10 @@ mapExpressionList : (a -> b) -> ExpressionList a -> ExpressionList b
 mapExpressionList f { elements, tail } =
     { elements =
         List.map
-            (\{ prefix, expression } ->
+            (\{ prefix, expression, active } ->
                 { prefix = prefix
                 , expression = f expression
+                , active = active
                 }
             )
             elements
@@ -103,9 +107,10 @@ indexedMapExpressionList : (Int -> a -> b) -> ExpressionList a -> ExpressionList
 indexedMapExpressionList f { elements, tail } =
     { elements =
         List.indexedMap
-            (\index { prefix, expression } ->
+            (\index { prefix, expression, active } ->
                 { prefix = prefix
                 , expression = f index expression
+                , active = active
                 }
             )
             elements
@@ -115,7 +120,15 @@ indexedMapExpressionList f { elements, tail } =
 
 expressionListToList : ExpressionList a -> List a
 expressionListToList { elements } =
-    List.map (\{ expression } -> expression) elements
+    List.concatMap
+        (\{ expression, active } ->
+            if active then
+                [ expression ]
+
+            else
+                []
+        )
+        elements
 
 
 cata : (ExpressionF a -> a) -> Expression -> a
@@ -322,6 +335,7 @@ parseElement index =
                 tokenAndWhitespace ","
            )
         |= parseExpression []
+        |= succeed True
         |> inContext ("the " ++ String.fromInt index ++ ". list element")
 
 

@@ -22,6 +22,7 @@ type alias Model =
 
 type Msg
     = ToggleExpression (List Int)
+    | ToggleListElement (List Int) Int
 
 
 interpret : Expression -> Svg msg
@@ -34,8 +35,8 @@ interpretAlg expression =
     case expression of
         Superimposed active _ _ expressions _ ->
             if active then
-                expressions.elements
-                    |> List.map .expression
+                expressions
+                    |> expressionListToList
                     |> List.reverse
                     |> Svg.g []
 
@@ -203,6 +204,12 @@ update msg model =
                     indexedCata (toggleExpression path) [] model.expression
             }
 
+        ToggleListElement path index ->
+            { model
+                | expression =
+                    indexedCata (toggleListElement path index) [] model.expression
+            }
+
 
 toggleExpression : List Int -> List Int -> ExpressionF Expression -> Expression
 toggleExpression togglePath currentPath constructor =
@@ -211,6 +218,35 @@ toggleExpression togglePath currentPath constructor =
             xor active (togglePath == currentPath)
     in
     Expression (mapActive toggleActive constructor)
+
+
+toggleListElement : List Int -> Int -> List Int -> ExpressionF Expression -> Expression
+toggleListElement togglePath toggleIndex currentPath constructor =
+    if togglePath == currentPath then
+        case constructor of
+            Superimposed active t0 t1 expressionList t2 ->
+                Expression
+                    (Superimposed active
+                        t0
+                        t1
+                        { expressionList
+                            | elements =
+                                List.indexedMap
+                                    (\currentIndex listElement ->
+                                        { listElement
+                                            | active = xor listElement.active (currentIndex == toggleIndex)
+                                        }
+                                    )
+                                    expressionList.elements
+                        }
+                        t2
+                    )
+
+            _ ->
+                Expression constructor
+
+    else
+        Expression constructor
 
 
 
@@ -296,20 +332,6 @@ view model =
         ]
 
 
-reverseExpressionList : ExpressionList a -> ExpressionList a
-reverseExpressionList list =
-    let
-        prefixes =
-            List.map .prefix list.elements
-
-        expressions =
-            List.map .expression list.elements
-    in
-    { list
-        | elements = List.map2 ListElement prefixes (List.reverse expressions)
-    }
-
-
 viewExpression : Expression -> List (Html Msg)
 viewExpression expression =
     indexedCata viewExpressionAlg [] expression True
@@ -324,9 +346,7 @@ viewExpressionAlg path expression parentActive =
                   , viewFunctionName path (active && parentActive) "superimposed"
                   , text t1
                   ]
-                , list
-                    -- |> reverseExpressionList
-                    |> viewExpressionList (active && parentActive)
+                , viewExpressionList (active && parentActive) path list
                 , [ viewOther (active && parentActive) t2 ]
                 ]
 
@@ -444,12 +464,67 @@ viewColorLiteral active col =
         [ text ("\"" ++ Common.colorName col ++ "\"") ]
 
 
-viewExpressionList : Bool -> ExpressionList (Bool -> List (Html Msg)) -> List (Html Msg)
-viewExpressionList active { elements, tail } =
-    List.concatMap (viewListItem active) elements
+viewExpressionList : Bool -> List Int -> ExpressionList (Bool -> List (Html Msg)) -> List (Html Msg)
+viewExpressionList active path { elements, tail } =
+    (List.foldl (viewListItem active path)
+        { prefixedActive = False, index = 0, items = [] }
+        elements
+    ).items
         ++ [ viewOther active tail ]
 
 
-viewListItem : Bool -> { prefix : String, expression : Bool -> List (Html Msg) } -> List (Html Msg)
-viewListItem active { prefix, expression } =
-    viewOther active prefix :: expression active
+viewListItem :
+    Bool
+    -> List Int
+    -> ListElement (Bool -> List (Html Msg))
+    -> { prefixedActive : Bool, index : Int, items : List (Html Msg) }
+    -> { prefixedActive : Bool, index : Int, items : List (Html Msg) }
+viewListItem parentActive path { prefix, expression, active } { prefixedActive, index, items } =
+    { prefixedActive = active || prefixedActive
+    , index = index + 1
+    , items =
+        List.concat
+            [ items
+            , [ viewListSyntax path
+                    index
+                    { recieveEvents = parentActive
+                    , renderActive =
+                        parentActive
+                            && ((if prefixedActive then
+                                    active
+
+                                 else
+                                    False
+                                )
+                                    || index
+                                    == 0
+                               )
+                    }
+                    prefix
+              ]
+            , expression (parentActive && active)
+            ]
+    }
+
+
+viewListSyntax : List Int -> Int -> { recieveEvents : Bool, renderActive : Bool } -> String -> Html Msg
+viewListSyntax path index { recieveEvents, renderActive } content =
+    span
+        (List.concat
+            [ [ classes
+                    [ "hover:bg-gruv-gray-3 cursor-pointer"
+                    , if renderActive then
+                        ""
+
+                      else
+                        "text-gruv-gray-6"
+                    ]
+              ]
+            , if recieveEvents then
+                [ Events.onClick (ToggleListElement path index) ]
+
+              else
+                []
+            ]
+        )
+        [ text content ]
