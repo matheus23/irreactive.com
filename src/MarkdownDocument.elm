@@ -17,6 +17,8 @@ import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponents
 import Maybe.Extra as Maybe
 import Metadata exposing (Metadata)
+import Pages exposing (images)
+import Pages.ImagePath as ImagePath
 import Result.Extra as Result
 import String.Extra as String
 import View
@@ -59,6 +61,7 @@ customHtmlRenderer =
                 , liftRendererPlain videoCaptioned
                 , liftRendererPlain markdownEl
                 , liftRendererPlain removeElement
+                , liftRendererPlain mePicture
                 , liftRendererPlain infoElement
                 , liftRendererPlain marginParagraph
                 , liftRendererWithModel carousel
@@ -137,6 +140,22 @@ markdownEl =
             Html.div (Attr.class "markdown" :: idAttrs) children
         )
         |> withOptionalIdAttribute
+
+
+mePicture : Markdown.Html.Renderer (List (Html msg) -> Html msg)
+mePicture =
+    Markdown.Html.tag "mepicture"
+        (\_ ->
+            Html.img
+                [ Attr.class "rounded-lg my-6 mx-auto"
+                , Attr.width 200
+                , Attr.height 200
+                , Attr.src (images.me |> ImagePath.toString)
+                , Attr.title "That's me!"
+                , Attr.alt "profile picture"
+                ]
+                []
+        )
 
 
 imgCaptioned : Markdown.Html.Renderer (List (Html msg) -> Html msg)
