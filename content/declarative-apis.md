@@ -28,7 +28,7 @@ Were you surprised by what happened when you turned off some lines? Now imagine 
 
 * No shapes appear unless there is a call to `fill` or `stroke`, even if there are calls to `circle` or `rectangle`.
 * What's the default color if there was no call to `setColor`? Let's hope it's not transparent.
-* Shapes are placed at the position of the last `moveTo` call, if there hasn't been a `moveTo` call in between.
+* Shapes are placed at the position of the last `moveTo` call if there hasn't been a `moveTo` call in between.
 * What happens if you draw two shapes at the same position? Which one comes out at the top?
 
 The order and existence of statements plays a huge role in the outcome, but you can delete and re-order statements without getting an error.
@@ -170,7 +170,7 @@ But it might not be styled as you expected, because you missed a property on a w
 
 Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scrating-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
 
-**Declarative APIs are only half as effective, if you're not using types.**
+**Declarative APIs are only half as effective if you're not using types.**
 
 # One more thing
 
