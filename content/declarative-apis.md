@@ -119,7 +119,7 @@ The reason we get a type error in some cases is that we plugged two expressions 
 
 <VideoCaptioned
   id="expression-block-shapes"
-  src="/declarative-apis/expression-block-shapes.webm"
+  src="declarative-apis/expression-block-shapes.webm"
   alt="Expression Block Shapes Transformation"
   loop=""
 >
@@ -130,7 +130,7 @@ This might remind you of an educational programming platform called 'Scratch'. A
 
 <ImgCaptioned
   id="expression-blocks"
-  src="/images/content/expression-blocks.svg"
+  src="images/declarative-apis/expression-blocks.svg"
   alt="All Expression Blocks one by one"
   width="362px"
 >
@@ -143,7 +143,7 @@ So, going back to our original example: If we disable `filled`, we plug `rectang
 
 <ImgCaptioned
   id="expression-blocks-dont-fit"
-  src="/images/content/expression-blocks-dont-fit.svg"
+  src="images/declarative-apis/expression-blocks-dont-fit.svg"
   alt="Expression Blocks that don't fit"
   width="324px"
 >

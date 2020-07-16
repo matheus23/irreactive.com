@@ -17,7 +17,7 @@ First of all, I want to say that I've recently (about a year ago) gotten very in
 
 <ImgCaptioned
   id="figma-screenshot"
-  src="/images/building-this-blog/figma-screenshot.png"
+  src="images/building-this-blog/figma-screenshot.png"
   title="A Screenshot this Blog's Figma File"
   alt="A Screenshot of this Blog's Figma File"
   link="true"
@@ -53,7 +53,7 @@ This blog's color palette is based (almost exclusively) on gruvbox, which is a p
   id="gruvbox-theme"
   title="A Figma Community File for ease of use of Gruvbox"
   alt="A Figma Community File for ease of use of Gruvbox"
-  src="/images/building-this-blog/gruvbox-palette.png"
+  src="images/building-this-blog/gruvbox-palette.png"
   link="true"
 >
 The 'gruvbox' color palette used for this blog. I've created a [figma community file](https://www.figma.com/community/file/840895380520234275), so you can use it in your figma designs, if you want to!
@@ -70,7 +70,7 @@ I'm writing the individual blog posts as markdown files. I'm using (also Dillon 
   id="gruvbox-theme"
   title="A Figma Community File for ease of use of Gruvbox"
   alt="A Figma Community File for ease of use of Gruvbox"
-  src="/images/building-this-blog/gruvbox-palette.png"
+  src="images/building-this-blog/gruvbox-palette.png"
   link="true"
 >
 The 'gruvbox' color palette used for this blog. I've
