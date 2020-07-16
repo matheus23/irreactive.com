@@ -165,37 +165,20 @@ imgCaptioned =
             View.figureWithCaption idAttrs
                 { figure =
                     \{ classes } ->
-                        let
-                            addLink =
-                                if shouldLink then
-                                    Html.a
-                                        [ Attr.href src
+                        View.image
+                            (Attr.class classes
+                                :: (case maybeWidth of
+                                        Just width ->
+                                            [ Attr.style "width" width ]
 
-                                        -- TODO Don't open images in new tab, when fixed:
-                                        -- https://github.com/dillonkearns/elm-pages/issues/105
-                                        , Attr.target "_blank"
-                                        ]
-                                        << List.singleton
-
-                                else
-                                    identity
-                        in
-                        addLink
-                            (Html.img
-                                ([ Attr.class classes
-                                 , Attr.src src
-                                 , Attr.alt alt
-                                 ]
-                                    ++ (case maybeWidth of
-                                            Just width ->
-                                                [ Attr.style "width" width ]
-
-                                            Nothing ->
-                                                []
-                                       )
-                                )
-                                []
+                                        Nothing ->
+                                            []
+                                   )
                             )
+                            { src = src
+                            , alt = alt
+                            , title = Nothing
+                            }
                 , caption = children
                 }
         )

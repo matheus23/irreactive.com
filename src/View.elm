@@ -3,13 +3,14 @@ module View exposing (..)
 import App exposing (githubRepo, siteName)
 import Date exposing (Date)
 import Html exposing (..)
-import Html.Attributes exposing (alt, attribute, checked, class, controls, disabled, for, height, href, id, method, name, placeholder, src, start, style, title, type_, value, width)
+import Html.Attributes exposing (alt, attribute, checked, class, controls, disabled, for, height, href, id, method, name, placeholder, src, start, style, target, title, type_, value, width)
 import Html.Events as Events
 import Json.Encode as Encode
+import List.Extra as List
 import Markdown.Block as Markdown
 import Markdown.Scaffolded as Scaffolded
 import Metadata
-import Pages exposing (images, pages)
+import Pages exposing (allImages, images, pages)
 import Pages.ImagePath as ImagePath
 import Pages.PagePath as PagePath exposing (PagePath)
 
@@ -325,39 +326,16 @@ markdown attributes block =
             link attributes info
 
         Scaffolded.Image imageInfo ->
-            if imageInfo.src |> String.endsWith ".webm" then
-                video
-                    [ src imageInfo.src
-                    , alt imageInfo.alt
-                    , controls True
-                    ]
-                    []
+            let
+                seemsLikeVideoPath path =
+                    (path |> String.endsWith ".webm")
+                        || (path |> String.endsWith ".mp4")
+            in
+            if seemsLikeVideoPath imageInfo.src then
+                video attributes imageInfo
 
             else
-                let
-                    addTitle attrs =
-                        imageInfo.title
-                            |> Maybe.map (\t -> title t :: attrs)
-                            |> Maybe.withDefault attrs
-
-                    addSizeProps attrs =
-                        if imageInfo.src == ImagePath.toString images.me then
-                            class "rounded-lg my-6 mx-auto"
-                                :: width 200
-                                :: height 200
-                                :: attrs
-
-                        else
-                            attrs
-                in
-                a [ href imageInfo.src ]
-                    [ img
-                        (src imageInfo.src
-                            :: alt imageInfo.alt
-                            :: addSizeProps (addTitle attributes)
-                        )
-                        []
-                    ]
+                image attributes imageInfo
 
         Scaffolded.UnorderedList { items } ->
             ul
@@ -455,6 +433,54 @@ link attributes info =
 paragraph : List (Attribute msg) -> List (Html msg) -> Html msg
 paragraph attributes children =
     p (class "mt-4 px-3" :: attributes) children
+
+
+video : List (Attribute msg) -> { alt : String, src : String, title : Maybe String } -> Html msg
+video attributes info =
+    Html.video
+        (src info.src
+            :: alt info.alt
+            :: controls True
+            :: attributes
+        )
+        []
+
+
+image : List (Attribute msg) -> { alt : String, src : String, title : Maybe String } -> Html msg
+image attributes info =
+    let
+        maybeTitle =
+            info.title
+                |> Maybe.map (title >> List.singleton)
+                |> Maybe.withDefault []
+
+        maybeSize =
+            allImages
+                |> List.find (\img -> ImagePath.toString img == info.src)
+                |> Maybe.andThen ImagePath.dimensions
+                |> Maybe.map
+                    (\dimensions ->
+                        [ width dimensions.width
+                        , height dimensions.height
+                        ]
+                    )
+                |> Maybe.withDefault []
+    in
+    -- TODO Don't open images in new tab, when fixed:
+    -- https://github.com/dillonkearns/elm-pages/issues/105
+    a [ target "_blank", href info.src ]
+        [ img
+            (List.concat
+                [ [ src info.src
+                  , alt info.alt
+                  ]
+                , maybeTitle
+                , maybeSize
+                , attributes
+                ]
+            )
+            []
+        ]
 
 
 
