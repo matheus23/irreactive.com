@@ -8,6 +8,7 @@
     "serve": "yarn build && http-server ./dist -a localhost -p 3000 -c-1",
     "build": "NODE_ENV=production yarn build:styles && elm-pages build",
     "docs": "yarn elm-doc-preview -p 8080",
+    "netlify:dev": "yarn build && yarn netlify dev",
     "up-deps": "yarn upgrade --latest && elm-json upgrade --unsafe --yes",
     "build:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css",
     "watch:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css --watch"
@@ -29,6 +30,7 @@
     "elm-json": "^0.2.7",
     "elm-pages": "1.4.2",
     "http-server": "0.12.3",
+    "netlify-cli": "^2.58.0",
     "postcss-cli": "^7.1.1"
   }
 }
