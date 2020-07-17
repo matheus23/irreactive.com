@@ -138,7 +138,7 @@ This might remind you of an educational programming platform called 'Scratch'. A
   alt="All Expression Blocks one by one"
   width="362px"
 >
-All different expression types imagined as Lego bricks, one by one.
+All different expression types imagined as Lego bricks, one by one. Round bricks are of type stencil, pointy bricks pictures and half-circle connectors are for lists.
 </ImgCaptioned>
 
 And I think this trick is very effective at creating intuition for types, so I'm using it here. You can clearly see how a `circle` expression could not fit cleanly into a `moveTo` expression, but into an `outlined` expression.
