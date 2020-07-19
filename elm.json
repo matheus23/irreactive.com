@@ -28,6 +28,7 @@
             "justinmimbs/date": "3.2.1",
             "lukewestby/elm-string-interpolate": "1.0.4",
             "matheus23/elm-markdown-transforms": "2.0.1",
+            "mdgriffith/elm-animator": "1.1.1",
             "mdgriffith/elm-markup": "3.0.1",
             "mdgriffith/elm-ui": "1.1.7",
             "mgold/elm-nonempty-list": "4.1.0",
@@ -43,6 +44,7 @@
             "elm/virtual-dom": "1.0.2",
             "elm-community/dict-extra": "2.4.0",
             "fredcy/elm-parseint": "2.0.1",
+            "ianmackenzie/elm-units": "2.6.0",
             "miniBill/elm-codec": "1.2.0",
             "tripokey/elm-fuzzy": "5.2.1",
             "zwilias/json-decode-exploration": "6.0.0"

@@ -1,5 +1,7 @@
 module View exposing (..)
 
+import Animator
+import Animator.Css
 import App exposing (githubRepo, siteName)
 import Date exposing (Date)
 import Html exposing (..)
@@ -233,6 +235,70 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
                 , style "color" "#49d27e"
                 ]
                 [ text "Thanks for subscribing!" ]
+            ]
+        ]
+
+
+gotEmailNotification : { state : Animator.Timeline Bool, onClickDismiss : msg } -> Html msg
+gotEmailNotification { state, onClickDismiss } =
+    Animator.Css.div state
+        [ Animator.Css.transform
+            (\active ->
+                Animator.Css.xy
+                    { x = 0
+                    , y =
+                        if active then
+                            0
+
+                        else
+                            250
+                    }
+            )
+        , Animator.Css.opacity
+            (\active ->
+                (if active then
+                    1
+
+                 else
+                    0
+                )
+                    |> Animator.at
+                    |> Animator.leaveLate 0.5
+            )
+        ]
+        [ class "fixed bottom-0 w-full z-50 pointer-events-none px-3" ]
+        [ div
+            [ classes
+                [ "font-main text-base text-gruv-gray-12"
+                , "max-w-notification mx-auto"
+                , "pointer-events-auto"
+                , "bg-gruv-gray-2 z-40"
+                , "p-4 rounded-t-lg shadow-lg"
+                ]
+            ]
+            [ div [ class "text-center" ]
+                [ text "Great to see you’re interested!" ]
+            , div [ class "flex flex-row mt-2" ]
+                [ img
+                    [ src (ImagePath.toString images.gotEmailIllustration)
+                    , width 120
+                    , height 120
+                    , style "width" "120px"
+                    , style "height" "120px"
+                    ]
+                    []
+                , span [ class "ml-1 my-auto" ]
+                    [ text "Check your inbox,\nI’ve sent you a link to confirm your subscription." ]
+                ]
+            , button
+                [ classes
+                    [ "font-code text-base-sm text-center text-gruv-gray-9"
+                    , "w-full rounded bg-gruv-gray-4 p-1"
+                    , "my-3"
+                    ]
+                , Events.onClick onClickDismiss
+                ]
+                [ text "Dismiss" ]
             ]
         ]
 

@@ -1,5 +1,7 @@
 module App exposing (..)
 
+import Animator
+import Animator.Css
 import Components.CodeInteractiveElm as CodeInteractiveElm
 import Components.CodeInteractiveJs as CodeInteractiveJs
 import Dict exposing (Dict)
@@ -7,18 +9,10 @@ import Http
 import MarkdownComponents.Carousel as Carousel
 import MarkdownComponents.Helper as MarkdownComponent
 import Ports
+import Time
 import Url.Builder as Url
 
 
-{-| Name Ideas:
-
-  - Mighty Monoid?
-
-  - something using:
-    Explorable? Interactive? Compositional?
-    Monoid? Reactive? Applicative?
-
--}
 siteName : String
 siteName =
     "Irreactive"
@@ -26,12 +20,12 @@ siteName =
 
 siteTagline : String
 siteTagline =
-    "A Blog About Graphics and Functional Programming"
+    "A Blog about User Interface and Functional Programming"
 
 
 canonicalSiteUrl : String
 canonicalSiteUrl =
-    "https://philippkruegerblog.netlify.com/"
+    "https://blog.philippkrueger.me/"
 
 
 githubRepo : String
@@ -42,6 +36,7 @@ githubRepo =
 type alias Model =
     { subscriptionEmail : String
     , emailStatus : SubscriptionStatus
+    , gotEmailNotificationActive : Animator.Timeline Bool
     , carousels : Dict String Carousel.Model
     , interactiveJs : Dict String CodeInteractiveJs.Model
     , interactiveElm : Dict String CodeInteractiveElm.Model
@@ -61,6 +56,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { subscriptionEmail = ""
       , emailStatus = NotSubmittedYet
+      , gotEmailNotificationActive = Animator.init False
       , carousels = Dict.empty
       , interactiveJs = Dict.empty
       , interactiveElm = Dict.empty
@@ -69,14 +65,28 @@ init =
     )
 
 
+animator : Animator.Animator Model
+animator =
+    Animator.animator
+        |> Animator.Css.watching
+            .gotEmailNotificationActive
+            (\newGotEmailNotificationActive model ->
+                { model | gotEmailNotificationActive = newGotEmailNotificationActive }
+            )
+
+
 type Msg
     = NoOp
     | SubmitEmailSubscription
     | SubscribeEmailAddressChange String
     | SubscriptionEmailSubmitted (Result Http.Error ())
+    | DismissGotEmailNotification
+      -- Component Msgs
     | CarouselMsg String Carousel.Msg
     | InteractiveJsMsg String CodeInteractiveJs.Model CodeInteractiveJs.Msg
     | InteractiveElmMsg String CodeInteractiveElm.Model CodeInteractiveElm.Msg
+      -- Animator
+    | AnimatorTick Time.Posix
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -119,6 +129,9 @@ update msg model =
                     ( { model
                         | subscriptionEmail = ""
                         , emailStatus = SubmitSuccessful
+                        , gotEmailNotificationActive =
+                            model.gotEmailNotificationActive
+                                |> Animator.go Animator.slowly True
                       }
                     , Ports.scrollToBottom ()
                     )
@@ -144,6 +157,15 @@ update msg model =
                       }
                     , Ports.scrollToBottom ()
                     )
+
+        DismissGotEmailNotification ->
+            ( { model
+                | gotEmailNotificationActive =
+                    model.gotEmailNotificationActive
+                        |> Animator.go Animator.slowly False
+              }
+            , Cmd.none
+            )
 
         CarouselMsg carouselId carouselMsg ->
             let
@@ -190,6 +212,11 @@ update msg model =
             , Cmd.none
             )
 
+        AnimatorTick newTime ->
+            ( Animator.update newTime animator model
+            , Cmd.none
+            )
+
 
 pathToId : List Int -> String
 pathToId path =
@@ -199,5 +226,5 @@ pathToId path =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    Animator.toSubscription AnimatorTick model animator

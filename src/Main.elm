@@ -74,6 +74,10 @@ pageView siteMetadata page content model =
                     , View.accentLine
                     , View.document Html.article "text-gruv-gray-1" (content model)
                     , viewFooter model
+                    , View.gotEmailNotification
+                        { state = model.gotEmailNotificationActive
+                        , onClickDismiss = DismissGotEmailNotification
+                        }
                     ]
             }
 
@@ -92,6 +96,10 @@ pageView siteMetadata page content model =
                             }
                         )
                     , viewFooter model
+                    , View.gotEmailNotification
+                        { state = model.gotEmailNotificationActive
+                        , onClickDismiss = DismissGotEmailNotification
+                        }
                     ]
             }
 
@@ -106,6 +114,10 @@ pageView siteMetadata page content model =
                         |> List.map View.postPreview
                         |> View.document Html.ul "text-gruv-gray-6"
                     , viewFooter model
+                    , View.gotEmailNotification
+                        { state = model.gotEmailNotificationActive
+                        , onClickDismiss = DismissGotEmailNotification
+                        }
                     ]
             }
 

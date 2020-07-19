@@ -62,6 +62,7 @@ module.exports = {
       desktop: '600px',
       'nav-item': '300px',
       'margin-item': '450px',
+      'notification': '400px',
     },
     screens: {
       desktop: '600px',
