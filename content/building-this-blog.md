@@ -2,9 +2,9 @@
 {
   "type": "blog",
   "title": "Building this Blog",
-  "description": "Behind the scenes: The tech and process behind this blog. The classic introduction of a tech person's blog of itself.",
-  "image": "images/article-covers/mountains.jpg",
-  "draft": true,
+  "description": "Behind the scenes: The tech and process behind building this blog. The classic introduction of a tech person's blog of itself.",
+  "image": "images/building-this-blog/thumbnail.jpg",
+  "draft": false,
   "published": "2020-07-17",
 }
 ---
@@ -29,7 +29,7 @@ Let me go through it clearly:
 
 * You want to have something aesthetically pleasing. 
 * For that you need lots of iterations. **Your first attempt will look bad**. You won't choose the right spacing, the right layout, the right colors, the right font size, the right font, etc.
-* You can't change the colors, fonts, spacing and especially layout quickly in code. Code is way more abstract: You don't code 1 Layout, you code an infinite amount. You don't code one layout at 1280px screen width, but a layout that works across many screen sizes at once. That's way more difficult and takes time and scaffolding.
+* You can't change the colors, fonts, spacing and especially layout quickly in code. Code is way more abstract: You don't code 1 Layout, you code infinitely many: Not one layout at 1280px screen width, but a layout that works across many screen sizes at once. That's way more difficult and takes time and scaffolding.
 
 Naturally, my eyes were opened as soon as I started incorporating an explicit designing step before writing code. I was also designing previously. You're always designing when you're making something visual, but it used to be intertwined with finding a good architecture in your code, all while being slow.
 
@@ -102,3 +102,7 @@ I even have the children as rendered markdown available, so I can use markdown i
 
 I've made extensive use of the ability to create custom elements for my markdown. The interactive elements on my blog posts are defined in elm.
 
+* tailwindcss
+* Netlify
+* Netlify forms & functions
+* Buttondown
