@@ -9,7 +9,9 @@
 }
 ---
 
-Many lower level graphics APIs are imperative, they look like this:
+Graphics and user interface programming APIs are rapidly changing nowadays with framworks like Elm, React, Vuejs, Flutter, SwiftUI and more surfacing within the last 8 years. They're moving towards immutability and declarativity. More and more often user interfaces are programmed using 'DOM-Models' like HTML and CSS with state management not via classes and objects, but with something similar to reducers and immutable state in React/Redux. HTML is declarative, which I believe is the right direction to move in, but there's still a lot to improve.
+
+Today I'll explain why I spend way too much of my free time thinking about declarative APIs and how to improve them even further with types. But before I get into that, first let's look at an imperative API such as this one for creating graphics:
 
 ```js interactive
 moveTo(100, 100);
@@ -33,9 +35,11 @@ Were you surprised by what happened when you turned off some lines? Now imagine 
 
 The order and existence of statements plays a huge role in the outcome, but you can delete and re-order statements without getting an error.
 
-Let's take a look at another attempt at such an API.
+I find it helpful to understand the shortcomings of alternatives to understand the strengths of declarative APIs.
 
-# An Expression-Based API
+So let's look at a declarative API.
+
+# A Declarative API
 
 <in-margin>
 <info title="Info: About the programming language in following code examples.">
@@ -46,6 +50,7 @@ I'll be using ML-style syntax for my examples in functional programming language
 * Standard ML
 
 If you're familiar with any of these languages, skip ahead!
+
 If not, here's a short crash-course:
 
 ```elm
@@ -85,13 +90,13 @@ The imperative API is modeled after a real-world analogy of a person with a penc
 * "Sketch a rectangle with width 50 and height 30."
 * "Fill in your sketch."
 
-The analogy of the expression-based API works more like a higher-level explanation of a picture:
+The analogy of the declarative API works more like a higher-level explanation of a picture:
 
 "The picture consists of two objects on top of each other:
 * At 200, 100, a blue filled rectangle with width 50 and height 30 and
 * at 100, 100, a red outlined circle with radius 20."
 
-The expression-based code that is the equivalent of the first code sample looks like this:
+The declarative code that is the equivalent of the first (imperative) code sample looks like this:
 
 ```elm interactive
 superimposed
@@ -106,31 +111,28 @@ Again, this is an interactive code example. You can click on things to toggle th
 
 * If you disable a `moved`, whatever was wrapped with that `moved` is somewhere else.
 * If you change a color, whatever was wrapped with that `filled` or `outlined` call has another color.
-* If you disable an element from the list of elements in `superimposed`, it'll disappear from the image.
+* If you disable an element from the list of elements in `superimposed` (click on `[` or `,`), it'll disappear from the image.
 
 What's different to before is that no other elements on the screen were affected by these changes. Every change has local effects.
 
-<info title="Info: Terminology">
-The common term for _expression-based_ is _declarative_, but I find _expression-based_ just a little more descriptive. We'll stick with the shorter _declarative_ afterwards, though.
-</info>
-
+The defining characteristic of declarative APIs is that they're _expression-based_. Every item is an expression, like `cicle 20`, or something that wraps expressions and becomes an expression by itself, like `moveTo 100 100`.
 
 # Types and Declarative APIs
 
-In the above interactive example it's possible to trigger a type error by disabling `filled`. The ability to guide a user towards correct code using types is what takes declarative APIs to another level.
+Something I skipped, but you might have noticed: In the above interactive example it's possible to trigger a type error by disabling `filled` or `outlined`. The ability to guide a user towards correct code using types is what takes declarative APIs to another level.
 
 The reason we get a type error in some cases is that we plugged two expressions together, which don't fit to each other. Let's embrace this metaphore of 'fitting together'. Let's imagine, every expression is like a Lego brick. But unlike Lego, they're kind of elastic and can be stretched and squeezed. Other than that, they only fit together when their 'connectors' fit into each other.
 
 <VideoCaptioned
   id="expression-block-shapes"
-  src="declarative-apis/expression-block-shapes.webm"
+  src="declarative-apis/expression-block-shapes.mp4"
   alt="Expression Block Shapes Transformation"
   loop=""
 >
 How code and its Lego Brick version correspond.
 </VideoCaptioned>
 
-This might remind you of an educational programming platform called 'Scratch'. And indeed, it is quite similar, especially if you look at the individual blocks one by one:
+This might remind you of code in an educational programming platform called '[Scratch](https://scratch.mit.edu/)'. And indeed, it is quite similar, especially if you look at the individual blocks one by one:
 
 <ImgCaptioned
   id="expression-blocks"
@@ -138,12 +140,16 @@ This might remind you of an educational programming platform called 'Scratch'. A
   alt="All Expression Blocks one by one"
   width="362px"
 >
-All different expression types imagined as Lego bricks, one by one. Round bricks are of type stencil, pointy bricks pictures and half-circle connectors are for lists.
+All different expression types imagined as Lego bricks, one by one. Round bricks are of type stencil, pointy bricks of type picture and half-circle connectors are for lists.
 </ImgCaptioned>
 
-And I think this trick is very effective at creating intuition for types, so I'm using it here. You can clearly see how a `circle` expression could not fit cleanly into a `moveTo` expression, but into an `outlined` expression.
+And I think this trick is very effective at creating an intuition for types, so I'm using it here. You can clearly see how a `circle` expression could not fit cleanly into a `moveTo` expression, but into an `outlined` expression.
 
-So, going back to our original example: If we disable `filled`, we plug `rectangle 50 30` into a `moveTo`, which can't handle that. `rectangle 50 30` has type `Stencil`, which can be thought of a blueprint of what's to be rendered, without color or outlines. This can then be transformed into a `Picture` by a call to `filled` or `outlined`. But `moveTo` can't handle moving Stencils.
+So, going back to our original example, we have two important types at play:
+* **Stencil**s: Something like `circle 20` is a stencil, something that doesn't yet have a defined color or exact shape (filled or outlined or with a pattern?).
+* **Picture**s: Something that's visually defined and could be rendered to screen immediately.
+
+Therefore, if we disable `filled`, we plug `rectangle 50 30` into a `moveTo`, which can't handle that. `rectangle 50 30` has type `Stencil`, but `moveTo` can't handle moving `Stencil`s, it expects `Picture`s.
 
 <ImgCaptioned
   id="expression-blocks-dont-fit"
@@ -157,7 +163,7 @@ A type error in the Lego-brick- or Scratch-like analogy.
 Without type checking, we have to
 
 * throw an error ("exception") at runtime, when `moveTo` is faced with something it doesn't expect or
-* let `moveTo` ignore anything that's not a `Picture`, so act like the identity function in those cases.
+* let `moveTo` ignore anything that's not a `Picture`.
 
 In the case of browsers - due to having to be as error-forgiving as possible - they went with the second option.
 
@@ -169,7 +175,7 @@ But if all the browser is doing is _nothing_, then you're left wondering why you
 
 The above list is by no means exhaustive. There's lots and lots of examples and exceptions about when certain elements, attributes or CSS styles work and it's hard to know about all edge cases.
 
-While Html and Css are declarative, they're not typed. The declarative-ness is awesome: You can take some HTML and its associated styling and plug it somewhere else!
+While HTML and CSS are declarative, they're not typed. The declarative-ness is awesome: You can take some HTML and its associated styling and plug it somewhere else!
 But it might not be styled as you expected, because you missed a property on a wrapping element.
 
 Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scrating-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
@@ -196,7 +202,7 @@ Types are therefore not only a tool for preventing mistakes, but also a document
 
 # Going further
 
-The points in this blog post go beyond just _graphics_ APIs. Expression-based programming with types can be applied widely. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs and especially user interface programming, so I want to take this principle further:
+The points in this blog post go beyond just _graphics_ APIs. Expression-based programming with types (a.k.a. _functional_ programming) can be applied widely. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs and especially user interface programming, so I want to take this principle further:
 
 * What about responsive pictures? Layout? Tables? Grids?
 * What about interaction? Clicking things, click regions, focus? State?

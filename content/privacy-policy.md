@@ -11,7 +11,7 @@ In general, we try to collect the absolute minimal amount of information about y
 
 This website is operated on [Netlify](https://www.netlify.com/privacy/). Email subscriptions are tracked and delivered through [Buttondown](https://buttondown.email/privacy).
 
-## Who are we
+## Who we are
 
 We're the owners of the domain [philippkrueger.me](https://philippkrueger.me) and therefore also its subdomain [blog.philippkrueger.me](https://blog.philippkrueger.me).
 
