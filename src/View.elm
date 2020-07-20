@@ -188,7 +188,44 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
             , Events.onSubmit onSubmit
             , class "max-w-desktop w-full desktop:mx-auto py-6 px-3"
             ]
-            [ p []
+            [ div
+                [ classes
+                    [ "grid grid-cols-3 gap-4"
+                    , "font-title w-full"
+                    ]
+                ]
+                [ link []
+                    { title = Just "all posts"
+                    , destination = "/"
+                    , children = [ text "all posts" ]
+                    }
+                , link []
+                    { title = Just "github"
+                    , destination = "https://github.com/matheus23"
+                    , children = [ text "github" ]
+                    }
+                , link []
+                    { title = Just "imprint"
+                    , destination = "/imprint"
+                    , children = [ text "imprint" ]
+                    }
+                , link []
+                    { title = Just "about"
+                    , destination = "/about"
+                    , children = [ text "about" ]
+                    }
+                , link []
+                    { title = Just "twitter"
+                    , destination = "https://twitter.com/matheusdev23"
+                    , children = [ text "twitter" ]
+                    }
+                , link []
+                    { title = Just "privacy policy"
+                    , destination = "/privacy-policy"
+                    , children = [ text "privacy policy" ]
+                    }
+                ]
+            , p [ class "mt-4" ]
                 [ label [ for "email", class "font-code text-gruv-gray-11" ]
                     [ text "Get an "
                     , span [ class "text-gruv-orange-l" ] [ text "E-Mail" ]
@@ -269,7 +306,7 @@ gotEmailNotification { state, onClickDismiss } =
         [ class "fixed bottom-0 w-full z-50 pointer-events-none px-3" ]
         [ div
             [ classes
-                [ "font-main text-base text-gruv-gray-12"
+                [ "font-base text-base text-gruv-gray-12"
                 , "max-w-notification mx-auto"
                 , "pointer-events-auto"
                 , "bg-gruv-gray-2 z-40"

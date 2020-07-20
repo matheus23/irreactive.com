@@ -13,7 +13,7 @@ This blog is an attempt at sharing the research work I’m trying to create arou
 
 If you would like to reach out to me, send me a message over twitter [@matheusdev23].
 
-If you want to **get notified about new blog posts**, follow me on twitter or use the E-Mail form below.
+If you want to get notified about new blog posts, follow me on twitter or use the E-Mail form below.
 
 Wondering about the technology behind this blog? Read [the release post]!
 
