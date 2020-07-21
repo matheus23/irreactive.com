@@ -195,46 +195,42 @@ indexedCataPartial algebra pathSoFar (PartialExpression active constructor) =
         |> algebra pathSoFar active
 
 
-cataActiveOnly : (ExpressionF a -> a) -> PartialExpression -> a
-cataActiveOnly algebra expression =
-    cataPartial
-        (\active constructor ->
-            if active then
+activeOnly : (ExpressionF a -> a) -> Bool -> ExpressionF a -> a
+activeOnly algebra active constructor =
+    if active then
+        algebra constructor
+
+    else
+        case constructor of
+            Superimposed t0 _ _ t1 ->
+                algebra (EmptyPicture t0 t1)
+
+            -- should we filter list elements out here?
+            -- we don't right now
+            ListOf t0 _ t1 ->
+                algebra (ListOf t0 [] t1)
+
+            Moved _ _ _ _ _ _ e _ ->
+                e
+
+            Filled _ _ _ _ e _ ->
+                e
+
+            Outlined _ _ _ _ e _ ->
+                e
+
+            Circle t0 _ _ t1 ->
+                algebra (EmptyStencil t0 t1)
+
+            Rectangle t0 _ _ _ _ t1 ->
+                algebra (EmptyStencil t0 t1)
+
+            -- we cannot disable these two any further
+            EmptyStencil _ _ ->
                 algebra constructor
 
-            else
-                case constructor of
-                    Superimposed t0 _ _ t1 ->
-                        algebra (EmptyPicture t0 t1)
-
-                    -- should we filter list elements out here?
-                    -- we don't right now
-                    ListOf t0 _ t1 ->
-                        algebra (ListOf t0 [] t1)
-
-                    Moved _ _ _ _ _ _ e _ ->
-                        e
-
-                    Filled _ _ _ _ e _ ->
-                        e
-
-                    Outlined _ _ _ _ e _ ->
-                        e
-
-                    Circle t0 _ _ t1 ->
-                        algebra (EmptyStencil t0 t1)
-
-                    Rectangle t0 _ _ _ _ t1 ->
-                        algebra (EmptyStencil t0 t1)
-
-                    -- we cannot disable these two any further
-                    EmptyStencil _ _ ->
-                        algebra constructor
-
-                    EmptyPicture _ _ ->
-                        algebra constructor
-        )
-        expression
+            EmptyPicture _ _ ->
+                algebra constructor
 
 
 

@@ -27,7 +27,7 @@ type Msg
 
 interpret : PartialExpression -> Svg msg
 interpret =
-    cataActiveOnly interpretAlg
+    cataPartial (activeOnly interpretAlg)
 
 
 interpretAlg : ExpressionF (Svg msg) -> Svg msg
@@ -104,11 +104,11 @@ type alias TypeError =
 
 typeErrors : PartialExpression -> List TypeError
 typeErrors expression =
-    cataPartial typeErrorsAlg expression Picture
+    cataPartial (activeOnly typeErrorsAlg) expression Picture
 
 
-typeErrorsAlg : Bool -> ExpressionF (Type -> List TypeError) -> Type -> List TypeError
-typeErrorsAlg active constructor expectedType =
+typeErrorsAlg : ExpressionF (Type -> List TypeError) -> Type -> List TypeError
+typeErrorsAlg constructor expectedType =
     let
         checkType typeOfThis =
             if typeOfThis /= expectedType then
@@ -122,49 +122,29 @@ typeErrorsAlg active constructor expectedType =
     in
     case constructor of
         Superimposed _ _ e _ ->
-            if active then
-                e ListOfPictures
-                    ++ checkType Picture
-
-            else
-                []
+            e ListOfPictures
+                ++ checkType Picture
 
         ListOf _ expressionList _ ->
-            if active then
-                List.concatMap
-                    (\expectType ->
-                        expectType
-                            Picture
-                    )
-                    (expressionListToList expressionList)
-                    ++ checkType ListOfPictures
-
-            else
-                []
+            List.concatMap
+                (\expectType ->
+                    expectType
+                        Picture
+                )
+                (expressionListToList expressionList)
+                ++ checkType ListOfPictures
 
         Moved _ _ _ _ _ _ e _ ->
-            if active then
-                e Picture
-                    ++ checkType Picture
-
-            else
-                e expectedType
+            e Picture
+                ++ checkType Picture
 
         Filled _ _ _ _ shape _ ->
-            if active then
-                shape Stencil
-                    ++ checkType Picture
-
-            else
-                shape expectedType
+            shape Stencil
+                ++ checkType Picture
 
         Outlined _ _ _ _ shape _ ->
-            if active then
-                shape Stencil
-                    ++ checkType Picture
-
-            else
-                shape expectedType
+            shape Stencil
+                ++ checkType Picture
 
         Circle _ _ _ _ ->
             checkType Stencil
