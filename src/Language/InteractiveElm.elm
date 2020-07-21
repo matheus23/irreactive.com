@@ -38,6 +38,8 @@ type ExpressionF a
     | Outlined String String Common.Color String a String
     | Circle String String Int String
     | Rectangle String String Int String Int String
+    | EmptyStencil String String
+    | EmptyPicture String String
 
 
 type alias ExpressionList a =
@@ -90,6 +92,12 @@ mapE f constructor =
         Rectangle t0 t1 w t2 h t3 ->
             Rectangle t0 t1 w t2 h t3
 
+        EmptyStencil t0 t1 ->
+            EmptyStencil t0 t1
+
+        EmptyPicture t0 t1 ->
+            EmptyPicture t0 t1
+
 
 indexedMap : (Int -> a -> b) -> ExpressionF a -> ExpressionF b
 indexedMap f constructor =
@@ -114,6 +122,12 @@ indexedMap f constructor =
 
         Rectangle t0 t1 w t2 h t3 ->
             Rectangle t0 t1 w t2 h t3
+
+        EmptyStencil t0 t1 ->
+            EmptyStencil t0 t1
+
+        EmptyPicture t0 t1 ->
+            EmptyPicture t0 t1
 
 
 mapExpressionList : (a -> b) -> List (ListElement a) -> List (ListElement b)
@@ -209,6 +223,12 @@ prefixExpressionWith str expression =
         Rectangle t0 t1 w t2 h t3 ->
             Rectangle (str ++ t0) t1 w t2 h t3
 
+        EmptyStencil t0 t1 ->
+            EmptyStencil (str ++ t0) t1
+
+        EmptyPicture t0 t1 ->
+            EmptyPicture (str ++ t0) t1
+
 
 
 -- PARSING
@@ -231,15 +251,15 @@ parseExpression parens =
         \_ ->
             oneOf
                 [ succeed (Superimposed "")
-                    |. token (Token "superimposed" "Expected 'superimposed' function call")
+                    |. token (Token "superimposed" "Expected 'superimposed' expression")
                     |= whitespace
                     |= parseExpression []
                     |> handleParens parens
-                    |> inContext "a 'superimposed' function call"
+                    |> inContext "a 'superimposed' expression"
                 , parseListOf
                     |> inContext "a list literal"
                 , succeed (Moved "")
-                    |. token (Token "moved" "Expected 'moved' function call")
+                    |. token (Token "moved" "Expected 'moved' expression")
                     |= whitespace
                     |= Common.parseInt
                     |= whitespace
@@ -247,37 +267,45 @@ parseExpression parens =
                     |= whitespace
                     |= parseExpression []
                     |> handleParens parens
-                    |> inContext "a 'moved' function call"
+                    |> inContext "a 'moved' expression"
                 , succeed (Filled "")
-                    |. token (Token "filled" "Expected 'filled' function call")
+                    |. token (Token "filled" "Expected 'filled' expression")
                     |= whitespace
                     |= Common.parseColor
                     |= whitespace
                     |= parseExpression []
                     |> handleParens parens
-                    |> inContext "a 'filled' function call"
+                    |> inContext "a 'filled' expression"
                 , succeed (Outlined "")
-                    |. token (Token "outlined" "Expected 'outlined' function call")
+                    |. token (Token "outlined" "Expected 'outlined' expression")
                     |= whitespace
                     |= Common.parseColor
                     |= whitespace
                     |= parseExpression []
                     |> handleParens parens
-                    |> inContext "a 'outlined' function call"
+                    |> inContext "a 'outlined' expression"
                 , succeed (Circle "")
-                    |. token (Token "circle" "Expected 'circle' function call")
+                    |. token (Token "circle" "Expected 'circle' expression")
                     |= whitespace
                     |= Common.parseInt
                     |> handleParens parens
-                    |> inContext "a 'circle' function call"
+                    |> inContext "a 'circle' expression"
                 , succeed (Rectangle "")
-                    |. token (Token "rectangle" "Expected 'rectangle' function call")
+                    |. token (Token "rectangle" "Expected 'rectangle' expression")
                     |= whitespace
                     |= Common.parseInt
                     |= whitespace
                     |= Common.parseInt
                     |> handleParens parens
-                    |> inContext "a 'rectangle' function call"
+                    |> inContext "a 'rectangle' expression"
+                , succeed (EmptyStencil "")
+                    |. token (Token "emptyStencil" "Expected 'emptyStencil' expression")
+                    |> handleParens parens
+                    |> inContext "an 'emptyStencil' expression"
+                , succeed (EmptyPicture "")
+                    |. token (Token "emptyPicture" "Expected 'emptyPicture' expression")
+                    |> handleParens parens
+                    |> inContext "an 'emptyPicture' expression"
                 , tokenAndWhitespace "("
                     |> andThen (\par -> parseExpression (par :: parens))
                 ]

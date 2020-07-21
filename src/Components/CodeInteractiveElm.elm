@@ -113,6 +113,12 @@ interpretAlg active expression =
             else
                 Svg.g [] []
 
+        EmptyStencil _ _ ->
+            Svg.g [] []
+
+        EmptyPicture _ _ ->
+            Svg.g [] []
+
 
 type Type
     = Stencil
@@ -202,6 +208,12 @@ typeErrorsAlg active constructor context expectedType =
 
         Rectangle _ _ _ _ _ _ ->
             checkType Stencil
+
+        EmptyStencil _ _ ->
+            checkType Stencil
+
+        EmptyPicture _ _ ->
+            checkType Picture
 
 
 
@@ -448,6 +460,18 @@ viewExpressionAlg path active expression parentActive =
 
             else
                 [ viewFunctionName path parentActive "emptyStencil" ]
+
+        EmptyStencil t0 t1 ->
+            [ viewOther parentActive t0
+            , viewOther parentActive "emptyStencil"
+            , viewOther parentActive t1
+            ]
+
+        EmptyPicture t0 t1 ->
+            [ viewOther parentActive t0
+            , viewOther parentActive "emptyPicture"
+            , viewOther parentActive t1
+            ]
 
 
 viewFunctionName : List Int -> Bool -> String -> Html Msg
