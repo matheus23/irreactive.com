@@ -19,7 +19,8 @@ type Expression
 
 
 type ExpressionF a
-    = Superimposed Bool String String (ExpressionList a) String
+    = Superimposed Bool String String a String
+    | ListOf Bool String (List (ListElement a)) String
     | Moved Bool String String Int String Int String a String
     | Filled Bool String String Common.Color String a String
     | Outlined Bool String String Common.Color String a String
@@ -47,8 +48,11 @@ type alias ListElement a =
 mapE : (a -> b) -> ExpressionF a -> ExpressionF b
 mapE f constructor =
     case constructor of
-        Superimposed a t0 t1 expressionList t3 ->
-            Superimposed a t0 t1 (mapExpressionList f expressionList) t3
+        Superimposed a t0 t1 e t3 ->
+            Superimposed a t0 t1 (f e) t3
+
+        ListOf a t0 expressionList t1 ->
+            ListOf a t0 (mapExpressionList f expressionList) t1
 
         Moved a t0 t1 x t2 y t3 e t4 ->
             Moved a t0 t1 x t2 y t3 (f e) t4
@@ -69,8 +73,11 @@ mapE f constructor =
 indexedMap : (Int -> a -> b) -> ExpressionF a -> ExpressionF b
 indexedMap f constructor =
     case constructor of
-        Superimposed a t0 t1 expressionList t3 ->
-            Superimposed a t0 t1 (indexedMapExpressionList f expressionList) t3
+        Superimposed a t0 t1 e t3 ->
+            Superimposed a t0 t1 (f 0 e) t3
+
+        ListOf a t0 expressionList t1 ->
+            ListOf a t0 (indexedMapExpressionList f expressionList) t1
 
         Moved a t0 t1 x t2 y t3 e t4 ->
             Moved a t0 t1 x t2 y t3 (f 0 e) t4
@@ -88,38 +95,32 @@ indexedMap f constructor =
             Rectangle a t0 t1 w t2 h t3
 
 
-mapExpressionList : (a -> b) -> ExpressionList a -> ExpressionList b
-mapExpressionList f { elements, tail } =
-    { elements =
-        List.map
-            (\{ prefix, expression, active } ->
-                { prefix = prefix
-                , expression = f expression
-                , active = active
-                }
-            )
-            elements
-    , tail = tail
-    }
+mapExpressionList : (a -> b) -> List (ListElement a) -> List (ListElement b)
+mapExpressionList f elements =
+    List.map
+        (\{ prefix, expression, active } ->
+            { prefix = prefix
+            , expression = f expression
+            , active = active
+            }
+        )
+        elements
 
 
-indexedMapExpressionList : (Int -> a -> b) -> ExpressionList a -> ExpressionList b
-indexedMapExpressionList f { elements, tail } =
-    { elements =
-        List.indexedMap
-            (\index { prefix, expression, active } ->
-                { prefix = prefix
-                , expression = f index expression
-                , active = active
-                }
-            )
-            elements
-    , tail = tail
-    }
+indexedMapExpressionList : (Int -> a -> b) -> List (ListElement a) -> List (ListElement b)
+indexedMapExpressionList f elements =
+    List.indexedMap
+        (\index { prefix, expression, active } ->
+            { prefix = prefix
+            , expression = f index expression
+            , active = active
+            }
+        )
+        elements
 
 
-expressionListToList : ExpressionList a -> List a
-expressionListToList { elements } =
+expressionListToList : List (ListElement a) -> List a
+expressionListToList elements =
     List.concatMap
         (\{ expression, active } ->
             if active then
@@ -152,8 +153,11 @@ indexedCata algebra pathSoFar (Expression expression) =
 prefixExpressionWith : String -> ExpressionF a -> ExpressionF a
 prefixExpressionWith str expression =
     case expression of
-        Superimposed a t0 t1 expressionList t3 ->
-            Superimposed a (str ++ t0) t1 expressionList t3
+        Superimposed a t0 t1 e t3 ->
+            Superimposed a (str ++ t0) t1 e t3
+
+        ListOf a t0 expressionList t1 ->
+            ListOf a (str ++ t0) expressionList t1
 
         Moved a t0 t1 x t2 y t3 e t4 ->
             Moved a (str ++ t0) t1 x t2 y t3 e t4
@@ -174,8 +178,11 @@ prefixExpressionWith str expression =
 mapActive : (Bool -> Bool) -> ExpressionF a -> ExpressionF a
 mapActive f constructor =
     case constructor of
-        Superimposed active t0 t1 expressionList t3 ->
-            Superimposed (f active) t0 t1 expressionList t3
+        Superimposed active t0 t1 e t3 ->
+            Superimposed (f active) t0 t1 e t3
+
+        ListOf active t0 expressionList t1 ->
+            ListOf (f active) t0 expressionList t1
 
         Moved active t0 t1 x t2 y t3 e t4 ->
             Moved (f active) t0 t1 x t2 y t3 e t4
@@ -216,9 +223,11 @@ parseExpression parens =
                 [ succeed (Superimposed True "")
                     |. token (Token "superimposed" "Expected 'superimposed' function call")
                     |= whitespace
-                    |= parseExpressionList
+                    |= parseExpression []
                     |> handleParens parens
                     |> inContext "a 'superimposed' function call"
+                , parseListOf
+                    |> inContext "a list literal"
                 , succeed (Moved True "")
                     |. token (Token "moved" "Expected 'moved' function call")
                     |= whitespace
@@ -289,8 +298,8 @@ parseCloseParens stack =
                         |= parseCloseParens remaining
 
 
-parseExpressionList : Common.Parser (ExpressionList Expression)
-parseExpressionList =
+parseListOf : Common.Parser Expression
+parseListOf =
     loop { revElements = [], index = 1 } parseElementsHelp
         |> inContext "a list"
 
@@ -301,26 +310,28 @@ type alias ListState =
     }
 
 
-parseElementsHelp : ListState -> Common.Parser (Step ListState (ExpressionList Expression))
+parseElementsHelp : ListState -> Common.Parser (Step ListState Expression)
 parseElementsHelp { revElements, index } =
     oneOf
         [ backtrackable
             (parseElement index
                 |> map
                     (\elem ->
-                        Loop
-                            { revElements = elem :: revElements
-                            , index = index + 1
-                            }
+                        { revElements = elem :: revElements
+                        , index = index + 1
+                        }
+                            |> Loop
                     )
             )
         , tokenAndWhitespace "]"
             |> map
                 (\tail ->
-                    Done
-                        { elements = List.reverse revElements
-                        , tail = tail
-                        }
+                    ListOf True
+                        ""
+                        (List.reverse revElements)
+                        tail
+                        |> Expression
+                        |> Done
                 )
         ]
 

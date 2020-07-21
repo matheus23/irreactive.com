@@ -33,7 +33,16 @@ interpret =
 interpretAlg : ExpressionF (Svg msg) -> Svg msg
 interpretAlg expression =
     case expression of
-        Superimposed active _ _ expressions _ ->
+        Superimposed active _ _ e _ ->
+            if active then
+                e
+
+            else
+                Svg.g [] []
+
+        ListOf active _ expressions _ ->
+            -- this basically can only be used in 'superimposed',
+            -- so we already know what to do with it
             if active then
                 expressions
                     |> expressionListToList
@@ -53,16 +62,26 @@ interpretAlg expression =
                 e
 
         Filled active _ _ color _ e _ ->
-            Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
-                [ e ]
+            if active then
+                Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
+                    [ e ]
+
+            else
+                -- in theory a type error
+                e
 
         Outlined active _ _ color _ e _ ->
-            Svg.g
-                [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
-                , SvgPx.strokeWidth 8
-                , SvgA.fill Svg.PaintNone
-                ]
-                [ e ]
+            if active then
+                Svg.g
+                    [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
+                    , SvgPx.strokeWidth 8
+                    , SvgA.fill Svg.PaintNone
+                    ]
+                    [ e ]
+
+            else
+                -- in theory a type error
+                e
 
         Circle active _ _ r _ ->
             if active then
@@ -98,6 +117,7 @@ interpretAlg expression =
 type Type
     = Stencil
     | Picture
+    | ListOfPictures
 
 
 type Context
@@ -112,13 +132,13 @@ type alias TypeError =
     }
 
 
-typeCheck : Expression -> List TypeError
-typeCheck expression =
-    cata typeCheckAlg expression Top Picture
+typeErrors : Expression -> List TypeError
+typeErrors expression =
+    cata typeErrorsAlg expression Top Picture
 
 
-typeCheckAlg : ExpressionF (Context -> Type -> List TypeError) -> Context -> Type -> List TypeError
-typeCheckAlg constructor context expectedType =
+typeErrorsAlg : ExpressionF (Context -> Type -> List TypeError) -> Context -> Type -> List TypeError
+typeErrorsAlg constructor context expectedType =
     let
         checkType typeOfThis =
             if typeOfThis /= expectedType then
@@ -132,23 +152,28 @@ typeCheckAlg constructor context expectedType =
                 []
     in
     case constructor of
-        Superimposed active _ _ expressionList _ ->
+        Superimposed active _ _ e _ ->
             if active then
-                List.concatMap
-                    (\expectType ->
-                        expectType
-                            (InCallTo "list argument"
-                                (InCallTo "superimposed" context)
-                            )
-                            expectedType
-                    )
-                    (expressionListToList expressionList)
+                e (InCallTo "superimposed" context) ListOfPictures
                     ++ checkType Picture
 
             else
                 []
 
-        Moved active _ _ x _ y _ e _ ->
+        ListOf active _ expressionList _ ->
+            if active then
+                List.concatMap
+                    (\expectType ->
+                        expectType (InCallTo "list element" context)
+                            Picture
+                    )
+                    (expressionListToList expressionList)
+                    ++ checkType ListOfPictures
+
+            else
+                []
+
+        Moved active _ _ _ _ _ _ e _ ->
             if active then
                 e (InCallTo "moved" context) Picture
                     ++ checkType Picture
@@ -156,7 +181,7 @@ typeCheckAlg constructor context expectedType =
             else
                 e context expectedType
 
-        Filled active _ _ col _ shape _ ->
+        Filled active _ _ _ _ shape _ ->
             if active then
                 shape (InCallTo "filled" context) Stencil
                     ++ checkType Picture
@@ -164,7 +189,7 @@ typeCheckAlg constructor context expectedType =
             else
                 shape context expectedType
 
-        Outlined active _ _ col _ shape _ ->
+        Outlined active _ _ _ _ shape _ ->
             if active then
                 shape (InCallTo "outlined" context) Stencil
                     ++ checkType Picture
@@ -172,10 +197,10 @@ typeCheckAlg constructor context expectedType =
             else
                 shape context expectedType
 
-        Circle _ _ _ r _ ->
+        Circle _ _ _ _ _ ->
             checkType Stencil
 
-        Rectangle _ _ _ w _ h _ ->
+        Rectangle _ _ _ _ _ _ _ ->
             checkType Stencil
 
 
@@ -224,22 +249,19 @@ toggleListElement : List Int -> Int -> List Int -> ExpressionF Expression -> Exp
 toggleListElement togglePath toggleIndex currentPath constructor =
     if togglePath == currentPath then
         case constructor of
-            Superimposed active t0 t1 expressionList t2 ->
+            ListOf active t0 elements t1 ->
                 Expression
-                    (Superimposed active
+                    (ListOf active
                         t0
+                        (List.indexedMap
+                            (\currentIndex listElement ->
+                                { listElement
+                                    | active = xor listElement.active (currentIndex == toggleIndex)
+                                }
+                            )
+                            elements
+                        )
                         t1
-                        { expressionList
-                            | elements =
-                                List.indexedMap
-                                    (\currentIndex listElement ->
-                                        { listElement
-                                            | active = xor listElement.active (currentIndex == toggleIndex)
-                                        }
-                                    )
-                                    expressionList.elements
-                        }
-                        t2
                     )
 
             _ ->
@@ -262,7 +284,7 @@ view : Model -> Html Msg
 view model =
     div [ class "mt-4" ]
         [ div [ class "bg-gruv-gray-10 relative" ]
-            (case typeCheck model.expression of
+            (case typeErrors model.expression of
                 [] ->
                     [ svg
                         [ SvgA.width (Svg.Percent 100)
@@ -302,6 +324,9 @@ view model =
                                     Stencil ->
                                         "Stencil"
 
+                                    ListOfPictures ->
+                                        "List of Pictures"
+
                             renderError { expectedType, actualType, context } =
                                 [ text "Expected type: "
                                 , text (typeToString expectedType)
@@ -340,14 +365,24 @@ viewExpression expression =
 viewExpressionAlg : List Int -> ExpressionF (Bool -> List (Html Msg)) -> Bool -> List (Html Msg)
 viewExpressionAlg path expression parentActive =
     case expression of
-        Superimposed active t0 t1 list t2 ->
+        Superimposed active t0 t1 e t2 ->
             List.concat
                 [ [ viewOther (active && parentActive) t0
                   , viewFunctionName path (active && parentActive) "superimposed"
                   , text t1
                   ]
-                , viewExpressionList (active && parentActive) path list
+                , e (active && parentActive)
                 , [ viewOther (active && parentActive) t2 ]
+                ]
+
+        ListOf active t0 elements t1 ->
+            List.concat
+                [ [ viewOther (active && parentActive) t0 ]
+                , (List.foldl (viewListItem (active && parentActive) path)
+                    { prefixedActive = False, index = 0, items = [] }
+                    elements
+                  ).items
+                , [ viewOther (active && parentActive) t1 ]
                 ]
 
         Moved active t0 t1 x t2 y t3 e t4 ->
@@ -462,15 +497,6 @@ viewColorLiteral active col =
             [ class "text-gruv-gray-6" ]
         )
         [ text ("\"" ++ Common.colorName col ++ "\"") ]
-
-
-viewExpressionList : Bool -> List Int -> ExpressionList (Bool -> List (Html Msg)) -> List (Html Msg)
-viewExpressionList active path { elements, tail } =
-    (List.foldl (viewListItem active path)
-        { prefixedActive = False, index = 0, items = [] }
-        elements
-    ).items
-        ++ [ viewOther active tail ]
 
 
 viewListItem :
