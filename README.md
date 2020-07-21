@@ -3,8 +3,6 @@
 
 ## TODO
 
-* Type error redlines in `CodeInteractiveElm`.
-  * Render redlines in view code when there's a type error at the same position
 * Write customized emails for subscriptions
 * Look at 'how to write good emails'. Keep interesting character but also improve
 * Write the rest of 'Building this Blog'.

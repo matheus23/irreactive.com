@@ -73,6 +73,18 @@ footer input::placeholder {
     outline: none;
 }
 
+.link-effect-purple:hover,
+.link-effect-purple:focus {
+    /* gruv-purple-l with .3 alpha */
+    background-image: linear-gradient(
+        to top,
+        rgba(211, 134, 155, 0.3),
+        rgba(211, 134, 155, 0.3) 45%,
+        rgba(255, 255, 255, 0) 45%
+    );
+    outline: none;
+}
+
 /* MARKDOWN */
 .code-shadow {
     text-shadow: 0 1.4px 0 black;
@@ -88,4 +100,11 @@ footer input::placeholder {
         left: calc(100% + 24px);
         width: 450px;
     }
+}
+
+/* ELM INTERACTIVE */
+.has-type-error {
+    /* gruv-red-d with .3 alpha */
+    background-image: linear-gradient(to top, rgba(157, 0, 6, 1), rgba(157, 0, 6, 1) 45%, rgba(255, 255, 255, 0) 45%);
+    outline: none;
 }

@@ -248,9 +248,13 @@ classes list =
 
 view : Model -> Html Msg
 view model =
+    let
+        computedErrors =
+            typeErrors model.expression
+    in
     div [ class "mt-4" ]
         [ div [ class "bg-gruv-gray-10 relative" ]
-            (case typeErrors model.expression of
+            (case computedErrors of
                 [] ->
                     [ svg
                         [ SvgA.width (Svg.Percent 100)
@@ -294,7 +298,7 @@ view model =
                                 , text "\n\n"
                                 ]
                          in
-                         text "The code has a type error:\n"
+                         text "The code has errors:\n"
                             :: List.concatMap renderError errors
                         )
                     ]
@@ -308,114 +312,134 @@ view model =
                 ]
             ]
             [ code []
-                (viewExpression model.expression)
+                (viewExpression computedErrors model.expression)
             ]
         ]
 
 
-viewExpression : PartialExpression -> List (Html Msg)
-viewExpression expression =
-    indexedCataPartial viewExpressionAlg [] expression True
+viewExpression : List TypeError -> PartialExpression -> List (Html Msg)
+viewExpression errors expression =
+    indexedCataPartial (viewExpressionAlg errors) [] expression True
 
 
-viewExpressionAlg : List Int -> Bool -> ExpressionF (Bool -> List (Html Msg)) -> Bool -> List (Html Msg)
-viewExpressionAlg path active expression parentActive =
-    case expression of
-        Superimposed t0 t1 e t2 ->
-            List.concat
-                [ [ viewOther (active && parentActive) t0
-                  , viewFunctionName path (active && parentActive) "superimposed"
-                  , text t1
-                  ]
-                , e (active && parentActive)
-                , [ viewOther (active && parentActive) t2 ]
-                ]
+viewExpressionAlg :
+    List TypeError
+    -> List Int
+    -> Bool
+    -> ExpressionF (Bool -> List (Html Msg))
+    -> Bool
+    -> List (Html Msg)
+viewExpressionAlg errors path active expression parentActive =
+    let
+        existsErrorOnThis =
+            List.any
+                (\error -> error.path == path)
+                errors
 
-        ListOf t0 elements t1 ->
-            List.concat
-                [ [ viewOther (active && parentActive) t0 ]
-                , (List.foldl (viewListItem (active && parentActive) path)
-                    { prefixedActive = False, index = 0, items = [] }
-                    elements
-                  ).items
-                , [ viewOther (active && parentActive) t1 ]
-                ]
-
-        Moved t0 t1 x t2 y t3 e t4 ->
-            List.concat
-                [ [ viewOther (active && parentActive) t0
-                  , viewFunctionName path (active && parentActive) "moved"
-                  , text t1
-                  , viewIntLiteral (active && parentActive) x
-                  , text t2
-                  , viewIntLiteral (active && parentActive) y
-                  , text t3
-                  ]
-                , e parentActive
-                , [ viewOther (active && parentActive) t4 ]
-                ]
-
-        Filled t0 t1 col t2 shape t3 ->
-            List.concat
-                [ [ viewOther (active && parentActive) t0
-                  , viewFunctionName path (active && parentActive) "filled"
-                  , text t1
-                  , viewColorLiteral (active && parentActive) col
-                  , text t2
-                  ]
-                , shape parentActive
-                , [ viewOther (active && parentActive) t3 ]
-                ]
-
-        Outlined t0 t1 col t2 shape t3 ->
-            List.concat
-                [ [ viewOther (active && parentActive) t0
-                  , viewFunctionName path (active && parentActive) "outlined"
-                  , text t1
-                  , viewColorLiteral (active && parentActive) col
-                  , text t2
-                  ]
-                , shape parentActive
-                , [ viewOther (active && parentActive) t3 ]
-                ]
-
-        Circle t0 t1 r t2 ->
-            if active then
-                [ viewOther parentActive t0
-                , viewFunctionName path parentActive "circle"
-                , text t1
-                , viewIntLiteral parentActive r
-                , viewOther parentActive t2
-                ]
+        possiblyAddErrorIndicator htmls =
+            if existsErrorOnThis then
+                [ span [ class "has-type-error" ] htmls ]
 
             else
-                [ viewFunctionName path parentActive "emptyStencil" ]
+                htmls
+    in
+    possiblyAddErrorIndicator <|
+        case expression of
+            Superimposed t0 t1 e t2 ->
+                List.concat
+                    [ [ viewOther (active && parentActive) t0
+                      , viewFunctionName path (active && parentActive) "superimposed"
+                      , text t1
+                      ]
+                    , e (active && parentActive)
+                    , [ viewOther (active && parentActive) t2 ]
+                    ]
 
-        Rectangle t0 t1 w t2 h t3 ->
-            if active then
+            ListOf t0 elements t1 ->
+                List.concat
+                    [ [ viewOther (active && parentActive) t0 ]
+                    , (List.foldl (viewListItem (active && parentActive) path)
+                        { prefixedActive = False, index = 0, items = [] }
+                        elements
+                      ).items
+                    , [ viewOther (active && parentActive) t1 ]
+                    ]
+
+            Moved t0 t1 x t2 y t3 e t4 ->
+                List.concat
+                    [ [ viewOther (active && parentActive) t0
+                      , viewFunctionName path (active && parentActive) "moved"
+                      , text t1
+                      , viewIntLiteral (active && parentActive) x
+                      , text t2
+                      , viewIntLiteral (active && parentActive) y
+                      , text t3
+                      ]
+                    , e parentActive
+                    , [ viewOther (active && parentActive) t4 ]
+                    ]
+
+            Filled t0 t1 col t2 shape t3 ->
+                List.concat
+                    [ [ viewOther (active && parentActive) t0
+                      , viewFunctionName path (active && parentActive) "filled"
+                      , text t1
+                      , viewColorLiteral (active && parentActive) col
+                      , text t2
+                      ]
+                    , shape parentActive
+                    , [ viewOther (active && parentActive) t3 ]
+                    ]
+
+            Outlined t0 t1 col t2 shape t3 ->
+                List.concat
+                    [ [ viewOther (active && parentActive) t0
+                      , viewFunctionName path (active && parentActive) "outlined"
+                      , text t1
+                      , viewColorLiteral (active && parentActive) col
+                      , text t2
+                      ]
+                    , shape parentActive
+                    , [ viewOther (active && parentActive) t3 ]
+                    ]
+
+            Circle t0 t1 r t2 ->
+                if active then
+                    [ viewOther parentActive t0
+                    , viewFunctionName path parentActive "circle"
+                    , text t1
+                    , viewIntLiteral parentActive r
+                    , viewOther parentActive t2
+                    ]
+
+                else
+                    [ viewFunctionName path parentActive "emptyStencil" ]
+
+            Rectangle t0 t1 w t2 h t3 ->
+                if active then
+                    [ viewOther parentActive t0
+                    , viewFunctionName path parentActive "rectangle"
+                    , text t1
+                    , viewIntLiteral parentActive w
+                    , text t2
+                    , viewIntLiteral parentActive h
+                    , viewOther parentActive t3
+                    ]
+
+                else
+                    [ viewFunctionName path parentActive "emptyStencil" ]
+
+            EmptyStencil t0 t1 ->
                 [ viewOther parentActive t0
-                , viewFunctionName path parentActive "rectangle"
-                , text t1
-                , viewIntLiteral parentActive w
-                , text t2
-                , viewIntLiteral parentActive h
-                , viewOther parentActive t3
+                , viewOther parentActive "emptyStencil"
+                , viewOther parentActive t1
                 ]
 
-            else
-                [ viewFunctionName path parentActive "emptyStencil" ]
-
-        EmptyStencil t0 t1 ->
-            [ viewOther parentActive t0
-            , viewOther parentActive "emptyStencil"
-            , viewOther parentActive t1
-            ]
-
-        EmptyPicture t0 t1 ->
-            [ viewOther parentActive t0
-            , viewOther parentActive "emptyPicture"
-            , viewOther parentActive t1
-            ]
+            EmptyPicture t0 t1 ->
+                [ viewOther parentActive t0
+                , viewOther parentActive "emptyPicture"
+                , viewOther parentActive t1
+                ]
 
 
 viewFunctionName : List Int -> Bool -> String -> Html Msg
