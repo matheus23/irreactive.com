@@ -27,91 +27,61 @@ type Msg
 
 interpret : PartialExpression -> Svg msg
 interpret =
-    cataPartial interpretAlg
+    cataActiveOnly interpretAlg
 
 
-interpretAlg : Bool -> ExpressionF (Svg msg) -> Svg msg
-interpretAlg active expression =
+interpretAlg : ExpressionF (Svg msg) -> Svg msg
+interpretAlg expression =
     case expression of
         Superimposed _ _ e _ ->
-            if active then
-                e
-
-            else
-                Svg.g [] []
+            e
 
         ListOf _ expressions _ ->
             -- this basically can only be used in 'superimposed',
             -- so we already know what to do with it
-            if active then
-                expressions
-                    |> expressionListToList
-                    |> List.reverse
-                    |> Svg.g []
-
-            else
-                Svg.g [] []
+            expressions
+                |> expressionListToList
+                |> List.reverse
+                |> Svg.g []
 
         Moved _ _ x _ y _ e _ ->
-            if active then
-                Svg.g
-                    [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
-                    [ e ]
-
-            else
-                e
+            Svg.g
+                [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
+                [ e ]
 
         Filled _ _ color _ e _ ->
-            if active then
-                Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
-                    [ e ]
-
-            else
-                -- in theory a type error
-                e
+            Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
+                [ e ]
 
         Outlined _ _ color _ e _ ->
-            if active then
-                Svg.g
-                    [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
-                    , SvgPx.strokeWidth 8
-                    , SvgA.fill Svg.PaintNone
-                    ]
-                    [ e ]
-
-            else
-                -- in theory a type error
-                e
+            Svg.g
+                [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
+                , SvgPx.strokeWidth 8
+                , SvgA.fill Svg.PaintNone
+                ]
+                [ e ]
 
         Circle _ _ r _ ->
-            if active then
-                Svg.circle
-                    [ SvgPx.r (toFloat r) ]
-                    []
-
-            else
-                Svg.g [] []
+            Svg.circle
+                [ SvgPx.r (toFloat r) ]
+                []
 
         Rectangle _ _ wInt _ hInt _ ->
-            if active then
-                let
-                    w =
-                        toFloat wInt
+            let
+                w =
+                    toFloat wInt
 
-                    h =
-                        toFloat hInt
-                in
-                Svg.rect
-                    [ SvgPx.width w
-                    , SvgPx.height h
-                    , SvgPx.x (-w / 2)
-                    , SvgPx.y (-h / 2)
-                    , SvgA.transform [ Svg.Translate (w / 2) (h / 2) ]
-                    ]
-                    []
-
-            else
-                Svg.g [] []
+                h =
+                    toFloat hInt
+            in
+            Svg.rect
+                [ SvgPx.width w
+                , SvgPx.height h
+                , SvgPx.x (-w / 2)
+                , SvgPx.y (-h / 2)
+                , SvgA.transform [ Svg.Translate (w / 2) (h / 2) ]
+                ]
+                []
 
         EmptyStencil _ _ ->
             Svg.g [] []

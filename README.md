@@ -3,8 +3,9 @@
 ## TODO
 
 * Type error redlines in `CodeInteractiveElm`.
-  * Add function that converts PartialExpression to the Expression it's 'supposed to mean'
-  * Both generate a list of type errors and another AST that has type errors annotated to the nodes they appeared on and render that one.
+  * Remove context from type errors (hehe)
+  * Add the path of the error expression to the type errors
+  * Render redlines in view code when there's a type error at the same position
 * Write the rest of 'Building this Blog'.
 * Write customized emails for subscriptions
 * Fix domain addresses...
