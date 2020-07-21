@@ -96,31 +96,24 @@ type Type
     | ListOfPictures
 
 
-type Context
-    = Top
-    | InCallTo String Context
-
-
 type alias TypeError =
     { expectedType : Type
     , actualType : Type
-    , context : Context
     }
 
 
 typeErrors : PartialExpression -> List TypeError
 typeErrors expression =
-    cataPartial typeErrorsAlg expression Top Picture
+    cataPartial typeErrorsAlg expression Picture
 
 
-typeErrorsAlg : Bool -> ExpressionF (Context -> Type -> List TypeError) -> Context -> Type -> List TypeError
-typeErrorsAlg active constructor context expectedType =
+typeErrorsAlg : Bool -> ExpressionF (Type -> List TypeError) -> Type -> List TypeError
+typeErrorsAlg active constructor expectedType =
     let
         checkType typeOfThis =
             if typeOfThis /= expectedType then
                 [ { expectedType = expectedType
                   , actualType = typeOfThis
-                  , context = context
                   }
                 ]
 
@@ -130,7 +123,7 @@ typeErrorsAlg active constructor context expectedType =
     case constructor of
         Superimposed _ _ e _ ->
             if active then
-                e (InCallTo "superimposed" context) ListOfPictures
+                e ListOfPictures
                     ++ checkType Picture
 
             else
@@ -140,7 +133,7 @@ typeErrorsAlg active constructor context expectedType =
             if active then
                 List.concatMap
                     (\expectType ->
-                        expectType (InCallTo "list element" context)
+                        expectType
                             Picture
                     )
                     (expressionListToList expressionList)
@@ -151,27 +144,27 @@ typeErrorsAlg active constructor context expectedType =
 
         Moved _ _ _ _ _ _ e _ ->
             if active then
-                e (InCallTo "moved" context) Picture
+                e Picture
                     ++ checkType Picture
 
             else
-                e context expectedType
+                e expectedType
 
         Filled _ _ _ _ shape _ ->
             if active then
-                shape (InCallTo "filled" context) Stencil
+                shape Stencil
                     ++ checkType Picture
 
             else
-                shape context expectedType
+                shape expectedType
 
         Outlined _ _ _ _ shape _ ->
             if active then
-                shape (InCallTo "outlined" context) Stencil
+                shape Stencil
                     ++ checkType Picture
 
             else
-                shape context expectedType
+                shape expectedType
 
         Circle _ _ _ _ ->
             checkType Stencil
@@ -290,14 +283,6 @@ view model =
                             ]
                         ]
                         (let
-                            contextDescription context =
-                                case context of
-                                    Top ->
-                                        "at the top level of the expression"
-
-                                    InCallTo sth _ ->
-                                        "in a " ++ sth
-
                             typeToString typ =
                                 case typ of
                                     Picture ->
@@ -309,14 +294,12 @@ view model =
                                     ListOfPictures ->
                                         "List of Pictures"
 
-                            renderError { expectedType, actualType, context } =
+                            renderError { expectedType, actualType } =
                                 [ text "Expected type: "
                                 , text (typeToString expectedType)
                                 , text "\n"
                                 , text "  Actual type: "
                                 , text (typeToString actualType)
-                                , text "\n"
-                                , text (contextDescription context)
                                 , text "\n\n"
                                 ]
                          in

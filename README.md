@@ -1,14 +1,16 @@
 # Irreactive
 
+
 ## TODO
 
 * Type error redlines in `CodeInteractiveElm`.
-  * Remove context from type errors (hehe)
   * Add the path of the error expression to the type errors
   * Render redlines in view code when there's a type error at the same position
-* Write the rest of 'Building this Blog'.
 * Write customized emails for subscriptions
+* Look at 'how to write good emails'. Keep interesting character but also improve
+* Write the rest of 'Building this Blog'.
 * Fix domain addresses...
+
 
 ## Structure
 
