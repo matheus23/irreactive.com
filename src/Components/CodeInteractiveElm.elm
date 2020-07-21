@@ -99,21 +99,32 @@ type Type
 type alias TypeError =
     { expectedType : Type
     , actualType : Type
+    , path : List Int
     }
 
 
 typeErrors : PartialExpression -> List TypeError
 typeErrors expression =
-    cataPartial (activeOnly typeErrorsAlg) expression Picture
+    indexedCataPartial
+        (\path active constructor ->
+            activeOnly
+                (typeErrorsAlg path)
+                active
+                constructor
+        )
+        []
+        expression
+        Picture
 
 
-typeErrorsAlg : ExpressionF (Type -> List TypeError) -> Type -> List TypeError
-typeErrorsAlg constructor expectedType =
+typeErrorsAlg : List Int -> ExpressionF (Type -> List TypeError) -> Type -> List TypeError
+typeErrorsAlg path constructor expectedType =
     let
         checkType typeOfThis =
             if typeOfThis /= expectedType then
                 [ { expectedType = expectedType
                   , actualType = typeOfThis
+                  , path = path
                   }
                 ]
 
