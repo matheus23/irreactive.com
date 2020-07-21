@@ -18,14 +18,26 @@ type Expression
     = Expression (ExpressionF Expression)
 
 
+{-| Partially active expressions:
+
+Has a boolean attached to indicate whether an expression is
+supposed to be 'enabled' or 'disabled'.
+
+The meaning of that is dependent on what constructor it is.
+
+-}
+type PartialExpression
+    = PartialExpression Bool (ExpressionF PartialExpression)
+
+
 type ExpressionF a
-    = Superimposed Bool String String a String
-    | ListOf Bool String (List (ListElement a)) String
-    | Moved Bool String String Int String Int String a String
-    | Filled Bool String String Common.Color String a String
-    | Outlined Bool String String Common.Color String a String
-    | Circle Bool String String Int String
-    | Rectangle Bool String String Int String Int String
+    = Superimposed String String a String
+    | ListOf String (List (ListElement a)) String
+    | Moved String String Int String Int String a String
+    | Filled String String Common.Color String a String
+    | Outlined String String Common.Color String a String
+    | Circle String String Int String
+    | Rectangle String String Int String Int String
 
 
 type alias ExpressionList a =
@@ -37,8 +49,17 @@ type alias ExpressionList a =
 type alias ListElement a =
     { prefix : String
     , expression : a
+
+    -- TODO: This cannot be extracted out - yet
+    -- (at least I have no idea how to fit this to recursion
+    -- schemes nicely for now)
     , active : Bool
     }
+
+
+enableAll : Expression -> PartialExpression
+enableAll =
+    cata (PartialExpression True)
 
 
 
@@ -48,51 +69,51 @@ type alias ListElement a =
 mapE : (a -> b) -> ExpressionF a -> ExpressionF b
 mapE f constructor =
     case constructor of
-        Superimposed a t0 t1 e t3 ->
-            Superimposed a t0 t1 (f e) t3
+        Superimposed t0 t1 e t3 ->
+            Superimposed t0 t1 (f e) t3
 
-        ListOf a t0 expressionList t1 ->
-            ListOf a t0 (mapExpressionList f expressionList) t1
+        ListOf t0 expressionList t1 ->
+            ListOf t0 (mapExpressionList f expressionList) t1
 
-        Moved a t0 t1 x t2 y t3 e t4 ->
-            Moved a t0 t1 x t2 y t3 (f e) t4
+        Moved t0 t1 x t2 y t3 e t4 ->
+            Moved t0 t1 x t2 y t3 (f e) t4
 
-        Filled a t0 t1 col t2 shape t3 ->
-            Filled a t0 t1 col t2 (f shape) t3
+        Filled t0 t1 col t2 shape t3 ->
+            Filled t0 t1 col t2 (f shape) t3
 
-        Outlined a t0 t1 col t2 shape t3 ->
-            Outlined a t0 t1 col t2 (f shape) t3
+        Outlined t0 t1 col t2 shape t3 ->
+            Outlined t0 t1 col t2 (f shape) t3
 
-        Circle a t0 t1 r t2 ->
-            Circle a t0 t1 r t2
+        Circle t0 t1 r t2 ->
+            Circle t0 t1 r t2
 
-        Rectangle a t0 t1 w t2 h t3 ->
-            Rectangle a t0 t1 w t2 h t3
+        Rectangle t0 t1 w t2 h t3 ->
+            Rectangle t0 t1 w t2 h t3
 
 
 indexedMap : (Int -> a -> b) -> ExpressionF a -> ExpressionF b
 indexedMap f constructor =
     case constructor of
-        Superimposed a t0 t1 e t3 ->
-            Superimposed a t0 t1 (f 0 e) t3
+        Superimposed t0 t1 e t3 ->
+            Superimposed t0 t1 (f 0 e) t3
 
-        ListOf a t0 expressionList t1 ->
-            ListOf a t0 (indexedMapExpressionList f expressionList) t1
+        ListOf t0 expressionList t1 ->
+            ListOf t0 (indexedMapExpressionList f expressionList) t1
 
-        Moved a t0 t1 x t2 y t3 e t4 ->
-            Moved a t0 t1 x t2 y t3 (f 0 e) t4
+        Moved t0 t1 x t2 y t3 e t4 ->
+            Moved t0 t1 x t2 y t3 (f 0 e) t4
 
-        Filled a t0 t1 col t2 shape t3 ->
-            Filled a t0 t1 col t2 (f 0 shape) t3
+        Filled t0 t1 col t2 shape t3 ->
+            Filled t0 t1 col t2 (f 0 shape) t3
 
-        Outlined a t0 t1 col t2 shape t3 ->
-            Outlined a t0 t1 col t2 (f 0 shape) t3
+        Outlined t0 t1 col t2 shape t3 ->
+            Outlined t0 t1 col t2 (f 0 shape) t3
 
-        Circle a t0 t1 r t2 ->
-            Circle a t0 t1 r t2
+        Circle t0 t1 r t2 ->
+            Circle t0 t1 r t2
 
-        Rectangle a t0 t1 w t2 h t3 ->
-            Rectangle a t0 t1 w t2 h t3
+        Rectangle t0 t1 w t2 h t3 ->
+            Rectangle t0 t1 w t2 h t3
 
 
 mapExpressionList : (a -> b) -> List (ListElement a) -> List (ListElement b)
@@ -146,6 +167,20 @@ indexedCata algebra pathSoFar (Expression expression) =
         |> algebra pathSoFar
 
 
+cataPartial : (Bool -> ExpressionF a -> a) -> PartialExpression -> a
+cataPartial algebra (PartialExpression active constructor) =
+    constructor
+        |> mapE (cataPartial algebra)
+        |> algebra active
+
+
+indexedCataPartial : (List Int -> Bool -> ExpressionF a -> a) -> List Int -> PartialExpression -> a
+indexedCataPartial algebra pathSoFar (PartialExpression active constructor) =
+    constructor
+        |> indexedMap (\index -> indexedCataPartial algebra (index :: pathSoFar))
+        |> algebra pathSoFar active
+
+
 
 --
 
@@ -153,51 +188,26 @@ indexedCata algebra pathSoFar (Expression expression) =
 prefixExpressionWith : String -> ExpressionF a -> ExpressionF a
 prefixExpressionWith str expression =
     case expression of
-        Superimposed a t0 t1 e t3 ->
-            Superimposed a (str ++ t0) t1 e t3
+        Superimposed t0 t1 e t3 ->
+            Superimposed (str ++ t0) t1 e t3
 
-        ListOf a t0 expressionList t1 ->
-            ListOf a (str ++ t0) expressionList t1
+        ListOf t0 expressionList t1 ->
+            ListOf (str ++ t0) expressionList t1
 
-        Moved a t0 t1 x t2 y t3 e t4 ->
-            Moved a (str ++ t0) t1 x t2 y t3 e t4
+        Moved t0 t1 x t2 y t3 e t4 ->
+            Moved (str ++ t0) t1 x t2 y t3 e t4
 
-        Filled a t0 t1 col t2 shape t3 ->
-            Filled a (str ++ t0) t1 col t2 shape t3
+        Filled t0 t1 col t2 shape t3 ->
+            Filled (str ++ t0) t1 col t2 shape t3
 
-        Outlined a t0 t1 col t2 shape t3 ->
-            Outlined a (str ++ t0) t1 col t2 shape t3
+        Outlined t0 t1 col t2 shape t3 ->
+            Outlined (str ++ t0) t1 col t2 shape t3
 
-        Circle a t0 t1 r t2 ->
-            Circle a (str ++ t0) t1 r t2
+        Circle t0 t1 r t2 ->
+            Circle (str ++ t0) t1 r t2
 
-        Rectangle a t0 t1 w t2 h t3 ->
-            Rectangle a (str ++ t0) t1 w t2 h t3
-
-
-mapActive : (Bool -> Bool) -> ExpressionF a -> ExpressionF a
-mapActive f constructor =
-    case constructor of
-        Superimposed active t0 t1 e t3 ->
-            Superimposed (f active) t0 t1 e t3
-
-        ListOf active t0 expressionList t1 ->
-            ListOf (f active) t0 expressionList t1
-
-        Moved active t0 t1 x t2 y t3 e t4 ->
-            Moved (f active) t0 t1 x t2 y t3 e t4
-
-        Filled active t0 t1 col t2 shape t3 ->
-            Filled (f active) t0 t1 col t2 shape t3
-
-        Outlined active t0 t1 col t2 shape t3 ->
-            Outlined (f active) t0 t1 col t2 shape t3
-
-        Circle active t0 t1 r t2 ->
-            Circle (f active) t0 t1 r t2
-
-        Rectangle active t0 t1 w t2 h t3 ->
-            Rectangle (f active) t0 t1 w t2 h t3
+        Rectangle t0 t1 w t2 h t3 ->
+            Rectangle (str ++ t0) t1 w t2 h t3
 
 
 
@@ -220,7 +230,7 @@ parseExpression parens =
     lazy <|
         \_ ->
             oneOf
-                [ succeed (Superimposed True "")
+                [ succeed (Superimposed "")
                     |. token (Token "superimposed" "Expected 'superimposed' function call")
                     |= whitespace
                     |= parseExpression []
@@ -228,7 +238,7 @@ parseExpression parens =
                     |> inContext "a 'superimposed' function call"
                 , parseListOf
                     |> inContext "a list literal"
-                , succeed (Moved True "")
+                , succeed (Moved "")
                     |. token (Token "moved" "Expected 'moved' function call")
                     |= whitespace
                     |= Common.parseInt
@@ -238,7 +248,7 @@ parseExpression parens =
                     |= parseExpression []
                     |> handleParens parens
                     |> inContext "a 'moved' function call"
-                , succeed (Filled True "")
+                , succeed (Filled "")
                     |. token (Token "filled" "Expected 'filled' function call")
                     |= whitespace
                     |= Common.parseColor
@@ -246,7 +256,7 @@ parseExpression parens =
                     |= parseExpression []
                     |> handleParens parens
                     |> inContext "a 'filled' function call"
-                , succeed (Outlined True "")
+                , succeed (Outlined "")
                     |. token (Token "outlined" "Expected 'outlined' function call")
                     |= whitespace
                     |= Common.parseColor
@@ -254,13 +264,13 @@ parseExpression parens =
                     |= parseExpression []
                     |> handleParens parens
                     |> inContext "a 'outlined' function call"
-                , succeed (Circle True "")
+                , succeed (Circle "")
                     |. token (Token "circle" "Expected 'circle' function call")
                     |= whitespace
                     |= Common.parseInt
                     |> handleParens parens
                     |> inContext "a 'circle' function call"
-                , succeed (Rectangle True "")
+                , succeed (Rectangle "")
                     |. token (Token "rectangle" "Expected 'rectangle' function call")
                     |= whitespace
                     |= Common.parseInt
@@ -326,7 +336,7 @@ parseElementsHelp { revElements, index } =
         , tokenAndWhitespace "]"
             |> map
                 (\tail ->
-                    ListOf True
+                    ListOf
                         ""
                         (List.reverse revElements)
                         tail

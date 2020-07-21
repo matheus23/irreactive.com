@@ -17,7 +17,7 @@ import TypedSvg.Types as Svg
 
 
 type alias Model =
-    { expression : Expression }
+    { expression : PartialExpression }
 
 
 type Msg
@@ -25,22 +25,22 @@ type Msg
     | ToggleListElement (List Int) Int
 
 
-interpret : Expression -> Svg msg
+interpret : PartialExpression -> Svg msg
 interpret =
-    cata interpretAlg
+    cataPartial interpretAlg
 
 
-interpretAlg : ExpressionF (Svg msg) -> Svg msg
-interpretAlg expression =
+interpretAlg : Bool -> ExpressionF (Svg msg) -> Svg msg
+interpretAlg active expression =
     case expression of
-        Superimposed active _ _ e _ ->
+        Superimposed _ _ e _ ->
             if active then
                 e
 
             else
                 Svg.g [] []
 
-        ListOf active _ expressions _ ->
+        ListOf _ expressions _ ->
             -- this basically can only be used in 'superimposed',
             -- so we already know what to do with it
             if active then
@@ -52,7 +52,7 @@ interpretAlg expression =
             else
                 Svg.g [] []
 
-        Moved active _ _ x _ y _ e _ ->
+        Moved _ _ x _ y _ e _ ->
             if active then
                 Svg.g
                     [ SvgA.transform [ Svg.Translate (toFloat x) (toFloat y) ] ]
@@ -61,7 +61,7 @@ interpretAlg expression =
             else
                 e
 
-        Filled active _ _ color _ e _ ->
+        Filled _ _ color _ e _ ->
             if active then
                 Svg.g [ SvgA.fill (Svg.Paint (Common.colorToRGB color)) ]
                     [ e ]
@@ -70,7 +70,7 @@ interpretAlg expression =
                 -- in theory a type error
                 e
 
-        Outlined active _ _ color _ e _ ->
+        Outlined _ _ color _ e _ ->
             if active then
                 Svg.g
                     [ SvgA.stroke (Svg.Paint (Common.colorToRGB color))
@@ -83,7 +83,7 @@ interpretAlg expression =
                 -- in theory a type error
                 e
 
-        Circle active _ _ r _ ->
+        Circle _ _ r _ ->
             if active then
                 Svg.circle
                     [ SvgPx.r (toFloat r) ]
@@ -92,7 +92,7 @@ interpretAlg expression =
             else
                 Svg.g [] []
 
-        Rectangle active _ _ wInt _ hInt _ ->
+        Rectangle _ _ wInt _ hInt _ ->
             if active then
                 let
                     w =
@@ -132,13 +132,13 @@ type alias TypeError =
     }
 
 
-typeErrors : Expression -> List TypeError
+typeErrors : PartialExpression -> List TypeError
 typeErrors expression =
-    cata typeErrorsAlg expression Top Picture
+    cataPartial typeErrorsAlg expression Top Picture
 
 
-typeErrorsAlg : ExpressionF (Context -> Type -> List TypeError) -> Context -> Type -> List TypeError
-typeErrorsAlg constructor context expectedType =
+typeErrorsAlg : Bool -> ExpressionF (Context -> Type -> List TypeError) -> Context -> Type -> List TypeError
+typeErrorsAlg active constructor context expectedType =
     let
         checkType typeOfThis =
             if typeOfThis /= expectedType then
@@ -152,7 +152,7 @@ typeErrorsAlg constructor context expectedType =
                 []
     in
     case constructor of
-        Superimposed active _ _ e _ ->
+        Superimposed _ _ e _ ->
             if active then
                 e (InCallTo "superimposed" context) ListOfPictures
                     ++ checkType Picture
@@ -160,7 +160,7 @@ typeErrorsAlg constructor context expectedType =
             else
                 []
 
-        ListOf active _ expressionList _ ->
+        ListOf _ expressionList _ ->
             if active then
                 List.concatMap
                     (\expectType ->
@@ -173,7 +173,7 @@ typeErrorsAlg constructor context expectedType =
             else
                 []
 
-        Moved active _ _ _ _ _ _ e _ ->
+        Moved _ _ _ _ _ _ e _ ->
             if active then
                 e (InCallTo "moved" context) Picture
                     ++ checkType Picture
@@ -181,7 +181,7 @@ typeErrorsAlg constructor context expectedType =
             else
                 e context expectedType
 
-        Filled active _ _ _ _ shape _ ->
+        Filled _ _ _ _ shape _ ->
             if active then
                 shape (InCallTo "filled" context) Stencil
                     ++ checkType Picture
@@ -189,7 +189,7 @@ typeErrorsAlg constructor context expectedType =
             else
                 shape context expectedType
 
-        Outlined active _ _ _ _ shape _ ->
+        Outlined _ _ _ _ shape _ ->
             if active then
                 shape (InCallTo "outlined" context) Stencil
                     ++ checkType Picture
@@ -197,10 +197,10 @@ typeErrorsAlg constructor context expectedType =
             else
                 shape context expectedType
 
-        Circle _ _ _ _ _ ->
+        Circle _ _ _ _ ->
             checkType Stencil
 
-        Rectangle _ _ _ _ _ _ _ ->
+        Rectangle _ _ _ _ _ _ ->
             checkType Stencil
 
 
@@ -212,6 +212,7 @@ init : String -> Result String Model
 init code =
     code
         |> parse
+        |> Result.map enableAll
         |> Result.map
             (\result -> { expression = result })
 
@@ -226,32 +227,31 @@ update msg model =
         ToggleExpression path ->
             { model
                 | expression =
-                    indexedCata (toggleExpression path) [] model.expression
+                    indexedCataPartial (toggleExpression path) [] model.expression
             }
 
         ToggleListElement path index ->
             { model
                 | expression =
-                    indexedCata (toggleListElement path index) [] model.expression
+                    indexedCataPartial (toggleListElement path index) [] model.expression
             }
 
 
-toggleExpression : List Int -> List Int -> ExpressionF Expression -> Expression
-toggleExpression togglePath currentPath constructor =
-    let
-        toggleActive active =
-            xor active (togglePath == currentPath)
-    in
-    Expression (mapActive toggleActive constructor)
+toggleExpression : List Int -> List Int -> Bool -> ExpressionF PartialExpression -> PartialExpression
+toggleExpression togglePath currentPath active constructor =
+    PartialExpression
+        (xor active (togglePath == currentPath))
+        constructor
 
 
-toggleListElement : List Int -> Int -> List Int -> ExpressionF Expression -> Expression
-toggleListElement togglePath toggleIndex currentPath constructor =
+toggleListElement : List Int -> Int -> List Int -> Bool -> ExpressionF PartialExpression -> PartialExpression
+toggleListElement togglePath toggleIndex currentPath active constructor =
     if togglePath == currentPath then
         case constructor of
-            ListOf active t0 elements t1 ->
-                Expression
-                    (ListOf active
+            ListOf t0 elements t1 ->
+                PartialExpression
+                    active
+                    (ListOf
                         t0
                         (List.indexedMap
                             (\currentIndex listElement ->
@@ -265,10 +265,10 @@ toggleListElement togglePath toggleIndex currentPath constructor =
                     )
 
             _ ->
-                Expression constructor
+                PartialExpression active constructor
 
     else
-        Expression constructor
+        PartialExpression active constructor
 
 
 
@@ -357,15 +357,15 @@ view model =
         ]
 
 
-viewExpression : Expression -> List (Html Msg)
+viewExpression : PartialExpression -> List (Html Msg)
 viewExpression expression =
-    indexedCata viewExpressionAlg [] expression True
+    indexedCataPartial viewExpressionAlg [] expression True
 
 
-viewExpressionAlg : List Int -> ExpressionF (Bool -> List (Html Msg)) -> Bool -> List (Html Msg)
-viewExpressionAlg path expression parentActive =
+viewExpressionAlg : List Int -> Bool -> ExpressionF (Bool -> List (Html Msg)) -> Bool -> List (Html Msg)
+viewExpressionAlg path active expression parentActive =
     case expression of
-        Superimposed active t0 t1 e t2 ->
+        Superimposed t0 t1 e t2 ->
             List.concat
                 [ [ viewOther (active && parentActive) t0
                   , viewFunctionName path (active && parentActive) "superimposed"
@@ -375,7 +375,7 @@ viewExpressionAlg path expression parentActive =
                 , [ viewOther (active && parentActive) t2 ]
                 ]
 
-        ListOf active t0 elements t1 ->
+        ListOf t0 elements t1 ->
             List.concat
                 [ [ viewOther (active && parentActive) t0 ]
                 , (List.foldl (viewListItem (active && parentActive) path)
@@ -385,7 +385,7 @@ viewExpressionAlg path expression parentActive =
                 , [ viewOther (active && parentActive) t1 ]
                 ]
 
-        Moved active t0 t1 x t2 y t3 e t4 ->
+        Moved t0 t1 x t2 y t3 e t4 ->
             List.concat
                 [ [ viewOther (active && parentActive) t0
                   , viewFunctionName path (active && parentActive) "moved"
@@ -399,7 +399,7 @@ viewExpressionAlg path expression parentActive =
                 , [ viewOther (active && parentActive) t4 ]
                 ]
 
-        Filled active t0 t1 col t2 shape t3 ->
+        Filled t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ viewOther (active && parentActive) t0
                   , viewFunctionName path (active && parentActive) "filled"
@@ -411,7 +411,7 @@ viewExpressionAlg path expression parentActive =
                 , [ viewOther (active && parentActive) t3 ]
                 ]
 
-        Outlined active t0 t1 col t2 shape t3 ->
+        Outlined t0 t1 col t2 shape t3 ->
             List.concat
                 [ [ viewOther (active && parentActive) t0
                   , viewFunctionName path (active && parentActive) "outlined"
@@ -423,7 +423,7 @@ viewExpressionAlg path expression parentActive =
                 , [ viewOther (active && parentActive) t3 ]
                 ]
 
-        Circle active t0 t1 r t2 ->
+        Circle t0 t1 r t2 ->
             if active then
                 [ viewOther parentActive t0
                 , viewFunctionName path parentActive "circle"
@@ -435,7 +435,7 @@ viewExpressionAlg path expression parentActive =
             else
                 [ viewFunctionName path parentActive "emptyStencil" ]
 
-        Rectangle active t0 t1 w t2 h t3 ->
+        Rectangle t0 t1 w t2 h t3 ->
             if active then
                 [ viewOther parentActive t0
                 , viewFunctionName path parentActive "rectangle"
