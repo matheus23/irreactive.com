@@ -161,7 +161,7 @@ mePicture =
 imgCaptioned : Markdown.Html.Renderer (List (Html msg) -> Html msg)
 imgCaptioned =
     Markdown.Html.tag "imgcaptioned"
-        (\src alt shouldLink maybeWidth idAttrs children ->
+        (\src alt maybeWidth idAttrs children ->
             View.figureWithCaption idAttrs
                 { figure =
                     \{ classes } ->
@@ -184,7 +184,6 @@ imgCaptioned =
         )
         |> Markdown.Html.withAttribute "src"
         |> Markdown.Html.withAttribute "alt"
-        |> withBooleanAttribute "link"
         |> Markdown.Html.withOptionalAttribute "width"
         |> withOptionalIdAttribute
 
