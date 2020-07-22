@@ -3,10 +3,10 @@
 
 ## TODO
 
-* Write customized emails for subscriptions
-* Look at 'how to write good emails'. Keep interesting character but also improve
 * Write the rest of 'Building this Blog'.
-* Fix domain addresses...
+* Extend footer
+  * Footer links sections
+  * Build & add RSS feed
 
 
 ## Structure

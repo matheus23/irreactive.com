@@ -1,2 +1,19 @@
-<svg version="1.1" viewBox="251.0485 144.52063 56.114286 74.5" width="50px" height="74.5"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="10%" style="stop-color:rgba(1.96%,45.88%,90.2%,1);stop-opacity:1"></stop><stop offset="100%" style="stop-color:rgba(0%,94.9%,37.65%,1);stop-opacity:1"></stop></linearGradient></defs><metadata></metadata><g id="Canvas_11" stroke="none" fill="url(#grad1)" stroke-opacity="1" fill-opacity="1" stroke-dasharray="none"><g id="Canvas_11: Layer 1"><g id="Group_38"><g id="Graphic_32"><path d="M 252.5485 146.02063 L 252.5485 217.52063 L 305.66277 217.52063 L 305.66277 161.68254 L 290.00087 146.02063 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path></g><g id="Line_34"><line x1="266.07286" y1="182.8279" x2="290.75465" y2="183.00997" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line></g><g id="Line_35"><line x1="266.07286" y1="191.84156" x2="290.75465" y2="192.02363" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line></g><g id="Line_36"><line x1="266.07286" y1="200.85522" x2="290.75465" y2="201.0373" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line></g><g id="Line_37"><line x1="266.07286" y1="164.80058" x2="278.3874" y2="164.94049" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line></g></g></g></g></svg>
-
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" 
+    xmlns="http://www.w3.org/2000/svg">
+    <rect width="256" height="256" fill="#FBF1C7"/>
+    <g filter="url(#filter0_d)">
+        <path d="M110.452 199H47V176.2H63.2103V91.8H47V69H110.452V91.8H94.2415V176.2H110.452V199Z" fill="#D65D0E"/>
+        <path d="M184.011 105.319C186.915 105.319 190.125 105.712 193.64 106.5C197.308 107.157 200.9 108.404 204.415 110.242L209 141.358L186.533 143.524L182.636 128.36C179.579 126.785 176.904 125.997 174.612 125.997C171.249 125.997 168.269 127.113 165.671 129.345C163.226 131.577 162.003 134.859 162.003 139.192V176.216H180.343V199H118.674V176.216H132.429V125.8H117.528V106.5H159.71V123.437C161.392 118.316 164.066 114.049 167.734 110.636C171.555 107.091 176.981 105.319 184.011 105.319Z" fill="#D65D0E"/>
+    </g>
+    <rect width="256" height="23" fill="#D65D0E"/>
+    <defs>
+        <filter id="filter0_d" x="47" y="69" width="165" height="136" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+            <feOffset dx="3" dy="6"/>
+            <feColorMatrix type="matrix" values="0 0 0 0 0.432584 0 0 0 0 0.143371 0 0 0 0 0.00741574 0 0 0 1 0"/>
+            <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+        </filter>
+    </defs>
+</svg>

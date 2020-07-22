@@ -52,6 +52,10 @@ update carouselId msg model =
             )
 
 
+{-| TODO as soon as I want to use this again:
+Redesign it :)
+Idea: Don't use dots for navigation, but something similar to the navigation tabs maybe?
+-}
 view : (Msg -> msg) -> String -> Model -> List (Html msg) -> Html msg
 view liftMsg carouselId model children =
     let
