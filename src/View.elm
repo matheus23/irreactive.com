@@ -428,8 +428,9 @@ decorateArticle { path, metadata, content } =
 
 githubEditLink : PagePath Pages.PathKey -> Html msg
 githubEditLink path =
-    paragraph []
-        [ text "Found a typo? "
+    paragraph [ class "text-center" ]
+        [ hairline [ "mb-4" ]
+        , text "Found a typo? "
         , link []
             { destination = githubRepo ++ "/blob/master/content/" ++ PagePath.toString path ++ ".md"
             , title = Just "Link to editing this page on Github"

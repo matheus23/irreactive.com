@@ -202,7 +202,7 @@ Types are therefore not only a tool for preventing mistakes, but also a document
 
 # Going further
 
-The points in this blog post go beyond just _graphics_ APIs. Expression-based programming with types (a.k.a. _functional_ programming) can be applied widely. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs and especially user interface programming, so I want to take this principle further:
+The points in this blog post go beyond just _graphics_ APIs. Expression-based programming with types (a.k.a. _functional programming!_) can be applied widely. Nonetheless, I'm personally very interested in finding good solutions for graphics APIs and especially user interface programming, so I want to take this principle further:
 
 * What about responsive pictures? Layout? Tables? Grids?
 * What about interaction? Clicking things, click regions, focus? State?
