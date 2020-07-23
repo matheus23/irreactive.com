@@ -3,7 +3,6 @@
 
 ## TODO
 
-* Fix all links pointing to "philippkrueger.me"
 * Extend footer
   * Footer links sections
   * Build & add RSS feed

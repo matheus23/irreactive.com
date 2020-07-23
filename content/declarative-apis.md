@@ -213,6 +213,6 @@ There is still much to (dis)cover. If you want to jump into the rabbit hole of w
 * [Phil Freeman's blog](https://blog.functorial.com/) about state management in purely functional graphical applications
 * The Paper [Monoids: Themes and Variations](https://repository.upenn.edu/cgi/viewcontent.cgi?article=1773&context=cis_papers) with some answers to the questions above (and something my future posts are going to be based upon).
 
-Now, if you've come this far and feel like this article is worth sharing, please consider [tweeting a link](https://twitter.com/intent/tweet?text=I%20just%20read%20this%3A%20https%3A%2F%2Fblog.philippkrueger.me%2Fdeclarative-apis).
+Now, if you've come this far and feel like this article is worth sharing, please consider [tweeting a link](https://twitter.com/intent/tweet?text=I%20just%20read%20this%3A%20https%3A%2F%2Firreactive.com%2Fdeclarative-apis).
 
 Oh, and if you want to discover these topics together with me, you can follow [me on twitter](https://twitter.com/matheusdev23) or use the E-Mail form below. Thanks!

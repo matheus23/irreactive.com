@@ -13,7 +13,7 @@ This website is operated on [Netlify](https://www.netlify.com/privacy/). Email s
 
 ## Who we are
 
-We're the owners of the domain [philippkrueger.me](https://philippkrueger.me) and therefore also its subdomain [blog.philippkrueger.me](https://blog.philippkrueger.me).
+We're the owners of the domain [irreactive.com](https://irreactive.com).
 
 You can contact us using the information from the [imprint](/imprint).
 

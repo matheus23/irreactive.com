@@ -20,17 +20,17 @@ siteName =
 
 siteTagline : String
 siteTagline =
-    "A Blog about User Interface and Functional Programming"
+    "A Blog about User Interface- and Functional Programming"
 
 
 canonicalSiteUrl : String
 canonicalSiteUrl =
-    "https://blog.philippkrueger.me/"
+    "https://irreactive.com/"
 
 
 githubRepo : String
 githubRepo =
-    "https://github.com/matheus23/website"
+    "https://github.com/matheus23/irreactive.com"
 
 
 type alias Model =
