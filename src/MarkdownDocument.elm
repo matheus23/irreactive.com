@@ -150,7 +150,7 @@ mePicture =
                 [ Attr.class "rounded-lg my-6 mx-auto"
                 , Attr.width 200
                 , Attr.height 200
-                , Attr.src (images.me |> ImagePath.toString)
+                , Attr.src (images.other.me |> ImagePath.toString)
                 , Attr.title "That's me!"
                 , Attr.alt "profile picture"
                 ]

@@ -1,4 +1,4 @@
-# Irreactive
+# [Irreactive](https://irreactive.com)
 
 
 ## TODO
@@ -6,6 +6,11 @@
 * Extend footer
   * Footer links sections
   * Build & add RSS feed
+  * Twitter/GitHub/RSS icons
+* Building this Blog Thumbnail?
+* Write proper readme
+* Publish repostory
+* 'Release' a.k.a. advertise, a.k.a. tell people about this
 
 
 ## Structure

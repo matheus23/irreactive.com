@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "Layouts",
   "description": "A draft. (TODO CHANGE THIS)",
-  "image": "images/article-covers/hello.jpg",
+  "image": "images/other/hello.jpg",
   "draft": true,
   "published": "2019-11-21",
 }

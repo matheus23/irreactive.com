@@ -3,7 +3,7 @@
   "type": "blog",
   "title": "Boxes of Higher Order",
   "description": "Exploring graphical visualisations for code, especially for functional programming, inspired by category theory visualisations.",
-  "image": "images/article-covers/mountains.jpg",
+  "image": "images/other/mountains.jpg",
   "draft": true,
   "published": "2020-03-03",
 }

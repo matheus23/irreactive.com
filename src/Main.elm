@@ -29,7 +29,7 @@ manifest =
     , themeColor = Just Color.white
     , startUrl = pages.index
     , shortName = Just siteName
-    , sourceIcon = images.iconPng
+    , sourceIcon = images.icons.favicon
     }
 
 
