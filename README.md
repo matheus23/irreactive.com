@@ -3,7 +3,9 @@
 
 ## TODO
 
-* Write the rest of 'Building this Blog'.
+* Fix favicon
+* License
+* Fix all links pointing to "philippkrueger.me"
 * Extend footer
   * Footer links sections
   * Build & add RSS feed
