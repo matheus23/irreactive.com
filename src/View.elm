@@ -181,6 +181,31 @@ footer :
     }
     -> Html msg
 footer { onSubmit, onInput, model, errorText, submitSuccess } =
+    let
+        columns : List (List (Html msg)) -> Html msg
+        columns items =
+            ul
+                [ classes
+                    [ "grid grid-cols-3 gap-4"
+                    , "font-title w-full"
+                    ]
+                ]
+                (List.map
+                    (\content ->
+                        li []
+                            [ ul []
+                                content
+                            ]
+                    )
+                    items
+                )
+
+        entry linkInfo =
+            li [] [ link [] linkInfo ]
+
+        heading title =
+            li [ class "text-sm text-gruv-gray-9" ] [ text title ]
+    in
     Html.footer [ class "flex flex-col bg-gruv-gray-0 sticky bottom-0 inset-x-0" ]
         [ form
             [ name "email-subscription"
@@ -189,94 +214,68 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
             , Events.onSubmit onSubmit
             , class "max-w-desktop w-full desktop:mx-auto py-6 px-3"
             ]
-            [ ul
-                [ classes
-                    [ "grid grid-cols-3 gap-4"
-                    , "font-title w-full"
-                    ]
-                ]
-                [ li []
-                    [ ul []
-                        [ li [ class "text-sm text-gruv-gray-9" ] [ text "READ" ]
-                        , li []
-                            [ link []
-                                { title = Just "posts"
-                                , destination = "/"
-                                , children = [ text "posts" ]
+            [ columns
+                [ [ heading "READ"
+                  , entry
+                        { title = Just "posts"
+                        , destination = "/"
+                        , children = [ text "posts" ]
+                        }
+                  , entry
+                        { title = Just "about"
+                        , destination = "/about"
+                        , children = [ text "about" ]
+                        }
+                  ]
+                , [ heading "FOLLOW"
+                  , entry
+                        { title = Just "twitter"
+                        , destination = "https://twitter.com/matheusdev23"
+                        , children =
+                            [ smallIcon
+                                { src = images.icons.twitter
+                                , alt = "twitter"
                                 }
+                            , text "twitter"
                             ]
-                        , li []
-                            [ link []
-                                { title = Just "about"
-                                , destination = "/about"
-                                , children = [ text "about" ]
+                        }
+                  , entry
+                        { title = Just "github"
+                        , destination = "https://github.com/matheus23"
+                        , children =
+                            [ smallIcon
+                                { src = images.icons.github
+                                , alt = "github"
                                 }
+                            , text "github"
                             ]
+                        }
+                  , li []
+                        [ link [ target "_blank" ]
+                            { title = Just "rss feed"
+                            , destination = Feed.path |> String.join "/"
+                            , children =
+                                [ smallIcon
+                                    { src = images.icons.rss
+                                    , alt = "rss"
+                                    }
+                                , text "rss feed"
+                                ]
+                            }
                         ]
-                    ]
-                , li []
-                    [ ul []
-                        [ li [ class "text-sm text-gruv-gray-9" ] [ text "FOLLOW" ]
-                        , li []
-                            [ link []
-                                { title = Just "twitter"
-                                , destination = "https://twitter.com/matheusdev23"
-                                , children =
-                                    [ smallIcon
-                                        { src = images.icons.twitter
-                                        , alt = "twitter"
-                                        }
-                                    , text "twitter"
-                                    ]
-                                }
-                            ]
-                        , li []
-                            [ link []
-                                { title = Just "github"
-                                , destination = "https://github.com/matheus23"
-                                , children =
-                                    [ smallIcon
-                                        { src = images.icons.github
-                                        , alt = "github"
-                                        }
-                                    , text "github"
-                                    ]
-                                }
-                            ]
-                        , li []
-                            [ link [ target "_blank" ]
-                                { title = Just "rss feed"
-                                , destination = Feed.path |> String.join "/"
-                                , children =
-                                    [ smallIcon
-                                        { src = images.icons.rss
-                                        , alt = "rss"
-                                        }
-                                    , text "rss feed"
-                                    ]
-                                }
-                            ]
-                        ]
-                    ]
-                , li []
-                    [ ul []
-                        [ li [ class "text-sm text-gruv-gray-9" ] [ text "INFO" ]
-                        , li []
-                            [ link []
-                                { title = Just "imprint"
-                                , destination = "/imprint"
-                                , children = [ text "imprint" ]
-                                }
-                            ]
-                        , li []
-                            [ link []
-                                { title = Just "privacy policy"
-                                , destination = "/privacy-policy"
-                                , children = [ text "privacy policy" ]
-                                }
-                            ]
-                        ]
-                    ]
+                  ]
+                , [ heading "INFO"
+                  , entry
+                        { title = Just "imprint"
+                        , destination = "/imprint"
+                        , children = [ text "imprint" ]
+                        }
+                  , entry
+                        { title = Just "privacy policy"
+                        , destination = "/privacy-policy"
+                        , children = [ text "privacy policy" ]
+                        }
+                  ]
                 ]
             , p [ class "mt-4" ]
                 [ label [ for "email", class "font-title text-xl text-gruv-gray-11" ]
