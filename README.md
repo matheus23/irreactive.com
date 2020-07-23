@@ -3,7 +3,6 @@
 
 ## TODO
 
-* Fix favicon
 * License
 * Fix all links pointing to "philippkrueger.me"
 * Extend footer
