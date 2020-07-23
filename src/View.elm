@@ -207,13 +207,7 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
             li [ class "text-sm text-gruv-gray-9" ] [ text title ]
     in
     Html.footer [ class "flex flex-col bg-gruv-gray-0 sticky bottom-0 inset-x-0" ]
-        [ form
-            [ name "email-subscription"
-            , method "POST"
-            , attribute "data-netlify" "true"
-            , Events.onSubmit onSubmit
-            , class "max-w-desktop w-full desktop:mx-auto py-6 px-3"
-            ]
+        [ div [ class "max-w-desktop w-full desktop:mx-auto py-6 px-3" ]
             [ columns
                 [ [ heading "READ"
                   , entry
@@ -277,53 +271,60 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
                         }
                   ]
                 ]
-            , p [ class "mt-4" ]
-                [ label [ for "email", class "font-title text-xl text-gruv-gray-11" ]
-                    [ text "Get an "
-                    , span [ class "code-shadow highlighted-l" ] [ text "E-Mail" ]
-                    , text " for every new Post:"
-                    ]
+            , form
+                [ name "email-subscription"
+                , method "POST"
+                , attribute "data-netlify" "true"
+                , Events.onSubmit onSubmit
                 ]
-            , p [ class "flex flex-row mt-2" ]
-                [ input
-                    [ classes
-                        [ "bg-gruv-gray-3"
-                        , "border-2 border-r-0 border-gruv-gray-5 rounded-l-md"
-                        , "font-code text-gruv-gray-11"
-                        , "flex-shrink flex-grow min-w-0 py-auto py-1 px-2"
-                        , "focus:border-gruv-gray-7"
+                [ p [ class "mt-4" ]
+                    [ label [ for "email", class "font-title text-xl text-gruv-gray-11" ]
+                        [ text "Get an "
+                        , span [ class "code-shadow highlighted-l" ] [ text "E-Mail" ]
+                        , text " for every new Post:"
                         ]
-                    , style "transform" "translate(0, -4px)"
-                    , style "box-shadow" "0 4px 0 0 rgba(102,92,84,1)"
-                    , id "email"
-                    , type_ "email"
-                    , name "email"
-                    , placeholder "your e-mail"
-                    , Events.onInput onInput
-                    , value model
                     ]
-                    []
-                , button
-                    [ classes [ "call-to-action inline flex-shrink-0 px-4 py-2 font-semibold tracking-widest" ]
-                    , type_ "submit"
+                , p [ class "flex flex-row mt-2" ]
+                    [ input
+                        [ classes
+                            [ "bg-gruv-gray-3"
+                            , "border-2 border-r-0 border-gruv-gray-5 rounded-l-md"
+                            , "font-code text-gruv-gray-11"
+                            , "flex-shrink flex-grow min-w-0 py-auto py-1 px-2"
+                            , "focus:border-gruv-gray-7"
+                            ]
+                        , style "transform" "translate(0, -4px)"
+                        , style "box-shadow" "0 4px 0 0 rgba(102,92,84,1)"
+                        , id "email"
+                        , type_ "email"
+                        , name "email"
+                        , placeholder "your e-mail"
+                        , Events.onInput onInput
+                        , value model
+                        ]
+                        []
+                    , button
+                        [ classes [ "call-to-action inline flex-shrink-0 px-4 py-2 font-semibold tracking-widest" ]
+                        , type_ "submit"
+                        ]
+                        [ text "Get Notified" ]
                     ]
-                    [ text "Get Notified" ]
+                , p
+                    [ classes
+                        [ "font-code text-gruv-yellow-l mt-2"
+                        , when (String.isEmpty errorText) "hidden"
+                        ]
+                    ]
+                    [ text errorText ]
+                , p
+                    [ classes
+                        [ "font-code mt-2"
+                        , unless submitSuccess "hidden"
+                        ]
+                    , style "color" "#49d27e"
+                    ]
+                    [ text "Thanks for subscribing!" ]
                 ]
-            , p
-                [ classes
-                    [ "font-code text-gruv-yellow-l mt-2"
-                    , when (String.isEmpty errorText) "hidden"
-                    ]
-                ]
-                [ text errorText ]
-            , p
-                [ classes
-                    [ "font-code mt-2"
-                    , unless submitSuccess "hidden"
-                    ]
-                , style "color" "#49d27e"
-                ]
-                [ text "Thanks for subscribing!" ]
             ]
         ]
 
