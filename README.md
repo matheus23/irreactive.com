@@ -4,9 +4,7 @@
 ## TODO
 
 * Extend footer
-  * Footer links sections
   * Build & add RSS feed
-  * Twitter/GitHub/RSS icons
 * Building this Blog Thumbnail?
 * Write proper readme
 * Publish repostory

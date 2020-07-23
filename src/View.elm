@@ -13,7 +13,7 @@ import Markdown.Block as Markdown
 import Markdown.Scaffolded as Scaffolded
 import Metadata
 import Pages exposing (allImages, images, pages)
-import Pages.ImagePath as ImagePath
+import Pages.ImagePath as ImagePath exposing (ImagePath)
 import Pages.PagePath as PagePath exposing (PagePath)
 
 
@@ -188,47 +188,99 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
             , Events.onSubmit onSubmit
             , class "max-w-desktop w-full desktop:mx-auto py-6 px-3"
             ]
-            [ div
+            [ ul
                 [ classes
                     [ "grid grid-cols-3 gap-4"
                     , "font-title w-full"
                     ]
                 ]
-                [ link []
-                    { title = Just "all posts"
-                    , destination = "/"
-                    , children = [ text "all posts" ]
-                    }
-                , link []
-                    { title = Just "github"
-                    , destination = "https://github.com/matheus23"
-                    , children = [ text "github" ]
-                    }
-                , link []
-                    { title = Just "imprint"
-                    , destination = "/imprint"
-                    , children = [ text "imprint" ]
-                    }
-                , link []
-                    { title = Just "about"
-                    , destination = "/about"
-                    , children = [ text "about" ]
-                    }
-                , link []
-                    { title = Just "twitter"
-                    , destination = "https://twitter.com/matheusdev23"
-                    , children = [ text "twitter" ]
-                    }
-                , link []
-                    { title = Just "privacy policy"
-                    , destination = "/privacy-policy"
-                    , children = [ text "privacy policy" ]
-                    }
+                [ li []
+                    [ ul []
+                        [ li [ class "text-sm text-gruv-gray-9" ] [ text "READ" ]
+                        , li []
+                            [ link []
+                                { title = Just "posts"
+                                , destination = "/"
+                                , children = [ text "posts" ]
+                                }
+                            ]
+                        , li []
+                            [ link []
+                                { title = Just "about"
+                                , destination = "/about"
+                                , children = [ text "about" ]
+                                }
+                            ]
+                        ]
+                    ]
+                , li []
+                    [ ul []
+                        [ li [ class "text-sm text-gruv-gray-9" ] [ text "FOLLOW" ]
+                        , li []
+                            [ link []
+                                { title = Just "twitter"
+                                , destination = "https://twitter.com/matheusdev23"
+                                , children =
+                                    [ smallIcon
+                                        { src = images.icons.twitter
+                                        , alt = "twitter"
+                                        }
+                                    , text "twitter"
+                                    ]
+                                }
+                            ]
+                        , li []
+                            [ link []
+                                { title = Just "github"
+                                , destination = "https://github.com/matheus23"
+                                , children =
+                                    [ smallIcon
+                                        { src = images.icons.github
+                                        , alt = "github"
+                                        }
+                                    , text "github"
+                                    ]
+                                }
+                            ]
+                        , li []
+                            [ link []
+                                { title = Just "rss feed"
+                                , destination = "/rss"
+                                , children =
+                                    [ smallIcon
+                                        { src = images.icons.rss
+                                        , alt = "rss"
+                                        }
+                                    , text "rss feed"
+                                    ]
+                                }
+                            ]
+                        ]
+                    ]
+                , li []
+                    [ ul []
+                        [ li [ class "text-sm text-gruv-gray-9" ] [ text "INFO" ]
+                        , li []
+                            [ link []
+                                { title = Just "imprint"
+                                , destination = "/imprint"
+                                , children = [ text "imprint" ]
+                                }
+                            ]
+                        , li []
+                            [ link []
+                                { title = Just "privacy policy"
+                                , destination = "/privacy-policy"
+                                , children = [ text "privacy policy" ]
+                                }
+                            ]
+                        ]
+                    ]
                 ]
             , p [ class "mt-4" ]
-                [ label [ for "email", class "font-code text-gruv-gray-11" ]
+                [ label [ for "email", class "font-title text-xl text-gruv-gray-11" ]
                     [ text "Get an "
-                    , span [ class "text-gruv-orange-l" ] [ text "E-Mail" ]
+                    , span [ class "code-shadow highlighted-l" ] [ text "E-Mail" ]
                     , text " for every new Post:"
                     ]
                 ]
@@ -274,6 +326,19 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
                 [ text "Thanks for subscribing!" ]
             ]
         ]
+
+
+smallIcon : { src : ImagePath pathKey, alt : String } -> Html msg
+smallIcon info =
+    img
+        [ class "mr-2 inline-block text-white text-opacity-25"
+        , src (ImagePath.toString info.src)
+        , width 16
+        , height 16
+        , title info.alt
+        , alt info.alt
+        ]
+        []
 
 
 gotEmailNotification : { state : Animator.Timeline Bool, onClickDismiss : msg } -> Html msg
@@ -594,7 +659,7 @@ infoIcon : Maybe String -> Html msg
 infoIcon infoText =
     img
         (class "mx-1 inline-block"
-            :: src (ImagePath.toString images.infoIcon)
+            :: src (ImagePath.toString images.icons.info)
             :: width 24
             :: height 24
             :: (case infoText of
