@@ -14,7 +14,7 @@
     "watch:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css --watch"
   },
   "author": "Philipp Krüger",
-  "license": "BSD-3",
+  "license": "MIT",
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^2.2.0",
     "cssnano": "^4.1.10",
