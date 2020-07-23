@@ -3,9 +3,11 @@ module Main exposing (main)
 import App exposing (..)
 import Color
 import Date
+import Feed
 import Head
 import Head.Seo as Seo
 import Html exposing (Html)
+import IrreactiveSitemap
 import MarkdownDocument
 import Metadata exposing (Metadata)
 import Pages exposing (images, pages)
@@ -55,7 +57,30 @@ main =
         , canonicalSiteUrl = canonicalSiteUrl
         , internals = Pages.internals
         }
+        |> Pages.Platform.withFileGenerator generateFiles
         |> Pages.Platform.toProgram
+
+
+generateFiles :
+    List
+        { path : PagePath Pages.PathKey
+        , frontmatter : Metadata
+        , body : String
+        }
+    ->
+        StaticHttp.Request
+            (List
+                (Result String
+                    { path : List String
+                    , content : String
+                    }
+                )
+            )
+generateFiles siteMetadata =
+    StaticHttp.succeed
+        [ Feed.fileToGenerate { siteTagline = siteTagline, siteUrl = canonicalSiteUrl } siteMetadata |> Ok
+        , IrreactiveSitemap.build { siteUrl = canonicalSiteUrl } siteMetadata |> Ok
+        ]
 
 
 pageView :
@@ -180,6 +205,16 @@ viewFooter model =
 -}
 head : Metadata -> List (Head.Tag Pages.PathKey)
 head metadata =
+    List.concat
+        [ [ Head.rssLink "/feed.xml"
+          , Head.sitemapLink "/sitemap.xml"
+          ]
+        , metadataHeadTags metadata
+        ]
+
+
+metadataHeadTags : Metadata -> List (Head.Tag Pages.PathKey)
+metadataHeadTags metadata =
     case metadata of
         Metadata.Page meta ->
             Seo.summaryLarge

@@ -3,10 +3,9 @@
 
 ## TODO
 
-* Extend footer
-  * Build & add RSS feed
 * Building this Blog Thumbnail?
 * Write proper readme
+* Find date to publish
 * Publish repostory
 * 'Release' a.k.a. advertise, a.k.a. tell people about this
 

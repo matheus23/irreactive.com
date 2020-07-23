@@ -4,6 +4,7 @@ import Animator
 import Animator.Css
 import App exposing (githubRepo, siteName)
 import Date exposing (Date)
+import Feed
 import Html exposing (..)
 import Html.Attributes exposing (alt, attribute, checked, class, controls, disabled, for, height, href, id, method, name, placeholder, src, start, style, target, title, type_, value, width)
 import Html.Events as Events
@@ -243,9 +244,9 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
                                 }
                             ]
                         , li []
-                            [ link []
+                            [ link [ target "_blank" ]
                                 { title = Just "rss feed"
-                                , destination = "/rss"
+                                , destination = Feed.path |> String.join "/"
                                 , children =
                                     [ smallIcon
                                         { src = images.icons.rss
