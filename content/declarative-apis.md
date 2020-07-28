@@ -5,7 +5,7 @@
   "description": "Declarative APIs are the future. Types make them much easier and fun to work with. Read more to get an intuition for types in this usecase!",
   "image": "images/declarative-apis/thumbnail.jpg",
   "draft": false,
-  "published": "2020-07-17",
+  "published": "2020-07-28",
 }
 ---
 
@@ -40,6 +40,23 @@ I find it helpful to understand the shortcomings of alternatives to understand t
 So let's look at a declarative API.
 
 # A Declarative API
+
+The imperative API is modeled after a real-world analogy of a person with a pencil, who is instructed what to do:
+
+* "Move your pencil to 100, 100."
+* "Use the red pencil."
+* "Sketch a circle with radius 20."
+* "Outline your sketch."
+* "Move your pencil to 200, 100."
+* "Use the blue pencil."
+* "Sketch a rectangle with width 50 and height 30."
+* "Fill in your sketch."
+
+The analogy of the declarative API works more like a higher-level explanation of a picture:
+
+"The picture consists of two objects on top of each other:
+* At 200, 100, a blue filled rectangle with width 50 and height 30 and
+* at 100, 100, a red outlined circle with radius 20."
 
 <in-margin>
 <info title="Info: About the programming language in following code examples.">
@@ -78,23 +95,6 @@ Everything in these languages is an expression. What does this mean exactly?
 Other than that, it's not a _real_ programming language. My code examples should be interpreted as pseudo-code.
 </info>
 </in-margin>
-
-The imperative API is modeled after a real-world analogy of a person with a pencil, who is instructed what to do:
-
-* "Move your pencil to 100, 100."
-* "Use the red pencil."
-* "Sketch a circle with radius 20."
-* "Outline your sketch."
-* "Move your pencil to 200, 100."
-* "Use the blue pencil."
-* "Sketch a rectangle with width 50 and height 30."
-* "Fill in your sketch."
-
-The analogy of the declarative API works more like a higher-level explanation of a picture:
-
-"The picture consists of two objects on top of each other:
-* At 200, 100, a blue filled rectangle with width 50 and height 30 and
-* at 100, 100, a red outlined circle with radius 20."
 
 The declarative code that is the equivalent of the first (imperative) code sample looks like this:
 
@@ -172,6 +172,8 @@ In the case of browsers - due to having to be as error-forgiving as possible - t
 * You can apply the CSS property `position: sticky` on a `tr` tag, but it won't do anything.
 
 But if all the browser is doing is _nothing_, then you're left wondering why your code doesn't have any effect!
+
+And this type analysis happens at _compile time_, so you'll know there's something wrong _before_ you run your code with actual data.
 
 The above list is by no means exhaustive. There's lots and lots of examples and exceptions about when certain elements, attributes or CSS styles work and it's hard to know about all edge cases.
 

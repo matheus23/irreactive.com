@@ -5,7 +5,7 @@
   "description": "Behind the scenes: The tech and process behind building this blog. The classic introduction of a tech person's blog of itself.",
   "image": "images/building-this-blog/thumbnail.jpg",
   "draft": false,
-  "published": "2020-07-17",
+  "published": "2020-07-27",
 }
 ---
 
