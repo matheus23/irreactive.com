@@ -206,7 +206,7 @@ viewFooter model =
 head : Metadata -> List (Head.Tag Pages.PathKey)
 head metadata =
     List.concat
-        [ [ Head.rssLink "/feed.xml"
+        [ [ Head.rssLink ("/" ++ String.join "/" Feed.path)
           , Head.sitemapLink "/sitemap.xml"
           ]
         , metadataHeadTags metadata
