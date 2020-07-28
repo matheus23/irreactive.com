@@ -7,6 +7,11 @@ body {
     min-height: 100vh;
 }
 
+hr {
+    /* is ugly otherwise */
+    border: none !important;
+}
+
 /* On Mac and iOS you can scroll further than the page.
 This gradient (with a hard stop at 50%) causes the background
 above the page and below the page to match the main background
