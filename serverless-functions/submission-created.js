@@ -3,12 +3,14 @@ const fetch = require('node-fetch')
 const { EMAIL_TOKEN } = process.env
 
 exports.handler = async (event, context, callback) => {
-    const email = event.queryStringParameters.email;
-    // const formName = event.queryStringParameters['form-name'];
+    const email = event.queryStringParameters.email
+        || JSON.parse(event.body).payload.email;
+    const formName = event.queryStringParameters['form-name']
+        || JSON.parse(event.body).payload['form-name'];
 
-    // if (formName !== 'email-subscription') {
-    //     throw new Error(`Unknown form: ${formName}`);
-    // }
+    if (formName !== 'email-subscription') {
+        throw new Error(`Unknown form: ${formName}`);
+    }
 
     if (EMAIL_TOKEN == null) {
         throw new Error(`Cannot submit to buttondown: Missing EMAIL_TOKEN`);
