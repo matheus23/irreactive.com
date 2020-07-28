@@ -7,16 +7,10 @@ exports.handler = async (event, context, callback) => {
     const email = event.queryStringParameters.email;
 
     if (formName !== 'email-subscription') {
-        return {
-            statusCode: 404,
-            body: `Unknown form: ${formName}`
-        };
+        throw new Error(`Unknown form: ${formName}`);
     }
     if (EMAIL_TOKEN == null) {
-        return {
-            statusCode: 500,
-            body: `Cannot submit to buttondown: Missing EMAIL_TOKEN`
-        };
+        throw new Error(`Cannot submit to buttondown: Missing EMAIL_TOKEN`);
     }
 
     console.log(`Recieved a submission: ${email}`)
@@ -35,9 +29,6 @@ exports.handler = async (event, context, callback) => {
             body: `Successfully submitted ${email} to buttondown`
         };
     } catch (error) {
-        return {
-            statusCode: 422,
-            body: String(error)
-        };
+        throw new Error(String(error));
     }
 }
