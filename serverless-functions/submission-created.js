@@ -2,12 +2,18 @@ require('dotenv').config()
 const fetch = require('node-fetch')
 const { EMAIL_TOKEN } = process.env
 
+function getParameter(event, parameter) {
+    const queryParam = event.queryStringParameters[parameter];
+    if (queryParam != null) {
+        return queryParam;
+    }
+    return JSON.parse(event.body).payload[parameter];
+}
+
 exports.handler = async (event, context, callback) => {
-    console.log(`payload: ${event.body}`);
-    const email = event.queryStringParameters.email
-        || JSON.parse(event.body).payload.email;
-    const formName = event.queryStringParameters['form-name']
-        || JSON.parse(event.body).payload['form-name'];
+    console.log(`event: ${event}`);
+    const email = getParameter(event, 'email');
+    const formName = getParameter(event, 'form-name');
 
     if (formName !== 'email-subscription') {
         throw new Error(`Unknown form: ${formName}`);
