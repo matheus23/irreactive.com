@@ -298,7 +298,7 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
                         , id "email"
                         , type_ "email"
                         , name "email"
-                        , placeholder "your e-mail"
+                        , placeholder "your email"
                         , Events.onInput onInput
                         , value model
                         ]

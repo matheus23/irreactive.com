@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 const { EMAIL_TOKEN } = process.env
 
 exports.handler = async (event, context, callback) => {
+    console.log(`payload: ${event.body}`);
     const email = event.queryStringParameters.email
         || JSON.parse(event.body).payload.email;
     const formName = event.queryStringParameters['form-name']
