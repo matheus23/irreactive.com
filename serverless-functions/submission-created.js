@@ -11,9 +11,8 @@ function getParameter(event, parameter) {
 }
 
 exports.handler = async (event, context, callback) => {
-    console.log(`event: ${JSON.stringify(event)}`);
     const email = getParameter(event, 'email');
-    const formName = getParameter(event, 'form-name');
+    const formName = getParameter(event, 'form_name');
 
     if (formName !== 'email-subscription') {
         throw new Error(`Unknown form: ${formName}`);
