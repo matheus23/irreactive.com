@@ -2,8 +2,8 @@ require('dotenv').config()
 const fetch = require('node-fetch')
 const { EMAIL_TOKEN } = process.env
 
-function getParameter(event, queryParam, payloadParam) {
-    const queryParam = event.queryStringParameters[queryParam];
+function getParameter(event, queryParamName, payloadParam) {
+    const queryParam = event.queryStringParameters[queryParamName];
     if (queryParam != null) {
         return queryParam;
     }
