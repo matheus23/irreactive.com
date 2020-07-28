@@ -11,7 +11,7 @@ function getParameter(event, parameter) {
 }
 
 exports.handler = async (event, context, callback) => {
-    console.log(`event: ${event}`);
+    console.log(`event: ${JSON.stringify(event)}`);
     const email = getParameter(event, 'email');
     const formName = getParameter(event, 'form-name');
 
