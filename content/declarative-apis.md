@@ -167,7 +167,7 @@ Without type checking, we have to
 
 In the case of browsers - due to having to be as error-forgiving as possible - they went with the second option.
 
-* You can create HTML `tr` tags anywhere, even though they're ment to be used in `table` or `tbody`.
+* You can create HTML `tr` tags anywhere, even though they're meant to be used in `table` or `tbody`.
 * You can apply the CSS property `flex-grow` to any HTML element, whether it's a child of a `display: flex` (flexbox) element, or not.
 * You can apply the CSS property `position: sticky` on a `tr` tag, but it won't do anything.
 
@@ -180,7 +180,7 @@ The above list is by no means exhaustive. There's lots and lots of examples and 
 While HTML and CSS are declarative, they're not typed. The declarative-ness is awesome: You can take some HTML and its associated styling and plug it somewhere else!
 But it might not be styled as you expected, because you missed a property on a wrapping element.
 
-Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scrating-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
+Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scratching-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
 
 **Declarative APIs are only half as effective if you're not using types.**
 
