@@ -37,3 +37,23 @@ What is this post title? What does this have to do with abstraction exactly? Oth
 * Algebraic Design of State
 * Algebraic Design of Data
 * Maybe just split this post into two: The description describes quite something different than the content (???)
+
+
+# 27. Jul
+
+Type equalities: Let's FIGHT
+
+a -> Maybe (b -> c)
+VS.
+a -> b -> Maybe c
+
+Recursion:
+Why?
+* Because we need more layers to scale!
+* Because we can re-use the same principle for _each layer_! That's simpler!
+
+Types can become very complicated. How do you come up with them?
+* You abstract out one by one.
+* How do you deal with choices of abstraction? Think about the power of the resulting type. Does that power make sense for that usecase?
+
+Honerable mention: Structural vs. Nomintal typing.
