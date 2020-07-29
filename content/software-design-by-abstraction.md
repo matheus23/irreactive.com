@@ -61,3 +61,21 @@ Types can become very complicated. How do you come up with them?
 * How do you deal with choices of abstraction? Think about the power of the resulting type. Does that power make sense for that usecase?
 
 Honerable mention: Structural vs. Nomintal typing.
+
+# 29. Jul
+
+Blog post points/ideas:
+
+* Types can be more powerful / equally powerful than each other
+* Powerful types are a double-edged sword:
+  - Too powerful and you can't use it in less powerful contexts (e.g. contexts where you'll statically analize your result)
+  - Not powerful enough and you'll need to resort to other means of implementing. Your interface is not general enough for all usecases.
+* The power of types can also kind of be visualized with tables / diagrams.
+* You want precise control over the 'power' of your types. Custom (union) types allow you to have more control: L-shaped things become possible.
+* Parametricity gives you theorems for free. When you abstract types, your function becomes less powerful, but at the same time more general. You can reason about it much much better.
+* Recursion is better than explicit layers (??)
+
+Title ideas:
+* Don't do patterns! Program by gauging (/managin/controlling) the power of types.
+* You need to know about the power of types to effectively program functionally.
+* You need to know about the power of types to design function programs.
