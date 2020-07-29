@@ -9,6 +9,10 @@
 }
 ---
 
+I feel like there's two orthogonal points in this:
+1. We need to evolve functional programs organically, via basic abstraction and refactoring.
+2. We can reason about code very effectively by looking at the type's 'power'.
+
 Reason about the power of types: the 'algebra' in algebraic datatypes. Subtyping.
 
 Reason about types via the amount of values they describe:

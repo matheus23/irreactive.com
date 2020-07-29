@@ -9,6 +9,11 @@
 }
 ---
 
+* Carsten's thought: "Alles beeinflusst sich gegenseitig!"
+-> We need scoped layouting! We can reason about the layouts by looking at the types!
+
+---
+
 * There are many kinds of layouts:
   - Flexbox
   - Css grid / Windows 10 grid layouts

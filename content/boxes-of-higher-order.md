@@ -34,3 +34,5 @@ SETUP:
 * Higher order functions have holes in them
 * -> You can see the signature of blocks
 * 
+
+The title sucks. It feels like a pun you only get when you read the article. You shouldn't have to read the article to understand the title. Such a title is worthless.
