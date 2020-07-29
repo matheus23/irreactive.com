@@ -115,7 +115,7 @@ Again, this is an interactive code example. You can click on things to toggle th
 
 What's different to before is that no other elements on the screen were affected by these changes. Every change has local effects.
 
-The defining characteristic of declarative APIs is that they're _expression-based_. Every item is an expression, like `cicle 20`, or something that wraps expressions and becomes an expression by itself, like `moveTo 100 100`.
+The defining characteristic of declarative APIs is that they're _expression-based_. Every item is an expression, like `circle 20`, or something that wraps expressions and becomes an expression by itself, like `moved 100 100`.
 
 # Types and Declarative APIs
 
@@ -173,14 +173,14 @@ In the case of browsers - due to having to be as error-forgiving as possible - t
 
 But if all the browser is doing is _nothing_, then you're left wondering why your code doesn't have any effect!
 
-And this type analysis happens at _compile time_, so you'll know there's something wrong _before_ you run your code with actual data.
-
 The above list is by no means exhaustive. There's lots and lots of examples and exceptions about when certain elements, attributes or CSS styles work and it's hard to know about all edge cases.
 
 While HTML and CSS are declarative, they're not typed. The declarative-ness is awesome: You can take some HTML and its associated styling and plug it somewhere else!
 But it might not be styled as you expected, because you missed a property on a wrapping element.
 
 Types can allow you to be explicit about these kinds of wrapper- to wrapped element relationships. By having these types you document and enforce the relationships and reduce the amount of head-scratching-inducing code that is deemed valid by a linter (i.e. a compiler/interpreter).
+
+This type analysis happens at _compile time_, so you'll know there's something wrong _before_ you run your code with actual data.
 
 **Declarative APIs are only half as effective if you're not using types.**
 
