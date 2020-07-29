@@ -1,6 +1,7 @@
 module MarkdownDocument exposing (..)
 
 import App exposing (..)
+import Components.Ama as Ama
 import Components.CodeHighlighted as CodeHighlighted
 import Components.CodeInteractiveElm as CodeInteractiveElm
 import Components.CodeInteractiveJs as CodeInteractiveJs
@@ -65,6 +66,7 @@ customHtmlRenderer =
                 , liftRendererPlain infoElement
                 , liftRendererPlain marginParagraph
                 , liftRendererWithModel carousel
+                , liftRendererWithModel ama
                 ]
         , renderMarkdown = reduceMarkdown
         }
@@ -241,6 +243,14 @@ carousel =
                 (applyModel model children)
         )
         |> Markdown.Html.withAttribute "id"
+
+
+ama : Markdown.Html.Renderer (List (Model -> Html Msg) -> Model -> Html Msg)
+ama =
+    Markdown.Html.tag "ama"
+        (\children model ->
+            Ama.view AmaMsg model.ama (applyModel model children)
+        )
 
 
 
