@@ -200,6 +200,7 @@ videoCaptioned =
                              , Attr.src src
                              , Attr.alt alt
                              , Attr.controls True
+                             , Attr.attribute "playsinline" "true"
                              ]
                                 ++ (if shouldLoop then
                                         [ Attr.loop True ]

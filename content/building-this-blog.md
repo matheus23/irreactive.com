@@ -71,7 +71,7 @@ With that, I strive to have something playful - you might only be used to these 
 
 # The works
 
-I must say, since I am a functional programming language I have reached for tools that might be very uncommon to other programmers. However, I've been very pleasently surprised by how smoothly my choices worked out for this project!
+As a functional programming language enthousiast, I have reached for generally uncommon tools. However, I've been very pleasently surprised by how smoothly my choices worked out for this project!
 
 ### [Elm](https://elm-lang.org) & [Elm-pages](https://elm-pages.com/)
 

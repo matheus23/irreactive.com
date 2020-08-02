@@ -435,7 +435,7 @@ githubEditLink path =
         , link []
             { destination = githubRepo ++ "/blob/master/content/" ++ PagePath.toString path ++ ".md"
             , title = Just "Link to editing this page on Github"
-            , children = [ text "Edit this page GitHub." ]
+            , children = [ text "Edit this page on GitHub." ]
             }
         ]
 
