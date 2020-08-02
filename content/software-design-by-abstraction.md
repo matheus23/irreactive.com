@@ -9,6 +9,61 @@
 }
 ---
 
+When writing functional programs in statically typed programming languages, we work with types _a lot_. It is common practice to extract out useful functions into top-level definitions, and then give these top-level definitions a type signature. Additionally, in a project of mine, I analized what percentage of definitions (in some open-source Elm projects) are type-definitions (not counting type annotations!), and which are ordinary definitions. It turned out that about 20% of definitions are types (though, these definitions tend to be smaller than ordinary definitions).
+
+When I think about what I miss from say, Elm or Haskell, in other programming languages, I'm always thinking of two things: Immutable values (managing side-effects!) and types.
+
+To me, types are central to the benefits of functional programming languages.
+
+Now, why do we write out types so much, actually? Why do we force ourselves to annotate every top-level definition with a type, when many of today's functional, statically-typed programming languages have type interference, so they figure out the type of an expression by analizing it. No need for type annotations.
+
+At first, it might seem that the benefit of types is just to prevent us from runtime crashes. For example, when we're trying to access some field which doesn't exist:
+
+```javascript
+const person = {
+  id: '102049',
+  metadata: {
+    name: 'Philipp',
+    age: 23,
+  },
+};
+
+console.log(person.name);
+```
+
+And indeed, types would absolutely prevent us from making this mistake and causing a runtime failure.
+
+However, why should we annotate the type? Annotating the type is not neccessary to prevent that runtime failure. Simply check that file with typescript, and you'll get an error:
+
+```
+error TS2339: Property 'name' does not exist on type
+'{ id: string; metadata: { name: string; age: number; }; }'.
+```
+
+Sweet. The same goes for Haskell, Elm and other statically typed programming languages with a type inferencer (most have them). So why are we annotating types again?
+
+# Types are Specifications
+
+I could have also said that 'types are documentation', which is a very common expression, but I think it goes further than that. When I say 'documentation' that wouldn't imply the consistency by which types actually specify the definitions.
+
+Let's make an example. Let's say, we're working on some website. Let me come up with something totally unrelated, real quick. Yeah, what about a blog?
+
+In this blog, I'm writing my blog posts as markdown files, but the resulting datastructure is not ascii markdown, but html. However, it's more complicated than `String -> Html msg` (TODO: explain `msg`):
+
+* Parsing markdown can fail (that's not the case for every parser, but in my case, it is)
+* 
+
+It's type is this:
+
+```elm
+render : String -> Result String (Model -> List (Html Msg))
+render markdown = ...
+```
+
+This type annotation tells us a lot of information!
+
+---
+
 I feel like there's two orthogonal points in this:
 1. We need to evolve functional programs organically, via basic abstraction and refactoring.
 2. We can reason about code very effectively by looking at the type's 'power'.
@@ -24,11 +79,8 @@ Reason about types via the amount of values they describe:
 
 More refactoring through static types.
 
-RESEARCH:
-Maybe interview 'expert functional programmers'?
-
 Maybe a simpler form of arguing the L-shaped thing is this by using the 'remotedata' thing from this post:
-  https://5e89068c6daf890006031b1d--hungry-darwin-eccd5b.netlify.com/blog/quiz-test
+  https://wiktor.toporek.me/blog/tailor-made-union-types
 (The `{ loaded : Bool, error : Bool }` thing).
 
 Just show the connections: Types = Algebra = Squares (This is the hook!)
@@ -76,6 +128,9 @@ Blog post points/ideas:
 * Recursion is better than explicit layers (??)
 
 Title ideas:
-* Don't do patterns! Program by gauging (/managin/controlling) the power of types.
+
+* Don't do patterns! Program by gauging (/managin/controlling/judging) the power of types.
 * You need to know about the power of types to effectively program functionally.
-* You need to know about the power of types to design function programs.
+* You need to know about the power of types to design functional programs.
+* X things to know to judge the power of types.
+* X steps to working effectively with types
