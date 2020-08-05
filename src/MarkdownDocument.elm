@@ -64,7 +64,7 @@ customHtmlRenderer =
                 , liftRendererPlain removeElement
                 , liftRendererPlain mePicture
                 , liftRendererPlain infoElement
-                , liftRendererPlain marginParagraph
+                , liftRendererPlain inMargin
                 , liftRendererWithModel carousel
                 , liftRendererWithModel ama
                 ]
@@ -130,8 +130,8 @@ infoElement =
         |> Markdown.Html.withAttribute "title"
 
 
-marginParagraph : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
-marginParagraph =
+inMargin : Markdown.Html.Renderer (List (Html Msg) -> Html Msg)
+inMargin =
     Markdown.Html.tag "in-margin" (View.marginParagraph [])
 
 
