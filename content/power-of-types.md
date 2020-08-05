@@ -284,6 +284,8 @@ For example, looking at it more from the information-theoretic side of things: Y
 
 Or by counting the amount of observably different implementations a type can have. There is a page about this on the Elm guide, but there's more information in [this blog post](TODO). It's a mind-blowing fact that types and numbers work so similarily, but it fails in practice, because most types have infinite amounts of observably different values, so comparing their size doesn't work. The way I explained it above is more useful in my opinion: Even though both of your types might have infinite amounts of 'values', you can still see which one is bigger than the other by comparing their power. What you lose is a straight-forward recipe to analize types (no more counting), you have to come up with the functions to convert between one and the other, and when you think there doesn't exist a function in one way, you can never be absolutely sure.
 
+<!--
+
 ---
 
 I feel like there's two orthogonal points in this:
@@ -407,3 +409,5 @@ elmPagesApp :
     -> Builder pathKey model msg metadata view
 -- Builder can be transformed into elm's 'main'
 ```
+
+-->
