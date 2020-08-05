@@ -123,5 +123,6 @@ footer input::placeholder {
     .margin-paragraph {
         left: calc(100% + 24px);
         width: 450px;
+        top: -60px;
     }
 }
