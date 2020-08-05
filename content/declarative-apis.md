@@ -9,7 +9,7 @@
 }
 ---
 
-Graphics and user interface programming APIs are rapidly changing nowadays with framworks like Elm, React, Vuejs, Flutter, SwiftUI and more surfacing within the last 8 years. They're moving towards immutability and declarativity. More and more often user interfaces are programmed using 'DOM-Models' like HTML and CSS with state management not via classes and objects, but with something similar to reducers and immutable state in React/Redux. HTML is declarative, which I believe is the right direction to move in, but there's still a lot to improve.
+Graphics and user interface programming APIs are rapidly changing nowadays with frameworks like Elm, React, Vuejs, Flutter, SwiftUI and more surfacing within the last 8 years. They're moving towards immutability and declarativity. More and more often user interfaces are programmed using 'DOM-Models' like HTML and CSS with state management not via classes and objects, but with something similar to reducers and immutable state in React/Redux. HTML is declarative, which I believe is the right direction to move in, but there's still a lot to improve.
 
 Today I'll explain why I spend way too much of my free time thinking about declarative APIs and how to improve them even further with types. But before I get into that, first let's look at an imperative API such as this one for creating graphics:
 
