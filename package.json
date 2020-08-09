@@ -3,26 +3,26 @@
   "version": "1.0.0",
   "description": "Example site built with elm-pages.",
   "scripts": {
-    "start": "elm-pages develop & yarn watch:styles",
+    "start": "elm-pages develop & yarn styles:watch",
     "dev": "yarn start",
-    "serve": "yarn build && http-server ./dist -a localhost -p 3000 -c-1",
-    "build": "NODE_ENV=production yarn build:styles && elm-pages build",
+    "serve": "http-server ./dist -a localhost -p 3000 -c-1",
+    "build": "NODE_ENV=production yarn styles:build && elm-pages build",
     "docs": "yarn elm-doc-preview -p 8080",
     "netlify:dev": "yarn build && yarn netlify dev",
     "up-deps": "yarn upgrade --latest && elm-json upgrade --unsafe --yes",
-    "build:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css",
-    "watch:styles": "yarn run postcss tailwind.css -o gen/tailwind-gen.css --watch"
+    "styles:build": "yarn run postcss tailwind.css -o gen/tailwind-gen.css",
+    "styles:watch": "yarn run postcss tailwind.css -o gen/tailwind-gen.css --watch"
   },
   "author": "Philipp Krüger",
   "license": "MIT",
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^2.2.0",
     "cssnano": "^4.1.10",
-    "highlight.js": "^10.1.1",
+    "highlight.js": "^10.1.2",
     "node-sass": "^4.12.0",
     "sass": "^1.23.7",
     "sharp": "^0.25.2",
-    "tailwindcss": "^1.4.6"
+    "tailwindcss": "^1.6.2"
   },
   "devDependencies": {
     "elm": "0.19.1",
@@ -30,7 +30,7 @@
     "elm-json": "^0.2.7",
     "elm-pages": "1.4.2",
     "http-server": "0.12.3",
-    "netlify-cli": "^2.58.0",
+    "netlify-cli": "^2.59.0",
     "postcss-cli": "^7.1.1"
   }
 }
