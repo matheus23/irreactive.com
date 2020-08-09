@@ -10,19 +10,23 @@ type Indent
     | Indent Int
 
 
+type Indented a
+    = IndentedF { indent : Indent, expr : a }
+
+
 type ExprF a
-    = Superimposed { indent : Indent, expr : a }
+    = Superimposed a
     | ListOf (List a)
-    | Moved { x : Int, y : Int, indent : Indent, expr : a }
-    | Filled { color : Common.Color, indent : Indent, expr : a }
-    | Outlined { color : Common.Color, indent : Indent, expr : a }
+    | Moved { x : Int, y : Int } a
+    | Filled { color : Common.Color } a
+    | Outlined { color : Common.Color } a
     | Circle { radius : Int }
     | Rectangle { width : Int, height : Int }
-    | Paren { indent : Indent, expr : a }
+    | Paren a
 
 
 type Expr
-    = Expr (ExprF Expr)
+    = Expr (ExprF (Indented Expr))
 
 
 
@@ -34,18 +38,19 @@ example =
     superimposed
         { indent = Indent 1
         , expr =
-            listOf
+            listOfUnindented
                 [ moved
                     { x = 200
                     , y = 100
-                    , indent = Indent 1
+                    }
+                    { indent = Indent 1
                     , expr =
                         paren
                             { indent = SameLine
                             , expr =
                                 filled
-                                    { color = Common.Blue
-                                    , indent = SameLine
+                                    { color = Common.Blue }
+                                    { indent = SameLine
                                     , expr =
                                         paren
                                             { indent = SameLine
@@ -57,14 +62,15 @@ example =
                 , moved
                     { x = 100
                     , y = 100
-                    , indent = Indent 1
+                    }
+                    { indent = Indent 1
                     , expr =
                         paren
                             { indent = SameLine
                             , expr =
                                 outlined
+                                    { color = Common.Red }
                                     { indent = SameLine
-                                    , color = Common.Red
                                     , expr =
                                         paren
                                             { indent = SameLine
@@ -102,10 +108,10 @@ addIndent indent =
             n
 
 
-toSpansAlg : ExprF (Int -> List String) -> Int -> List String
+toSpansAlg : ExprF (Indented (Int -> List String)) -> Int -> List String
 toSpansAlg e indentLevel =
     case e of
-        Superimposed { indent, expr } ->
+        Superimposed (IndentedF { indent, expr }) ->
             List.concat
                 [ [ "superimposed" ]
                 , expr (indentLevel + addIndent indent)
@@ -118,8 +124,11 @@ toSpansAlg e indentLevel =
             in
             List.concat
                 [ indexedConcatMap
-                    (\index renderExpr ->
+                    (\index (IndentedF info) ->
                         let
+                            renderExpr =
+                                info.expr
+
                             prefix =
                                 if index == 0 then
                                     if indent == SameLine then
@@ -141,7 +150,7 @@ toSpansAlg e indentLevel =
                   ]
                 ]
 
-        Moved { indent, x, y, expr } ->
+        Moved { x, y } (IndentedF { indent, expr }) ->
             List.concat
                 [ [ "moved"
                   , " "
@@ -153,7 +162,7 @@ toSpansAlg e indentLevel =
                 , expr (indentLevel + addIndent indent)
                 ]
 
-        Filled { indent, color, expr } ->
+        Filled { color } (IndentedF { indent, expr }) ->
             List.concat
                 [ [ "filled"
                   , " "
@@ -163,7 +172,7 @@ toSpansAlg e indentLevel =
                 , expr (indentLevel + addIndent indent)
                 ]
 
-        Outlined { indent, color, expr } ->
+        Outlined { color } (IndentedF { indent, expr }) ->
             List.concat
                 [ [ "outlined"
                   , " "
@@ -179,7 +188,7 @@ toSpansAlg e indentLevel =
         Rectangle { width, height } ->
             [ "rectangle", " ", String.fromInt width, " ", String.fromInt height ]
 
-        Paren { indent, expr } ->
+        Paren (IndentedF { indent, expr }) ->
             List.concat
                 [ [ "("
                   , indentSpan "" indent indentLevel
@@ -203,45 +212,26 @@ toSpansAlg e indentLevel =
 --
 
 
-map : (a -> b) -> ExprF a -> ExprF b
-map f constructor =
+mapE : (a -> b) -> ExprF a -> ExprF b
+mapE f constructor =
     case constructor of
-        Superimposed info ->
-            Superimposed
-                { indent = info.indent
-                , expr = f info.expr
-                }
+        Superimposed expr ->
+            Superimposed (f expr)
 
         ListOf exprs ->
             ListOf (List.map f exprs)
 
-        Moved info ->
-            Moved
-                { indent = info.indent
-                , x = info.x
-                , y = info.y
-                , expr = f info.expr
-                }
+        Moved info expr ->
+            Moved info (f expr)
 
-        Filled info ->
-            Filled
-                { indent = info.indent
-                , color = info.color
-                , expr = f info.expr
-                }
+        Filled info expr ->
+            Filled info (f expr)
 
-        Outlined info ->
-            Outlined
-                { indent = info.indent
-                , color = info.color
-                , expr = f info.expr
-                }
+        Outlined info expr ->
+            Outlined info (f expr)
 
-        Paren info ->
-            Paren
-                { indent = info.indent
-                , expr = f info.expr
-                }
+        Paren expr ->
+            Paren (f expr)
 
         Circle info ->
             Circle info
@@ -250,10 +240,18 @@ map f constructor =
             Rectangle info
 
 
-cata : (ExprF a -> a) -> Expr -> a
+mapI : (a -> b) -> Indented a -> Indented b
+mapI f (IndentedF { indent, expr }) =
+    IndentedF
+        { indent = indent
+        , expr = f expr
+        }
+
+
+cata : (ExprF (Indented a) -> a) -> Expr -> a
 cata algebra (Expr expr) =
     expr
-        |> map (cata algebra)
+        |> mapE (mapI (cata algebra))
         |> algebra
 
 
@@ -263,27 +261,32 @@ cata algebra (Expr expr) =
 
 superimposed : { indent : Indent, expr : Expr } -> Expr
 superimposed info =
-    Expr (Superimposed info)
+    Expr (Superimposed (IndentedF info))
 
 
-listOf : List Expr -> Expr
+listOf : List (Indented Expr) -> Expr
 listOf exprs =
     Expr (ListOf exprs)
 
 
-moved : { indent : Indent, x : Int, y : Int, expr : Expr } -> Expr
-moved info =
-    Expr (Moved info)
+listOfUnindented : List Expr -> Expr
+listOfUnindented exprs =
+    Expr (ListOf (List.map (\e -> IndentedF { indent = SameLine, expr = e }) exprs))
 
 
-filled : { indent : Indent, color : Common.Color, expr : Expr } -> Expr
-filled info =
-    Expr (Filled info)
+moved : { x : Int, y : Int } -> { indent : Indent, expr : Expr } -> Expr
+moved info expr =
+    Expr (Moved info (IndentedF expr))
 
 
-outlined : { indent : Indent, color : Common.Color, expr : Expr } -> Expr
-outlined info =
-    Expr (Outlined info)
+filled : { color : Common.Color } -> { indent : Indent, expr : Expr } -> Expr
+filled info expr =
+    Expr (Filled info (IndentedF expr))
+
+
+outlined : { color : Common.Color } -> { indent : Indent, expr : Expr } -> Expr
+outlined info expr =
+    Expr (Outlined info (IndentedF expr))
 
 
 circle : { radius : Int } -> Expr
@@ -298,7 +301,7 @@ rectangle info =
 
 paren : { indent : Indent, expr : Expr } -> Expr
 paren info =
-    Expr (Paren info)
+    Expr (Paren (IndentedF info))
 
 
 
