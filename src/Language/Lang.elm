@@ -136,21 +136,21 @@ toSpansAlg e indentLevel =
                         let
                             renderExpr =
                                 info.expr
-
-                            prefix =
-                                if index == 0 then
-                                    if indent == SameLine then
-                                        "["
-
-                                    else
-                                        "[ "
+                        in
+                        List.concat
+                            [ if index == 0 then
+                                if indent == SameLine then
+                                    [ "[" ]
 
                                 else
-                                    ", "
-                        in
-                        indentSpan "" indent indentLevel
-                            :: prefix
-                            :: renderExpr (indentLevel + addIndent indent)
+                                    [ "[ " ]
+
+                              else
+                                [ indentSpan "" indent indentLevel
+                                , ", "
+                                ]
+                            , renderExpr (indentLevel + addIndent indent)
+                            ]
                     )
                     exprs
                 , [ indentSpan " " indent indentLevel
