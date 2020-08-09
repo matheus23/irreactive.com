@@ -3,6 +3,9 @@ module Language.Lang exposing (..)
 import Html exposing (pre, span, text)
 import Html.Attributes exposing (style)
 import Language.Common as Common
+import List.Extra as List
+import Parser.Advanced exposing (..)
+import Result.Extra as Result
 
 
 type Indent
@@ -11,7 +14,7 @@ type Indent
 
 
 type Indented a
-    = IndentedF { indent : Indent, expr : a }
+    = Indented { indent : Indent, expr : a }
 
 
 type ExprF a
@@ -111,11 +114,16 @@ addIndent indent =
 toSpansAlg : ExprF (Indented (Int -> List String)) -> Int -> List String
 toSpansAlg e indentLevel =
     case e of
-        Superimposed (IndentedF { indent, expr }) ->
+        Superimposed (Indented { indent, expr }) ->
             List.concat
-                [ [ "superimposed" ]
+                [ [ "superimposed"
+                  , indentSpan " " indent indentLevel
+                  ]
                 , expr (indentLevel + addIndent indent)
                 ]
+
+        ListOf [] ->
+            [ "[]" ]
 
         ListOf exprs ->
             let
@@ -124,7 +132,7 @@ toSpansAlg e indentLevel =
             in
             List.concat
                 [ indexedConcatMap
-                    (\index (IndentedF info) ->
+                    (\index (Indented info) ->
                         let
                             renderExpr =
                                 info.expr
@@ -150,7 +158,7 @@ toSpansAlg e indentLevel =
                   ]
                 ]
 
-        Moved { x, y } (IndentedF { indent, expr }) ->
+        Moved { x, y } (Indented { indent, expr }) ->
             List.concat
                 [ [ "moved"
                   , " "
@@ -162,7 +170,7 @@ toSpansAlg e indentLevel =
                 , expr (indentLevel + addIndent indent)
                 ]
 
-        Filled { color } (IndentedF { indent, expr }) ->
+        Filled { color } (Indented { indent, expr }) ->
             List.concat
                 [ [ "filled"
                   , " "
@@ -172,7 +180,7 @@ toSpansAlg e indentLevel =
                 , expr (indentLevel + addIndent indent)
                 ]
 
-        Outlined { color } (IndentedF { indent, expr }) ->
+        Outlined { color } (Indented { indent, expr }) ->
             List.concat
                 [ [ "outlined"
                   , " "
@@ -188,7 +196,7 @@ toSpansAlg e indentLevel =
         Rectangle { width, height } ->
             [ "rectangle", " ", String.fromInt width, " ", String.fromInt height ]
 
-        Paren (IndentedF { indent, expr }) ->
+        Paren (Indented { indent, expr }) ->
             List.concat
                 [ [ "("
                   , indentSpan "" indent indentLevel
@@ -241,8 +249,8 @@ mapE f constructor =
 
 
 mapI : (a -> b) -> Indented a -> Indented b
-mapI f (IndentedF { indent, expr }) =
-    IndentedF
+mapI f (Indented { indent, expr }) =
+    Indented
         { indent = indent
         , expr = f expr
         }
@@ -261,7 +269,7 @@ cata algebra (Expr expr) =
 
 superimposed : { indent : Indent, expr : Expr } -> Expr
 superimposed info =
-    Expr (Superimposed (IndentedF info))
+    Expr (Superimposed (Indented info))
 
 
 listOf : List (Indented Expr) -> Expr
@@ -271,22 +279,22 @@ listOf exprs =
 
 listOfUnindented : List Expr -> Expr
 listOfUnindented exprs =
-    Expr (ListOf (List.map (\e -> IndentedF { indent = SameLine, expr = e }) exprs))
+    Expr (ListOf (List.map (\e -> Indented { indent = SameLine, expr = e }) exprs))
 
 
 moved : { x : Int, y : Int } -> { indent : Indent, expr : Expr } -> Expr
 moved info expr =
-    Expr (Moved info (IndentedF expr))
+    Expr (Moved info (Indented expr))
 
 
 filled : { color : Common.Color } -> { indent : Indent, expr : Expr } -> Expr
 filled info expr =
-    Expr (Filled info (IndentedF expr))
+    Expr (Filled info (Indented expr))
 
 
 outlined : { color : Common.Color } -> { indent : Indent, expr : Expr } -> Expr
 outlined info expr =
-    Expr (Outlined info (IndentedF expr))
+    Expr (Outlined info (Indented expr))
 
 
 circle : { radius : Int } -> Expr
@@ -301,7 +309,7 @@ rectangle info =
 
 paren : { indent : Indent, expr : Expr } -> Expr
 paren info =
-    Expr (Paren (IndentedF info))
+    Expr (Paren (Indented info))
 
 
 
@@ -309,7 +317,7 @@ paren info =
 
 
 main =
-    example
+    exampleParsed
         |> cata toSpansAlg
         |> (|>) 0
         |> List.map
@@ -317,3 +325,176 @@ main =
                 span [ style "box-shadow" "inset 0 0 0 1px lightgray" ] [ text sp ]
             )
         |> pre []
+
+
+
+-- PARSING
+
+
+exampleCode =
+    """superimposed
+    [ moved 200 100
+        (filled "blue"
+            (rectangle 50 30))
+    , moved 100 100
+        (outlined "red" (circle 20))
+    , moved 300 100
+        (outlined "red" (
+            circle 20
+        ))
+    ]"""
+
+
+exampleParsed =
+    case
+        exampleCode
+            |> run (parseExpr |. end "Expecting end of input")
+            |> Result.mapError (Common.explainErrors exampleCode)
+    of
+        Ok result ->
+            Debug.log "huh" result
+
+        Err str ->
+            Debug.todo str
+
+
+parseExpr : Common.Parser Expr
+parseExpr =
+    lazy <|
+        \_ ->
+            Common.usingPosition
+                (\position ->
+                    oneOf
+                        [ succeed Superimposed
+                            |. Common.tokens.superimposed
+                            |= parseIndented position parseExpr
+                            |> map Expr
+                            |> inContext "in a 'superimposed' expression"
+                        , parseListOf
+                        , succeed (\x y -> Moved { x = x, y = y })
+                            |. Common.tokens.moved
+                            |. whitespace
+                            |= Common.parseInt
+                            |. whitespace
+                            |= Common.parseInt
+                            |= parseIndented position parseExpr
+                            |> map Expr
+                            |> inContext "in a 'moved' expression"
+                        , succeed (\color -> Filled { color = color })
+                            |. Common.tokens.filled
+                            |. whitespace
+                            |= Common.parseColor
+                            |= parseIndented position parseExpr
+                            |> map Expr
+                            |> inContext "in a 'filled' expression"
+                        , succeed (\color -> Outlined { color = color })
+                            |. Common.tokens.outlined
+                            |. whitespace
+                            |= Common.parseColor
+                            |= parseIndented position parseExpr
+                            |> map Expr
+                            |> inContext "in a 'outlined' expression"
+                        , succeed (\width height -> Rectangle { width = width, height = height })
+                            |. Common.tokens.rectangle
+                            |. whitespace
+                            |= Common.parseInt
+                            |. whitespace
+                            |= Common.parseInt
+                            |> map Expr
+                            |> inContext "in a 'rectangle' expression"
+                        , succeed (\radius -> Circle { radius = radius })
+                            |. Common.tokens.circle
+                            |. whitespace
+                            |= Common.parseInt
+                            |> map Expr
+                            |> inContext "in a 'circle' expression"
+                        , succeed Paren
+                            |. token (Token "(" "Expected an open parenthesis")
+                            |= parseIndented position parseExpr
+                            |. whitespace
+                            |. token (Token ")" "Expected closing parenthesis")
+                            |> map Expr
+                        ]
+                )
+
+
+parseIndented : ( Int, Int ) -> Common.Parser a -> Common.Parser (Indented a)
+parseIndented ( rowBefore, _ ) parseInner =
+    succeed identity
+        |. whitespace
+        |= Common.usingPosition
+            (\( rowAfter, _ ) ->
+                parseInner
+                    |> map
+                        (\expr ->
+                            Indented
+                                { indent =
+                                    if rowBefore == rowAfter then
+                                        SameLine
+
+                                    else
+                                        Indent 1
+                                , expr = expr
+                                }
+                        )
+            )
+
+
+
+-- PARSE LISTS
+
+
+parseListOf : Common.Parser Expr
+parseListOf =
+    loop { revElements = [], index = 1 } parseElementsHelp
+        |> inContext "a list"
+
+
+type alias ListState =
+    { revElements : List (Indented Expr)
+    , index : Int
+    }
+
+
+parseElementsHelp : ListState -> Common.Parser (Step ListState Expr)
+parseElementsHelp { revElements, index } =
+    oneOf
+        [ backtrackable
+            (parseElement index
+                |> map
+                    (\elem ->
+                        { revElements = elem :: revElements
+                        , index = index + 1
+                        }
+                            |> Loop
+                    )
+            )
+        , succeed (Expr (ListOf (List.reverse revElements)) |> Done)
+            |. token (Token "]" "Expected end of list ']'")
+            |. whitespace
+        ]
+
+
+parseElement : Int -> Common.Parser (Indented Expr)
+parseElement index =
+    succeed (\expr -> Indented { indent = SameLine, expr = expr })
+        |. (if index == 1 then
+                token (Token "[" "Expected start of list ']'")
+
+            else
+                token (Token "," "Expected list separator ','")
+           )
+        |. whitespace
+        |= parseExpr
+        |. whitespace
+        |> inContext ("the " ++ String.fromInt index ++ ". list element")
+
+
+
+-- PARSE HELPER
+
+
+whitespace : Common.Parser String
+whitespace =
+    chompWhile (\c -> c == ' ' || c == '\n')
+        |> getChompedString

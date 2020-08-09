@@ -170,3 +170,20 @@ explainErrors sourceCode deadEnds =
             :: (List.concat (List.indexedMap showLineWithErrors sourceLines)
                     ++ List.map listError deadEnds
                )
+
+
+tokens =
+    { superimposed = token (Token "superimposed" "Expected 'superimposed' expression")
+    , moved = token (Token "moved" "Expected 'moved' expression")
+    , filled = token (Token "filled" "Expected 'filled' expression")
+    , outlined = token (Token "outlined" "Expected 'outlined' expression")
+    , circle = token (Token "circle" "Expected 'circle' expression")
+    , rectangle = token (Token "rectangle" "Expected 'rectangle' expression")
+    , emptyStencil = token (Token "emptyStencil" "Expected 'emptyStencil' expression")
+    , emptyPicture = token (Token "emptyPicture" "Expected 'emptyPicture' expression")
+    }
+
+
+usingPosition : (( Int, Int ) -> Parser a) -> Parser a
+usingPosition parseUsingPosition =
+    getPosition |> andThen parseUsingPosition

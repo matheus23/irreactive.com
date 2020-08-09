@@ -289,7 +289,7 @@ parseExpression parens =
         \_ ->
             oneOf
                 [ succeed (Superimposed "")
-                    |. token (Token "superimposed" "Expected 'superimposed' expression")
+                    |. Common.tokens.superimposed
                     |= whitespace
                     |= parseExpression []
                     |> handleParens parens
@@ -297,7 +297,7 @@ parseExpression parens =
                 , parseListOf
                     |> inContext "a list literal"
                 , succeed (Moved "")
-                    |. token (Token "moved" "Expected 'moved' expression")
+                    |. Common.tokens.moved
                     |= whitespace
                     |= Common.parseInt
                     |= whitespace
@@ -307,7 +307,7 @@ parseExpression parens =
                     |> handleParens parens
                     |> inContext "a 'moved' expression"
                 , succeed (Filled "")
-                    |. token (Token "filled" "Expected 'filled' expression")
+                    |. Common.tokens.filled
                     |= whitespace
                     |= Common.parseColor
                     |= whitespace
@@ -315,7 +315,7 @@ parseExpression parens =
                     |> handleParens parens
                     |> inContext "a 'filled' expression"
                 , succeed (Outlined "")
-                    |. token (Token "outlined" "Expected 'outlined' expression")
+                    |. Common.tokens.outlined
                     |= whitespace
                     |= Common.parseColor
                     |= whitespace
@@ -323,13 +323,13 @@ parseExpression parens =
                     |> handleParens parens
                     |> inContext "a 'outlined' expression"
                 , succeed (Circle "")
-                    |. token (Token "circle" "Expected 'circle' expression")
+                    |. Common.tokens.circle
                     |= whitespace
                     |= Common.parseInt
                     |> handleParens parens
                     |> inContext "a 'circle' expression"
                 , succeed (Rectangle "")
-                    |. token (Token "rectangle" "Expected 'rectangle' expression")
+                    |. Common.tokens.rectangle
                     |= whitespace
                     |= Common.parseInt
                     |= whitespace
@@ -337,11 +337,11 @@ parseExpression parens =
                     |> handleParens parens
                     |> inContext "a 'rectangle' expression"
                 , succeed (EmptyStencil "")
-                    |. token (Token "emptyStencil" "Expected 'emptyStencil' expression")
+                    |. Common.tokens.emptyStencil
                     |> handleParens parens
                     |> inContext "an 'emptyStencil' expression"
                 , succeed (EmptyPicture "")
-                    |. token (Token "emptyPicture" "Expected 'emptyPicture' expression")
+                    |. Common.tokens.emptyPicture
                     |> handleParens parens
                     |> inContext "an 'emptyPicture' expression"
                 , tokenAndWhitespace "("
