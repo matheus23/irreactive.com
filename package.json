@@ -17,10 +17,6 @@
   "license": "MIT",
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^2.2.0",
-    "cssnano": "^4.1.10",
-    "highlight.js": "^10.1.2",
-    "node-sass": "^4.12.0",
-    "sass": "^1.23.7",
     "sharp": "^0.25.2",
     "tailwindcss": "^1.6.2"
   },
