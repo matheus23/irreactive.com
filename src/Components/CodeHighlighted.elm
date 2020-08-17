@@ -98,7 +98,7 @@ highlightingStyles =
     , style5 = styled "text-gruv-yellow-l"
 
     -- Literal keyword, capitalized types
-    , style6 = styled "text-gruv-green-l"
+    , style6 = styled "text-gruv-gray-12"
 
     -- argument, parameter
     , style7 = styled "text-gruv-gray-12"
