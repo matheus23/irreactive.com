@@ -352,7 +352,7 @@ exampleParsed =
             |> Result.mapError (Common.explainErrors exampleCode)
     of
         Ok result ->
-            Debug.log "huh" result
+            result
 
         Err str ->
             Debug.todo str

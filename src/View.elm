@@ -258,7 +258,7 @@ footer { onSubmit, onInput, model, errorText, submitSuccess } =
                             }
                         ]
                   ]
-                , [ heading "INFO"
+                , [ heading "LEGAL"
                   , entry
                         { title = Just "imprint"
                         , destination = "/imprint"
