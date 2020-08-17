@@ -1,9 +1,9 @@
 ---
 {
   "type": "blog",
-  "title": "Software Design by Abstraction",
+  "title": "Program by Controlling the Power of Types",
   "description": "There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
-  "image": "images/other/hello.jpg",
+  "image": "images/power-of-types/thumbnail.jpg",
   "draft": true,
   "published": "2019-11-28",
 }
@@ -47,7 +47,7 @@ Just for reference. Apart from this it's going to be ML-style syntax again.
 </in-margin>
 
 
-Those above two types _are_ equivalent. My argument as to why is simple: If you had either function, you can 'derive' the other:
+The types of `sum1` and `sum2` _are_ equivalent. My argument as to why is simple: If you had a value of one of the types, you could 'derive' a value of the other type:
 
 ```elm
 sum1isSum2 : (Int -> Int -> Int) -> ((Int, Int) -> Int)
@@ -59,7 +59,7 @@ sum2isSum1 sum2 =
     \x y -> sum2 (x, y)
 ```
 
-So, generally, I'll say two types `A` and `B` are equal, when there exists a function `A -> B` and `B -> A`. If we replace `A` with `Int -> Int -> Int` and `B` with `(Int, Int) -> Int` you'll get the two type signatures above.
+So, generally, I'll say two types `A` and `B` are equal when there exists a function `A -> B` and `B -> A`. If we replace `A` with `Int -> Int -> Int` and `B` with `(Int, Int) -> Int` you'll get the two type signatures above.
 
 <ImgCaptioned
   id="equivalent-types-illustration"
@@ -78,7 +78,7 @@ I'd like to convince you to think of this definition for equality as useful. Say
 * If you choose `sum1` you can derive `sum2` just by writing your own `sum1isSum2`.
 * If you choose `sum2` you can derive `sum1` just by writing your own `sum2isSum1`.
 
-So from a standpoint of someone who needs to choose a function (or library), this doesn't seem so interesting. However, from the library author standpoint, if she notices that her functions are (in one way) of _equivalent power_, she can safely ignore the 'power' of her functions and focus on other things like _performance_ or _simplicity_.
+Now, if you ever notice that two function types are of _equivalent power_, you can focus on comparing other things like _performance_ or _simplicity_ instead.
 
 <in-margin>
 <info title="Sidenote: Here's a real world example, albeit a little complex.">
