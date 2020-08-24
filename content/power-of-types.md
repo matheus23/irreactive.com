@@ -2,7 +2,7 @@
 {
   "type": "blog",
   "title": "Program by Controlling the Power of Types",
-  "description": "There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
+  "description": "TODO There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
   "image": "images/power-of-types/thumbnail.jpg",
   "draft": true,
   "published": "2019-11-28",
@@ -84,7 +84,7 @@ Now, if you ever notice that two function types are of _equivalent power_, you c
 <info title="Sidenote: Here's a real world example, albeit a little complex.">
 Feel free to skip this.
 
-Here are two functions in [`elm-community/result-extra`](https://package.elm-lang.org/packages/elm-community/result-extra/2.4.0/Result-Extra#combine):
+Here are two functions from [`elm-community/result-extra`](https://package.elm-lang.org/packages/elm-community/result-extra/2.4.0/Result-Extra#combine):
 
 ```elm
 combine :
@@ -139,8 +139,6 @@ It contains some _markdown_ blocks.
 
 We might also want to include some ill-formed markdown, as that's also valid input, according to the type signature to `parse`. How about this?
 
-(Actually, there's no ill-formed markdown according to the spec. But let's assume we're working with nit-picky parsers that for example expect '`_`'s to be escaped, when not ment to be used for italics.)
-
 ```markdown
 This is some example markdown.
 
@@ -149,9 +147,12 @@ It includes invalid _markdown blocks.
 Damn. I didn't end that _italic_ it the last paragraph.
 ```
 
+(Actually, there's no ill-formed markdown according to the spec. But let's assume we're working with nit-picky parsers that for example expect '`_`'s to be escaped, when not ment to be used for italics.)
+
+
 ### Step 2: Imagine Outputs
 
-So now let's look at the two output types. We have to look at both, because they're different.
+So now let's look at the two output types. Remember that we have to look at both, because they're different, unlike the input types.
 
 ```elm
 parseOutput : Result String (List Markdown.Block)
