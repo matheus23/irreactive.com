@@ -114,8 +114,18 @@ Therefore, if a user only had `combine` available and didn't want to accept a pe
 
 However, we're not interested in types with equal power! After all, I said that the two `parse` types are not equally powerful.
 
-Let's look at them more closely. **We can infer what the function is likely doing just by looking at the type signature.**
+Let's look at them more closely. One thing we can do with types is **imagine what the function is likely doing just by looking at the type signature.**
 
+
+```markdown interactive
+This is some example markdown.
+
+It contains some _markdown_ blocks.
+
+* Here's a 
+* list of
+* items
+```
 
 ### Step 1: Imagine Inputs
 

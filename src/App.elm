@@ -5,6 +5,7 @@ import Animator.Css
 import Components.Ama as Ama
 import Components.CodeInteractiveElm as CodeInteractiveElm
 import Components.CodeInteractiveJs as CodeInteractiveJs
+import Components.MarkdownInteractive as MarkdownInteractive
 import Dict exposing (Dict)
 import Http
 import MarkdownComponents.Carousel as Carousel
@@ -41,6 +42,7 @@ type alias Model =
     , carousels : Dict String Carousel.Model
     , interactiveJs : Dict String CodeInteractiveJs.Model
     , interactiveElm : Dict String CodeInteractiveElm.Model
+    , interactiveMarkdown : Dict String MarkdownInteractive.Model
     , ama : Ama.Model
     }
 
@@ -62,6 +64,7 @@ init =
       , carousels = Dict.empty
       , interactiveJs = Dict.empty
       , interactiveElm = Dict.empty
+      , interactiveMarkdown = Dict.empty
       , ama = Ama.init
       }
     , Cmd.none
@@ -88,6 +91,7 @@ type Msg
     | CarouselMsg String Carousel.Msg
     | InteractiveJsMsg String CodeInteractiveJs.Model CodeInteractiveJs.Msg
     | InteractiveElmMsg String CodeInteractiveElm.Model CodeInteractiveElm.Msg
+    | MarkdownInteractiveMsg String MarkdownInteractive.Model MarkdownInteractive.Msg
     | AmaMsg Ama.Msg
       -- Animator
     | AnimatorTick Time.Posix
@@ -213,6 +217,22 @@ update msg model =
                         model.interactiveElm
             in
             ( { model | interactiveElm = interactiveElmUpdated }
+            , Cmd.none
+            )
+
+        MarkdownInteractiveMsg elementId subInit subMsg ->
+            let
+                interactiveMarkdownUpdated =
+                    Dict.update elementId
+                        (\subModel ->
+                            subModel
+                                |> Maybe.withDefault subInit
+                                |> MarkdownInteractive.update subMsg
+                                |> Just
+                        )
+                        model.interactiveMarkdown
+            in
+            ( { model | interactiveMarkdown = interactiveMarkdownUpdated }
             , Cmd.none
             )
 

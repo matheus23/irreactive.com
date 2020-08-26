@@ -562,7 +562,7 @@ markdown attributes block =
                 [ classes
                     [ "mt-4 py-6 px-8"
                     , "overflow-y-auto"
-                    , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-0"
+                    , "font-code text-base-sm code-shadow text-gruv-gray-12 bg-gruv-gray-1"
                     ]
                 ]
                 [ code [] [ text info.body ] ]

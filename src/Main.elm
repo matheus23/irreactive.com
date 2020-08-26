@@ -21,14 +21,14 @@ import View
 
 manifest : Manifest.Config Pages.PathKey
 manifest =
-    { backgroundColor = Just Color.white
+    { backgroundColor = Just (Color.rgb255 249 245 215)
     , categories = [ Pages.Manifest.Category.education ]
     , displayMode = Manifest.Standalone
     , orientation = Manifest.Portrait
     , description = siteName ++ " - " ++ siteTagline
     , iarcRatingId = Nothing
     , name = siteName
-    , themeColor = Just Color.white
+    , themeColor = Just (Color.rgb255 214 93 14)
     , startUrl = pages.index
     , shortName = Just siteName
     , sourceIcon = images.icons.favicon

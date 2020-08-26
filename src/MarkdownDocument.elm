@@ -5,6 +5,7 @@ import Components.Ama as Ama
 import Components.CodeHighlighted as CodeHighlighted
 import Components.CodeInteractiveElm as CodeInteractiveElm
 import Components.CodeInteractiveJs as CodeInteractiveJs
+import Components.MarkdownInteractive as MarkdownInteractive
 import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -97,6 +98,17 @@ reduceMarkdown block path =
                                     |> Maybe.withDefault init
                                     |> CodeInteractiveElm.view
                                     |> Html.map (InteractiveElmMsg (pathToId path) init)
+                            )
+
+                Just "markdown interactive" ->
+                    MarkdownInteractive.init code.body
+                        |> Result.map
+                            (\init model ->
+                                model.interactiveMarkdown
+                                    |> Dict.get (pathToId path)
+                                    |> Maybe.withDefault init
+                                    |> MarkdownInteractive.view
+                                    |> Html.map (MarkdownInteractiveMsg (pathToId path) init)
                             )
 
                 _ ->
