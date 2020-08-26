@@ -1,7 +1,7 @@
 ---
 {
   "type": "blog",
-  "title": "Program by Controlling the Power of Types",
+  "title": "Control the Power of your Types",
   "description": "TODO There is a lot of literature about Object Oriented Software Design, usually thick books with lots of guidelines. In comparison, there is very little literature about Software Design of Functional Programs. Often people ask about the 'Patterns' of Functional Programming, but I believe the solutions is to stop pressing your Programs to adhere to patterns, but instead evolve your own patterns for your domain.",
   "image": "images/power-of-types/thumbnail.jpg",
   "draft": true,
@@ -23,6 +23,9 @@ parse : String -> List (Result String Markdown.Block)
 
 Which one will you choose?
 
+
+
+
 # The power of types
 
 You choose the powerful one of course! You see, those two types for `parse` are not equivalent.
@@ -33,19 +36,6 @@ Wait, _what are equivalent types?_
 sum1 : Int -> Int -> Int
 sum2 : (Int, Int) -> Int
 ```
-<in-margin>
-<info title="Info: What do these types mean?">
-Valid implementations for these types in javascript would look like this:
-
-```js
-const sum1 = a => b => a + b
-const sum2 = ([a, b]) => a + b
-```
-
-Just for reference. Apart from this it's going to be ML-style syntax again.
-</info>
-</in-margin>
-
 
 The types of `sum1` and `sum2` _are_ equivalent. My argument as to why is simple: If you had a value of one of the types, you could 'derive' a value of the other type:
 
@@ -80,9 +70,10 @@ I'd like to convince you to think of this definition for equality as useful. Say
 
 Now, if you ever notice that two function types are of _equivalent power_, you can focus on comparing other things like _performance_ or _simplicity_ instead.
 
-<in-margin>
-<info title="Sidenote: Here's a real world example, albeit a little complex.">
-Feel free to skip this.
+
+
+
+# A 'Realworld' Example
 
 Here are two functions from [`elm-community/result-extra`](https://package.elm-lang.org/packages/elm-community/result-extra/2.4.0/Result-Extra#combine):
 
@@ -97,7 +88,9 @@ combineMap :
     -> Result x (List b)
 ```
 
-Both solve the same problem: You have individual failues (`Result`s) and want to handle a whole list of them.
+Both solve the same problem: You have individual successes or failures ([Results](https://package.elm-lang.org/packages/elm/core/latest/Result#Result)) and want to handle a whole list of them. 
+
+At the end you either want there to be success or failure _as a whole_, not per individual list item.
 
 Both are equivalently powerful:
 
@@ -114,14 +107,15 @@ However, `combineMapIsCombine` is roughly 2x slower than `combineIsCombineMap`, 
 At the same time, `combineMap` is a little more complex: The function takes another parameter and also has an additional type parameter (`b`) compared to `combine`.
 
 Therefore, if a user only had `combine` available and didn't want to accept a performance penalty, she'd have to write the `combine` logic herself, even though `combine` and `combineMap` are 'equivalent'.
-</info>
-</in-margin>
+
+
 
 ## Dissecting functions by type
 
 However, we're not interested in types with equal power! After all, I said that the two `parse` types are not equally powerful.
 
 Let's look at them more closely. **We can infer what the function is likely doing just by looking at the type signature.**
+
 
 ### Step 1: Imagine Inputs
 
@@ -148,6 +142,7 @@ Damn. I didn't end that _italic_ it the last paragraph.
 ```
 
 (Actually, there's no ill-formed markdown according to the spec. But let's assume we're working with nit-picky parsers that for example expect '`_`'s to be escaped, when not ment to be used for italics.)
+
 
 
 ### Step 2: Imagine Outputs
@@ -254,6 +249,8 @@ It still parses the other markdown blocks fine. I could have returned a list of 
 
 What I presented is just one way the output of `parse` _could_ have looked like. But the fact that that output is possible alone means that this `parse` function is more powerful. However, I'm going to prove it with the same framework as I have proven equivalency before.
 
+
+
 ## Not all functions are created equal
 
 So, the second parse function is more powerful. I'll just cut the chase and show you why:
@@ -273,7 +270,11 @@ Again, we can convert the second parsing function to the first parsing function.
 
 Now, they could be equally powerful. I have no way for you to guaruntee that `parse1` doesn't stand up to the challenge. But it can be reassuring that you can safely choose `parse2`, if you like it's features, because in the worst case, you can get what `parse1` promises, too.
 
-## With great power also comes great responsibility
+
+
+
+# With great power also comes great responsibility
+
 
 
 
