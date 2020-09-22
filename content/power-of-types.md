@@ -9,35 +9,57 @@
 }
 ---
 
-Let's imagine: You think your thoughts are _oh so valueable_, so you decide to create a blog. You write your blog posts in markdown and generate Html for them by writing your own code.
+I'm often confronted with a choice between programming libraries. In dynamic programming languages like javascript I have to either look at the documentation and/or run the code before I can assess it. In statically typed programming languages a quick look at the types is often enough to exclude certain choices. But how and why does that work?
 
-In the process, you need to decide which library you'll use for markdown parsing. You take a look at the types of their `parse` function:
+Let's use an example. Say, you want to find a markdown parsing library for your custom implementation of a blog website. You look at the first candidate:
 
 ```elm
--- Markdown library 1:
-parse : String -> Result String (List Markdown.Block)
+parse : String -> Html msg
+```
 
--- Markdown library 2:
+Fairly simple type. You don't know much of what this is doing, though. And also, `Html` is opaque. If you want to create a different html structure than what this library produces, you're out of luck.
+
+```elm
+parse : String -> List Markdown.Block
+```
+
+Awesome, this library will allow you to traverse each markdown block on your own, and you'll have full control over how html is rendered. However, you don't stop looking and find this:
+
+```elm
+parse : String -> Result String (List Markdown.Block)
+```
+
+Huh. Intriguing, you think. The `Result` type in the output of this parse function indicates that markdown parsing with this library can fail. Usually, markdown is parsed pretty leniently, but from the type signature you deduce it must be stricter. Maybe a missing paranthesis in a link `[like](http://this` causes it to fail?
+That would be a feature, as you could ensure you don't accidentally have broken markdown on your website.
+
+Of course, markdown parser libraries are abundant and you find this one:
+
+```elm
 parse : String -> List (Result String Markdown.Block)
 ```
 
-Which one will you choose?
+Hmm. Now the difference becomes more subtle. You have a feeling this library can do more than the last one, but you're not sure.
 
+Let me show you how to analize functions by their type signature alone and actually be sure.
 
 
 
 # The power of types
 
-You choose the powerful one of course! You see, those two types for `parse` are not equivalent.
+I'll call 'what a function can do' the 'power' of a function - or, because we're looking at their types - the power of a type.
 
-Wait, _what are equivalent types?_
+Let's go a step back, and use a simpler example:
 
 ```elm
 sum1 : Int -> Int -> Int
 sum2 : (Int, Int) -> Int
 ```
 
-The types of `sum1` and `sum2` _are_ equivalent. My argument as to why is simple: If you had a value of one of the types, you could 'derive' a value of the other type:
+Can one of these functions do more than the other? So, is one of their types more powerful?
+
+Both functions seem to sum two numbers, none of these actually gives you any more information than the other, it's just that the inputs are given in two different ways.
+
+We can show that two functions are equally powerful by implementing each function given the other one:
 
 ```elm
 sum1isSum2 : (Int -> Int -> Int) -> ((Int, Int) -> Int)
@@ -49,7 +71,15 @@ sum2isSum1 sum2 =
     \x y -> sum2 (x, y)
 ```
 
-So, generally, I'll say two types `A` and `B` are equal when there exists a function `A -> B` and `B -> A`. If we replace `A` with `Int -> Int -> Int` and `B` with `(Int, Int) -> Int` you'll get the two type signatures above.
+Using this, it's really easy to argue why the choice between them wouldn't matter: If you had chosen `sum1`, but suddenly needed the type of `sum2`, you'd simply run it through `sum1IsSum2`, because `sum1IsSum2 sum1` behaves the same as `sum2`.
+
+<in-margin>
+(The choice _could_ still matter, but not purely from the observation of inputs and outputs. Given the same inputs, these functions produce the same outputs. There's no extra information that `sum1` provides over `sum2`. What _does_ still matter might be memory efficiency or performance. Converting between things is obviously not free.)
+</in-margin>
+
+Put more simply, you can convert `sum1` into `sum2` and vice versa.
+
+And generally, two things of type `A` and `B` are equally powerful (in our sense), if there exist two functions `A -> B` and `B -> A` that form a so-called isomorphism.
 
 <ImgCaptioned
   id="equivalent-types-illustration"
@@ -63,13 +93,7 @@ Think of the equivalency like this. The bubbles represent the types and the arro
 If this forms a cycle, all the types in the cycle are equivalent.
 </ImgCaptioned>
 
-I'd like to convince you to think of this definition for equality as useful. Say, you're in a position where you'd have to choose between `sum1` or `sum2`. **The choice wouldn't matter**.
-
-* If you choose `sum1` you can derive `sum2` just by writing your own `sum1isSum2`.
-* If you choose `sum2` you can derive `sum1` just by writing your own `sum2isSum1`.
-
 Now, if you ever notice that two function types are of _equivalent power_, you can focus on comparing other things like _performance_ or _simplicity_ instead.
-
 
 
 
@@ -108,7 +132,7 @@ At the same time, `combineMap` is a little more complex: The function takes anot
 
 Therefore, if a user only had `combine` available and didn't want to accept a performance penalty, she'd have to write the `combine` logic herself, even though `combine` and `combineMap` are 'equivalent'.
 
-
+---
 
 ## Dissecting functions by type
 
