@@ -17,19 +17,23 @@ Let's use an example. Say, you want to find a markdown parsing library for your 
 parse : String -> Html msg
 ```
 
-Fairly simple type. You don't know much of what this is doing, though. And also, `Html` is opaque. If you want to create a different html structure than what this library produces, you're out of luck.
+It's a fairly simple type. You can't deduce what's going on inside, though. That makes sense, as a very small type can only convey a fairly small amount of information.
+
+And also, `Html` is opaque, that means, you can't take it apart, only render it. So if you want to create a different html structure than what this library produces, you're out of luck.
 
 ```elm
 parse : String -> List Markdown.Block
 ```
 
-Awesome, this library will allow you to traverse each markdown block on your own, and you'll have full control over how html is rendered. However, you don't stop looking and find this:
+Awesome, this library will allow you to traverse each markdown block on your own, and you'll have full control over how html is rendered, as `Markdown.Block` is not opaque: You can take it apart and look at its structure.
+
+However, you don't stop looking and find this:
 
 ```elm
 parse : String -> Result String (List Markdown.Block)
 ```
 
-Huh. Intriguing, you think. The `Result` type in the output of this parse function indicates that markdown parsing with this library can fail. Usually, markdown is parsed pretty leniently, but from the type signature you deduce it must be stricter. Maybe a missing paranthesis in a link `[like](http://this` causes it to fail?
+Huh. Intriguing, you think. The `Result` type in the output of this parse function indicates that markdown parsing with this library _can fail_. Usually, markdown is parsed leniently, but from the type signature you deduce it must be stricter. Maybe a missing paranthesis in a link `[like](http://this` causes it to fail?
 That would be a feature, as you could ensure you don't accidentally have broken markdown on your website.
 
 Of course, markdown parser libraries are abundant and you find this one:
@@ -38,7 +42,7 @@ Of course, markdown parser libraries are abundant and you find this one:
 parse : String -> List (Result String Markdown.Block)
 ```
 
-Hmm. Now the difference becomes more subtle. You have a feeling this library can do more than the last one, but you're not sure.
+Hmm. Now the difference becomes more subtle. You have a feeling this library provides you more information than the last one, but you're not sure.
 
 Let me show you how to analize functions by their type signature alone and actually be sure.
 
@@ -46,7 +50,7 @@ Let me show you how to analize functions by their type signature alone and actua
 
 # The power of types
 
-I'll call 'what a function can do' the 'power' of a function - or, because we're looking at their types - the power of a type.
+I'll loosely call 'how much information a function provides to the user' the _power_ of a function - or, because we're looking at their types - the _power of a type_. 'Power', in the sense of _empowering the user_ of a function.
 
 Let's go a step back, and use a simpler example:
 
@@ -55,9 +59,9 @@ sum1 : Int -> Int -> Int
 sum2 : (Int, Int) -> Int
 ```
 
-Can one of these functions do more than the other? So, is one of their types more powerful?
+Is one of these functions more empowering to a user? So, is one of their types more powerful?
 
-Both functions seem to sum two numbers, none of these actually gives you any more information than the other, it's just that the inputs are given in two different ways.
+Both functions seem to sum two numbers, none of these actually give you any more information than the other, it's just that the inputs are given in two different ways.
 
 We can show that two functions are equally powerful by implementing each function given the other one:
 
@@ -88,9 +92,9 @@ And generally, two things of type `A` and `B` are equally powerful (in our sense
   src="images/power-of-types/equivalent-types.svg"
   width="75%"
 >
-Think of the equivalency like this. The bubbles represent the types and the arrows represent functions from one type to another.
+Think of the equivalency like this: The bubbles represent the types and the arrows represent functions from one type to another.
 
-If this forms a cycle, all the types in the cycle are equivalent.
+If this forms a cycle, all the types in the cycle are equivalently powerful.
 </ImgCaptioned>
 
 Now, if you ever notice that two function types are of _equivalent power_, you can focus on comparing other things like _performance_ or _simplicity_ instead.
@@ -131,6 +135,65 @@ However, `combineMapIsCombine` is roughly 2x slower than `combineIsCombineMap`, 
 At the same time, `combineMap` is a little more complex: The function takes another parameter and also has an additional type parameter (`b`) compared to `combine`.
 
 Therefore, if a user only had `combine` available and didn't want to accept a performance penalty, she'd have to write the `combine` logic herself, even though `combine` and `combineMap` are 'equivalent'.
+
+
+
+# The Empowering Parse Function
+
+Let's come back to our original example and try to see whether the two parse functions are equivalently powerful.
+
+Here are both their types again for reference:
+
+```elm
+-- option 1
+parse : String -> Result String (List Markdown.Block)
+-- option 2
+parse : String -> List (Result String Markdown.Block)
+```
+
+If we want to assess their relative power, we need to think of implementing one function in terms of the other.
+
+Let's try to implement option 1 in terms of option 2.
+
+```elm
+option2IsOption1 :
+    (String
+        -> List (Result String Markdown.Block)
+    )
+    -> String
+    -> Result String (List Markdown.Block)
+option2IsOption1 parse markdown =
+    -- What do we do?
+    -- Our first step can be applying the
+    -- markdown string to the parse
+    -- function given.
+    -- (That's basically the only thing we
+    -- can do using the inputs to this
+    -- function.)
+    markdown
+        |> parse
+    -- Now we have a value of this type:
+    -- List (Result String Markdown.Block)
+    -- And we need to transform this to:
+    -- Result String (List Markdown.Block)
+    -- We can use result-extra's `combine`!
+        |> Result.Extra.combine
+```
+
+Great so this works. 
+
+
+---
+
+# Conclusion
+
+By now you should understand that controlling the power of types is a trade-off. At first it might seem that empowering the user - so, providing the user with as much information as possible - is always better, but this may clash with other factors such as simplicity or performance.
+
+My goal for this article is this: I want the consideration of the power of types in functional programming languages to be a concious choice of library authors. To make this possible it is necessary to make it an objective measure. I think that this framework provides one.
+
+For this article I had an internal struggle with how much time I spend talking about what the functions would actually do when run.
+* On the one hand, this article is meant to be read by someone who's not necessarily too familiar with reasoning using types alone. Therefore, it'd be necessary to provide something tangible to them to start with, e.g. example inputs and outputs (actual values, not their types!).
+* On the other hand, if I did that, I'd basically get rid of one of the big benefits of types: Not having to think about concrete values and not having to be a human interpreter.
 
 ---
 
