@@ -19,7 +19,7 @@ parse : String -> Html msg
 
 It's a fairly simple type. You can't deduce what's going on inside, though. That makes sense, as a very small type can only convey a fairly small amount of information.
 
-And also, `Html` is opaque, that means, you can't take it apart, only render it. So if you want to create a different html structure than what this library produces, you're out of luck.
+And also, this example is from Elm. There, `Html` is opaque: You can't take it apart, only render it. So if you want to create a different html structure than what this library produces, you're out of luck.
 
 ```elm
 parse : String -> List Markdown.Block
@@ -33,7 +33,9 @@ However, you don't stop looking and find this:
 parse : String -> Result String (List Markdown.Block)
 ```
 
-Huh. Intriguing, you think. The `Result` type in the output of this parse function indicates that markdown parsing with this library _can fail_. Usually, markdown is parsed leniently, but from the type signature you deduce it must be stricter. Maybe a missing paranthesis in a link `[like](http://this` causes it to fail?
+Huh. Intriguing, you think. The `Result` type in the output of this parse function indicates that markdown parsing with this library _can fail_. Usually, markdown is parsed leniently, but from the type signature you deduce it must be stricter.
+
+Maybe a missing paranthesis in a link `[like](http://this` causes it to fail?
 That would be a feature, as you could ensure you don't accidentally have broken markdown on your website.
 
 Of course, markdown parser libraries are abundant and you find this one:
@@ -78,7 +80,7 @@ sum2isSum1 sum2 =
 Using this, it's really easy to argue why the choice between them wouldn't matter: If you had chosen `sum1`, but suddenly needed the type of `sum2`, you'd simply run it through `sum1IsSum2`, because `sum1IsSum2 sum1` behaves the same as `sum2`.
 
 <in-margin>
-(The choice _could_ still matter, but not purely from the observation of inputs and outputs. Given the same inputs, these functions produce the same outputs. There's no extra information that `sum1` provides over `sum2`. What _does_ still matter might be memory efficiency or performance. Converting between things is obviously not free.)
+(The choice _could_ still matter, but _not_ purely from the observation of inputs and outputs. Given the same inputs, these functions produce the same outputs. There's no extra information that `sum1` provides over `sum2`. What _does_ still matter might be memory efficiency or performance. Converting between things is obviously not free.)
 </in-margin>
 
 Put more simply, you can convert `sum1` into `sum2` and vice versa.
@@ -134,7 +136,7 @@ However, `combineMapIsCombine` is roughly 2x slower than `combineIsCombineMap`, 
 
 At the same time, `combineMap` is a little more complex: The function takes another parameter and also has an additional type parameter (`b`) compared to `combine`.
 
-Therefore, if a user only had `combine` available and didn't want to accept a performance penalty, she'd have to write the `combine` logic herself, even though `combine` and `combineMap` are 'equivalent'.
+Therefore, if a user only had `combine` available and didn't want to accept a performance penalty, she'd have to write the `combine` logic herself, even though `combine` and `combineMap` are equivalent in power.
 
 
 
@@ -182,6 +184,47 @@ option2IsOption1 parse markdown =
 
 Great so this works. 
 
+But once you try to implement option 2 in terms of option 1, you'll see the issue:
+
+```elm
+option1IsOption2 :
+    (String
+        -> Result String (List Markdown.Block)
+    )
+    -> String
+    -> List (Result String Markdown.Block)
+option1IsOption2 parse markdown =
+    -- Again, the only thing we can do is
+    -- applying our parse function:
+    markdown
+        |> parse
+    -- Now we have a value of this type:
+    -- Result String (List Markdown.Block)
+    -- We'd have to transform this to
+    -- List (Result String Markdown.Block)
+    -- but we can't do that easily.
+    -- What if there is an Err result?
+    -- Would we just return an empty list?
+    -- That way, we lose information about
+    -- our markdown.
+```
+
+As you can see, converting this way has to be lossy in one way or the other, simply due to the choice of type.
+
+We can prove that a particular implementation of `option1IsOption2` is lossy, by testing whether the following function is true for all inputs:
+
+```elm
+isConversionLossy : String -> Bool
+isConversionLossy markdown =
+    let
+        lossyParse =
+            parse
+                |> option2IsOption1
+                |> option1IsOption2
+    in
+    lossyParse markdown
+        == parse markdown
+```
 
 ---
 
