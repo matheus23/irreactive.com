@@ -19,7 +19,7 @@
     "@fullhuman/postcss-purgecss": "^2.2.0",
     "cssnano": "^4.1.10",
     "highlight.js": "^10.1.1",
-    "node-sass": "^4.12.0",
+    "node-sass": "^7.0.0",
     "sass": "^1.23.7",
     "sharp": "^0.25.2",
     "tailwindcss": "^1.4.6"
